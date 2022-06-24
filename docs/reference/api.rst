@@ -1,24 +1,24 @@
 API
 ===
 
-.. automodule:: dls_python3_skeleton
+.. automodule:: diffcalc_API
 
-    ``dls_python3_skeleton``
+    ``diffcalc_API``
     -----------------------------------
 
-This is the internal API reference for dls_python3_skeleton
+This is the internal API reference for diffcalc_API
 
 You can mix verbose text with docstring and signature extraction by
 using ``autoclass`` and ``autofunction`` directives instead of
 ``automodule`` below.
 
-.. data:: dls_python3_skeleton.__version__
+.. data:: diffcalc_API.__version__
     :type: str
 
     Version number as calculated by https://github.com/dls-controls/versiongit
 
-.. automodule:: dls_python3_skeleton.hello
+.. automodule:: diffcalc_API.hello
     :members:
 
-    ``dls_python3_skeleton.hello``
+    ``diffcalc_API.hello``
     -----------------------------------------
