@@ -3,8 +3,7 @@ diffcalc_API
 
 |code_ci| |docs_ci| |coverage| |pypi_version| |license|
 
-This is where you should write a short paragraph that describes what your module does,
-how it does it, and why people should use it.
+An API which exposes the methods in diffcalc-core using FastAPI.
 
 ============== ==============================================================
 PyPI           ``pip install diffcalc_API``
@@ -27,6 +26,8 @@ introductory code here:
 Or if it is a commandline tool then you might put some example commands here::
 
     diffcalc_API person --times=2
+
+No other features yet. 
 
 .. |code_ci| image:: https://github.com/dls-controls/diffcalc_API/workflows/Code%20CI/badge.svg?branch=master
     :target: https://github.com/dls-controls/diffcalc_API/actions?query=workflow%3A%22Code+CI%22
