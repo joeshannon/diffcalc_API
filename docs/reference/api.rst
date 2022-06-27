@@ -6,9 +6,9 @@ API
     ``diffcalc_API``
     -----------------------------------
 
-This is the internal API reference for diffcalc_API
+Internal API reference for diffcalc_API
 
-You can mix verbose text with docstring and signature extraction by
+Mix verbose text with docstring and signature extraction by
 using ``autoclass`` and ``autofunction`` directives instead of
 ``automodule`` below.
 

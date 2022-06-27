@@ -12,8 +12,8 @@ Documentation  https://dls-controls.github.io/diffcalc_API
 Releases       https://github.com/dls-controls/diffcalc_API/releases
 ============== ==============================================================
 
-This is where you should put some images or code snippets that illustrate
-some relevant examples. If it is a library then you might put some
+This is where you should put some images/code snippets that illustrate
+relevant examples. If it is a library then you might put some
 introductory code here:
 
 .. code:: python
