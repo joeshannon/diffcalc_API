@@ -1,8 +1,8 @@
 import json
-from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 
 import numpy as np
+from diffcalc.hkl.calc import HklCalculation
 from diffcalc.hkl.geometry import Position
 from diffcalc.ub.calc import UBCalculation
 from fastapi import APIRouter, Body, Depends, HTTPException
@@ -12,23 +12,16 @@ from diffcalc_API.models.UBCalculation import (
     addReflectionParams,
     setLatticeParams,
 )
-from diffcalc_API.utils import OpenCalculation, VectorProperties, saveFolder
+from diffcalc_API.utils import OpenPickle, VectorProperties, makePickleFile, returnHkl
 
+UB = OpenPickle("ub")
 router = APIRouter(prefix="/ub", tags=["ub"])
-UB = OpenCalculation("ub")
-
-
-def make_path(name: str):
-    return Path(saveFolder) / name / "ub"
 
 
 @router.post("/create/{name}")
 async def make_calc(name: str):
     calc = UBCalculation(name=name)
-    fp = make_path(name)
-
-    if not fp.parent.exists():
-        Path(fp.parent).mkdir()
+    fp = makePickleFile(name, "ub")
 
     calc.pickle(fp)
     return {"message": f"file created at {fp}"}
@@ -39,14 +32,17 @@ async def set_lattice(
     name: str,
     setLatticeParams: setLatticeParams = Body(example={"a": 4.913, "c": 5.405}),
     calc: UBCalculation = Depends(UB),
+    hkl: Union[HklCalculation, None] = Depends(returnHkl),
 ):
     try:
         calc.set_lattice(name=name, **setLatticeParams.dict())
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"something happened: {e}")
 
-    calc.pickle(make_path(name))
-    return {"message": f"lattice set for file at {make_path(name)}"}
+    pickleFile = makePickleFile(name, "ub")
+    calc.pickle(pickleFile)
+
+    return {"message": f"lattice set for file at {pickleFile}"}
 
 
 @router.put("/update/{name}/{property}")
@@ -67,8 +63,9 @@ async def modify_property(
     except Exception as e:
         raise HTTPException(status_code=401, detail=f"something happened: {e}")
 
-    calc.pickle(make_path(name))
-    return {"message": f"{property} updated for file at {make_path(name)}"}
+    pickleFile = makePickleFile(name, "ub")
+    calc.pickle(pickleFile)
+    return {"message": f"{property} updated for file at {pickleFile}"}
 
 
 @router.put("/update/{name}/add/reflection")
@@ -95,8 +92,9 @@ async def add_reflection(
     except Exception as e:
         raise HTTPException(status_code=401, detail=f"something happened: {e}")
 
-    calc.pickle(make_path(name))
-    return {"message": f"added reflection for file at {make_path(name)}"}
+    pickleFile = makePickleFile(name, "ub")
+    calc.pickle(pickleFile)
+    return {"message": f"added reflection for file at {pickleFile}"}
 
 
 @router.put("/update/{name}/add/orientation")
@@ -124,8 +122,9 @@ async def add_orientation(
     except Exception as e:
         raise HTTPException(status_code=401, detail=f"something happened: {e}")
 
-    calc.pickle(make_path(name))
-    return {"message": f"added orientation for file at {make_path(name)}"}
+    pickleFile = makePickleFile(name, "ub")
+    calc.pickle(pickleFile)
+    return {"message": f"added orientation for file at {pickleFile}"}
 
 
 @router.get("/update/{name}/UB")
@@ -137,5 +136,5 @@ async def calculate_UB(
 ):
     calc.calc_ub(firstTag, secondTag)
 
-    calc.pickle(make_path(name))
+    calc.pickle(makePickleFile(name, "ub"))
     return json.dumps(np.round(calc.UB, 6).tolist())
