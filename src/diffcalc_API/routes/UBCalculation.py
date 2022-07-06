@@ -1,56 +1,38 @@
 import json
-from typing import Optional, Tuple, Union
+from typing import Optional, Tuple
 
 import numpy as np
 from diffcalc.hkl.calc import HklCalculation
 from diffcalc.hkl.geometry import Position
-from diffcalc.ub.calc import UBCalculation
-from fastapi import APIRouter, Body, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException, Query
 
 from diffcalc_API.models.UBCalculation import (
     addOrientationParams,
     addReflectionParams,
     setLatticeParams,
 )
-from diffcalc_API.utils import OpenPickle, VectorProperties, makePickleFile, returnHkl
+from diffcalc_API.utils import VectorProperties, pickleHkl, unpickleHkl
 
-UB = OpenPickle("ub")
-router = APIRouter(prefix="/ub", tags=["ub"])
-
-
-@router.post("/create/{name}")
-async def make_calc(name: str):
-    calc = UBCalculation(name=name)
-    fp = makePickleFile(name, "ub")
-
-    calc.pickle(fp)
-    return {"message": f"file created at {fp}"}
+router = APIRouter(prefix="/update/ub", tags=["ub"])
 
 
-@router.put("/update/{name}/lattice")
+@router.put("/{name}/lattice")
 async def set_lattice(
     name: str,
-    setLatticeParams: setLatticeParams = Body(example={"a": 4.913, "c": 5.405}),
-    calc: UBCalculation = Depends(UB),
-    hkl: Union[HklCalculation, None] = Depends(returnHkl),
+    params: setLatticeParams = Body(example={"a": 4.913, "c": 5.405}),
+    hkl: HklCalculation = Depends(unpickleHkl),
 ):
-    try:
-        calc.set_lattice(name=name, **setLatticeParams.dict())
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"something happened: {e}")
-
-    pickleFile = makePickleFile(name, "ub")
-    calc.pickle(pickleFile)
-
-    return {"message": f"lattice set for file at {pickleFile}"}
+    hkl.ubcalc.set_lattice(name=name, **params.dict())
+    pickleHkl(hkl, name)
+    return {"message": f"lattice set for UB calculation of crystal {name}"}
 
 
-@router.put("/update/{name}/{property}")
+@router.put("/{name}/{property}")
 async def modify_property(
     name: str,
     property: str,
     targetValue: Tuple[float, float, float] = Body(..., example=[1, 0, 0]),
-    calc: UBCalculation = Depends(UB),
+    hkl: HklCalculation = Depends(unpickleHkl),
 ):
     if property not in VectorProperties:
         raise HTTPException(
@@ -59,16 +41,15 @@ async def modify_property(
         )
 
     try:
-        setattr(calc, property, targetValue)
+        setattr(hkl.ubcalc, property, targetValue)
     except Exception as e:
         raise HTTPException(status_code=401, detail=f"something happened: {e}")
 
-    pickleFile = makePickleFile(name, "ub")
-    calc.pickle(pickleFile)
-    return {"message": f"{property} updated for file at {pickleFile}"}
+    pickleHkl(hkl, name)
+    return {"message": f"{property} set for UB calculation of crystal {name}"}
 
 
-@router.put("/update/{name}/add/reflection")
+@router.put("/{name}/add/reflection")
 async def add_reflection(
     name: str,
     params: addReflectionParams = Body(
@@ -80,10 +61,10 @@ async def add_reflection(
             "tag": "refl1",
         },
     ),
-    calc: UBCalculation = Depends(UB),
+    hkl: HklCalculation = Depends(unpickleHkl),
 ):
     try:
-        calc.add_reflection(
+        hkl.ubcalc.add_reflection(
             params.hkl,
             Position(*params.position),
             params.energy,
@@ -92,12 +73,11 @@ async def add_reflection(
     except Exception as e:
         raise HTTPException(status_code=401, detail=f"something happened: {e}")
 
-    pickleFile = makePickleFile(name, "ub")
-    calc.pickle(pickleFile)
-    return {"message": f"added reflection for file at {pickleFile}"}
+    pickleHkl(hkl, name)
+    return {"message": f"added reflection for UB Calculation of crystal {name}"}
 
 
-@router.put("/update/{name}/add/orientation")
+@router.put("/{name}/add/orientation")
 async def add_orientation(
     name: str,
     params: addOrientationParams = Body(
@@ -108,12 +88,12 @@ async def add_orientation(
             "tag": "plane",
         },
     ),
-    calc: UBCalculation = Depends(UB),
+    hkl: HklCalculation = Depends(unpickleHkl),
 ):
     position = Position(*params.position) if params.position else None
 
     try:
-        calc.add_orientation(
+        hkl.ubcalc.add_orientation(
             params.hkl,
             params.xyz,
             position,
@@ -122,19 +102,18 @@ async def add_orientation(
     except Exception as e:
         raise HTTPException(status_code=401, detail=f"something happened: {e}")
 
-    pickleFile = makePickleFile(name, "ub")
-    calc.pickle(pickleFile)
-    return {"message": f"added orientation for file at {pickleFile}"}
+    pickleHkl(hkl, name)
+    return {"message": f"added orientation for UB Calculation of crystal {name}"}
 
 
-@router.get("/update/{name}/UB")
+@router.get("/{name}/UB")
 async def calculate_UB(
     name: str,
-    firstTag: Optional[str] = None,
-    secondTag: Optional[str] = None,
-    calc: UBCalculation = Depends(UB),
+    firstTag: Optional[str] = Query(default=None, example="refl1"),
+    secondTag: Optional[str] = Query(default=None, example="plane"),
+    hkl: HklCalculation = Depends(unpickleHkl),
 ):
-    calc.calc_ub(firstTag, secondTag)
+    hkl.ubcalc.calc_ub(firstTag, secondTag)
 
-    calc.pickle(makePickleFile(name, "ub"))
-    return json.dumps(np.round(calc.UB, 6).tolist())
+    pickleHkl(hkl, name)
+    return json.dumps(np.round(hkl.ubcalc.UB, 6).tolist())

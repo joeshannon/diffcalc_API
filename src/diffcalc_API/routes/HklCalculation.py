@@ -1,3 +1,4 @@
+"""
 import pickle
 
 from diffcalc.hkl.calc import HklCalculation
@@ -34,3 +35,4 @@ async def make_hkl(
 
     print(calc)
     return {"message": "file created"}
+"""
