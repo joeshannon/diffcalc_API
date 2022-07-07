@@ -2,20 +2,23 @@ from typing import Dict, Tuple, Union
 
 from diffcalc.hkl.calc import HklCalculation
 from diffcalc.hkl.constraints import Constraints
-from fastapi import APIRouter, Body, Depends
+from fastapi import APIRouter, Body, Depends, HTTPException
 
-# from diffcalc_API.utils import OpenCalculation, savePicklesFolder
-from diffcalc_API.utils import constraintsWithNoValue, pickleHkl, unpickleHkl
+from diffcalc_API.utils import (
+    allConstraints,
+    constraintsWithNoValue,
+    pickleHkl,
+    unpickleHkl,
+)
 
 router = APIRouter(prefix="/update/constraints", tags=["constraints"])
 
 
-# Collection is not supported, so I explicitly define it here.
 singleConstraintType = Union[Tuple[str, float], str]
 
 
-@router.post("/{name}")
-async def replace_constraints(
+@router.post("/{name}/set")
+async def set_constraints(
     name: str,
     constraintDict: Dict[str, Union[float, bool]] = Body(
         example={"qaz": 0, "alpha": 0, "eta": 0}
@@ -33,24 +36,56 @@ async def replace_constraints(
     return {"message": f"constraints updated (replaced) for crystal {name}"}
 
 
-"""
-@router.post("/create/{name}")
-async def make_constraints(
+@router.post("/{name}/unconstrain/{property}")
+async def remove_constraint(
     name: str,
-    constraintDict: Dict[str, Union[float, bool]] = Body(
-        example={"qaz": 0, "a_eq_b": True, "eta": 0}
-    ),
+    property: str,
+    hkl: HklCalculation = Depends(unpickleHkl),
 ):
-    booleanConstraints = set(constraintDict.keys()).intersection(constraintsWithNoValue)
-    for constraint in booleanConstraints:
-        constraintDict[constraint] = bool(constraintDict[constraint])
+    check_constraint_exists(property)
+    setattr(hkl.constraints, property, None)
+    pickleHkl(hkl, name)
 
-    constraints = Constraints(constraintDict)
+    return {
+        "message": (
+            f"unconstrained {property} for crystal {name}. "
+            f"Constraints are now: {hkl.constraints.asdict}"
+        )
+    }
 
-    pickleFileName = makePickleFile(name, "constraints")
 
-    with open(pickleFileName, "wb") as pickleFile:
-        pickle.dump(obj=constraints, file=pickleFile)
+@router.post("/{name}/constrain/{property}")
+async def set_constraint(
+    name: str,
+    property: str,
+    hkl: HklCalculation = Depends(unpickleHkl),
+    value: Union[float, bool] = Body(...),
+):
+    check_constraint_exists(property)
 
-    return {"message": "complete"}
-"""
+    if property in constraintsWithNoValue:
+        value = bool(value)
+
+    try:
+        setattr(hkl.constraints, property, value)
+    except Exception as e:
+        raise HTTPException(status_code=401, detail=f"{e}")
+
+    pickleHkl(hkl, name)
+    return {
+        "message": (
+            f"constrained {property} for crystal {name}. "
+            f"Constraints are now: {hkl.constraints.asdict}"
+        )
+    }
+
+
+def check_constraint_exists(constraint: str):
+    if constraint not in allConstraints:
+        raise HTTPException(
+            status_code=402,
+            detail=(
+                f"property {constraint} does not exist as a valid constraint."
+                f" Choose one of {allConstraints}"
+            ),
+        )

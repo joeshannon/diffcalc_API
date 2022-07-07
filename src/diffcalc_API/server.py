@@ -10,6 +10,7 @@ from . import routes
 app = FastAPI()
 app.include_router(routes.UBCalculation.router)
 app.include_router(routes.Constraints.router)
+app.include_router(routes.HklCalculation.router)
 
 
 @app.post("/create/{name}")
