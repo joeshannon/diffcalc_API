@@ -27,3 +27,17 @@ class addOrientationParams(BaseModel):
     xyz: Tuple[float, float, float]
     position: Optional[Tuple[float, float, float, float, float, float]] = None
     tag: Optional[str] = None
+
+
+class editReflectionParams(BaseModel):
+    hkl: Optional[Tuple[float, float, float]] = None
+    position: Optional[Tuple[float, float, float, float, float, float]] = None
+    energy: Optional[float] = None
+    tagOrIdx: Union[int, str]
+
+
+class editOrientationParams(BaseModel):
+    hkl: Optional[Tuple[float, float, float]] = None
+    xyz: Optional[Tuple[float, float, float]] = None
+    position: Optional[Tuple[float, float, float, float, float, float]] = None
+    tagOrIdx: Union[int, str]

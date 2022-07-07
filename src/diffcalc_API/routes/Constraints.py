@@ -17,7 +17,7 @@ router = APIRouter(prefix="/update/constraints", tags=["constraints"])
 singleConstraintType = Union[Tuple[str, float], str]
 
 
-@router.post("/{name}/set")
+@router.put("/{name}/set")
 async def set_constraints(
     name: str,
     constraintDict: Dict[str, Union[float, bool]] = Body(
@@ -36,7 +36,7 @@ async def set_constraints(
     return {"message": f"constraints updated (replaced) for crystal {name}"}
 
 
-@router.post("/{name}/unconstrain/{property}")
+@router.patch("/{name}/unconstrain/{property}")
 async def remove_constraint(
     name: str,
     property: str,
@@ -54,7 +54,7 @@ async def remove_constraint(
     }
 
 
-@router.post("/{name}/constrain/{property}")
+@router.patch("/{name}/constrain/{property}")
 async def set_constraint(
     name: str,
     property: str,

@@ -45,7 +45,7 @@ def check_file_exists(pickledFile: Path, name: str) -> None:
         errorMessage = (
             f"File for crystal {name} not found."
             f"\nYou need to post to"
-            f" http://localhost:8000/create/{name}"  # TODO check this endpoint.
+            f" http://localhost:8000/{name}"
             f" first to generate the pickled file.\n"
         )
         raise HTTPException(status_code=401, detail=errorMessage)
@@ -55,5 +55,12 @@ def pickleHkl(object: HklCalculation, pickleFileName: str) -> Path:
     pickleFilePath = Path(savePicklesFolder) / pickleFileName
     with open(pickleFilePath, "wb") as pickleFile:
         pickle.dump(obj=object, file=pickleFile)
+
+    return pickleFilePath
+
+
+def deletePickle(pickleFileName) -> Path:
+    pickleFilePath = Path(savePicklesFolder) / pickleFileName
+    Path(pickleFilePath).unlink()
 
     return pickleFilePath
