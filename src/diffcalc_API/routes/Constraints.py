@@ -11,7 +11,7 @@ from diffcalc_API.utils import (
     unpickleHkl,
 )
 
-router = APIRouter(prefix="/update/constraints", tags=["constraints"])
+router = APIRouter(prefix="/constraints", tags=["constraints"])
 
 
 singleConstraintType = Union[Tuple[str, float], str]
