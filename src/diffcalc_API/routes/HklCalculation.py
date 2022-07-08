@@ -14,8 +14,19 @@ router = APIRouter(prefix="/calculate", tags=["hkl"])
 
 singleConstraintType = Union[Tuple[str, float], str]
 
+# ERROR CATCHING:
+# diffcalc exceptions are thrown if hklCalc is not fully constrained or the
+# combination of constraints is invalid. Catch these (perhaps by just querying
+# hklCalc.constraints.is_fully_constrained() and ...is_current_mode_implemented())
+# and throw your own error to properly constrain stuff. Maybe incl. a link to the
+# docs here.
 
-@router.get("/{name}/lab/position")
+# diffcalc exceptions also thrown if resulting lab position doesn't map back to the
+# same miller indices, same with virtual angles. This probably means there is something
+# wrong with the hkl settings but unsure what...
+
+
+@router.get("/{name}/position/lab")
 async def lab_position_from_miller_indices(
     name: str,
     pos: Tuple[float, float, float] = Query(example=[0, 0, 1]),
@@ -36,7 +47,8 @@ def validate_lab_position(pos: Position):
     return all((0 < pos.mu < 90, 0 < pos.nu < 90, -90 < pos.phi < 90))
 
 
-@router.get("/{name}/hkl/position")
+# ERROR CATCHING:
+@router.get("/{name}/position/hkl")
 async def miller_indices_from_lab_position(
     name: str,
     pos: Tuple[float, float, float, float, float, float] = Query(
@@ -49,10 +61,17 @@ async def miller_indices_from_lab_position(
     return {"payload": tuple(np.round(hklPosition, 16))}
 
 
+# ERROR CATCHING:
+# it's possible that this fails, e.g. what happens if you do np.arange(0, -1, 1)?
 def generate_axis(start, stop, inc):
     return np.arange(start, stop + inc, inc)
 
 
+# ERROR CATCHING:
+# implement a check where start, stop and inc are logical. i.e,
+# if stop is less than start inc should be negative.
+
+# same error catching as get hkl position from above.
 @router.get("/{name}/scan/hkl")
 async def scan_hkl(
     name: str,
@@ -76,6 +95,11 @@ async def scan_hkl(
     return {"payload": results}
 
 
+# ERROR CATCHING:
+# implement a check where start, stop and inc are logical. i.e,
+# if stop is less than start inc should be negative.
+
+# same error catching as get hkl position from above.
 @router.get("/{name}/scan/wavelength")
 async def scan_wavelength(
     name: str,
@@ -95,6 +119,11 @@ async def scan_wavelength(
     return {"payload": result}
 
 
+# ERROR CATCHING:
+# implement a check where start, stop and inc are logical. i.e,
+# if stop is less than start inc should be negative.
+
+# same error catching as get hkl position from above.
 @router.get("/{name}/scan/{constraint}")
 async def scan_constraint(
     name: str,

@@ -75,6 +75,11 @@ async def add_orientation(
     return {"message": f"added orientation for UB Calculation of crystal {name}"}
 
 
+# ERROR CATCHING:
+# if params is an empty dict, we need to catch this and return status code 400,
+# bad request.
+# You should add a Depends function which catches any TypeErrors and raises a
+# new error with this.
 @router.patch("/{name}/lattice")
 async def set_lattice(
     name: str,
@@ -86,6 +91,8 @@ async def set_lattice(
     return {"message": f"lattice set for UB calculation of crystal {name}"}
 
 
+# ERROR CATCHING:
+# If hklCalc doesnt have a reflist, throw an error.
 @router.patch("/{name}/reflection")
 async def edit_reflection(
     name: str,
@@ -115,6 +122,8 @@ async def edit_reflection(
     }
 
 
+# ERROR CATCHING:
+# If hklCalc doesnt have an orientlist, throw an error.
 @router.patch("/{name}/orientation")
 async def edit_orientation(
     name: str,
@@ -144,6 +153,8 @@ async def edit_orientation(
     }
 
 
+# ERROR CATCHING:
+# Nothing to do here.
 @router.patch("/{name}/{property}")
 async def modify_property(
     name: str,
@@ -166,6 +177,9 @@ async def modify_property(
     return {"message": f"{property} set for UB calculation of crystal {name}"}
 
 
+# ERROR CATCHING:
+# If first tag or second tag don't actually exist, diffcalcerror will be thrown.
+# catch this and throw your own with an error code.
 @router.get("/{name}/UB")
 async def calculate_UB(
     name: str,
@@ -179,6 +193,10 @@ async def calculate_UB(
     return json.dumps(np.round(hkl.ubcalc.UB, 6).tolist())
 
 
+# ERROR CATCHING:
+# if the tag is not in the list, you'll get a ValueError.
+# If the index isn't, you'll get an index error.
+# Catch both here and throw your own error.
 @router.delete("/{name}/reflection")
 async def delete_reflection(
     name: str,
@@ -190,6 +208,10 @@ async def delete_reflection(
     return {"message": f"reflection with tag or index {tagOrIdx} deleted."}
 
 
+# ERROR CATCHING:
+# if the tag is not in the list, you'll get a ValueError.
+# If the index isn't, you'll get an index error.
+# Catch both here and throw your own error.
 @router.delete("/{name}/orientation")
 async def delete_orientation(
     name: str,

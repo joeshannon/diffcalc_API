@@ -2,7 +2,8 @@ import pickle
 from pathlib import Path
 
 from diffcalc.hkl.calc import HklCalculation
-from fastapi import HTTPException
+
+from diffcalc_API.errors import DiffcalcAPIException
 
 savePicklesFolder = "/dls/tmp/ton99817/diffcalc_pickles"
 VectorProperties = ["n_hkl", "n_phi", "surf_nhkl", "surf_nphi"]
@@ -48,7 +49,7 @@ def check_file_exists(pickledFile: Path, name: str) -> None:
             f" http://localhost:8000/{name}"
             f" first to generate the pickled file.\n"
         )
-        raise HTTPException(status_code=401, detail=errorMessage)
+        raise DiffcalcAPIException(status_code=404, detail=errorMessage)
 
 
 def pickleHkl(object: HklCalculation, pickleFileName: str) -> Path:

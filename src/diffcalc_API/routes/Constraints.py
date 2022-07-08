@@ -16,7 +16,8 @@ router = APIRouter(prefix="/constraints", tags=["constraints"])
 
 singleConstraintType = Union[Tuple[str, float], str]
 
-
+# ERROR HANDLING:
+# what happens if the dict has more than 3 items? Or just 2?
 @router.put("/{name}/set")
 async def set_constraints(
     name: str,
