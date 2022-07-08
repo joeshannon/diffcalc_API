@@ -1,5 +1,5 @@
 from itertools import product
-from typing import Tuple, Union
+from typing import Dict, List, Tuple, Union
 
 import numpy as np
 from diffcalc.hkl.calc import HklCalculation
@@ -27,21 +27,9 @@ async def lab_position_from_miller_indices(
             status_code=401, detail="At least one of the hkl indices must be non-zero"
         )
 
-    labPosition = select_lab_position_within_bounds(hklCalc, pos, wavelength)
-
-    return {"payload": labPosition[0].asdict}
-
-
-def select_lab_position_within_bounds(
-    hklCalc: HklCalculation, pos: positionType, wavelength: float
-):
     allPositions = hklCalc.get_position(*pos, wavelength)
 
-    for position in allPositions:
-        if validate_lab_position(position[0]):
-            break
-
-    return position
+    return {"payload": allPositions}
 
 
 def validate_lab_position(pos: Position):
@@ -74,7 +62,6 @@ async def scan_hkl(
     wavelength: float = Query(..., example=1),
     hklCalc: HklCalculation = Depends(unpickleHkl),
 ):
-    # if any element of inc is 0, product will have 2 parts, not 3.
     valueOfAxes = [
         generate_axis(start[i], stop[i], inc[i]) if inc[i] != 0 else [0]
         for i in range(3)
@@ -83,10 +70,8 @@ async def scan_hkl(
     results = {}
 
     for h, k, l in product(*valueOfAxes):
-        pos, virtual_angles = select_lab_position_within_bounds(
-            hklCalc, (h, k, l), wavelength
-        )
-        results[f"({h}, {k}, {l})"] = {**pos.asdict, **virtual_angles}
+        allPositions = hklCalc.get_position(h, k, l, wavelength)
+        results[f"({h}, {k}, {l})"] = combine_lab_position_results(allPositions)
 
     return {"payload": results}
 
@@ -104,10 +89,8 @@ async def scan_wavelength(
     result = {}
 
     for wavelength in wavelengths:
-        pos, virtual_angles = select_lab_position_within_bounds(
-            hklCalc, hkl, wavelength
-        )
-        result[f"{wavelength}"] = {**pos.asdict, **virtual_angles}
+        allPositions = hklCalc.get_position(*hkl, wavelength)
+        result[f"{wavelength}"] = combine_lab_position_results(allPositions)
 
     return {"payload": result}
 
@@ -126,9 +109,16 @@ async def scan_constraint(
     result = {}
     for value in np.arange(start, stop + inc, inc):
         setattr(hklCalc, variable, value)
-        pos, virtual_angles = select_lab_position_within_bounds(
-            hklCalc, hkl, wavelength
-        )
-        result[f"{value}"] = {**pos.asdict, **virtual_angles}
+        allPositions = hklCalc.get_position(*hkl, wavelength)
+        result[f"{value}"] = combine_lab_position_results(allPositions)
 
     return {"payload": result}
+
+
+def combine_lab_position_results(positions: List[Tuple[Position, Dict[str, float]]]):
+    result = []
+
+    for position in positions:
+        result.append({**position[0].asdict, **position[1]})
+
+    return result
