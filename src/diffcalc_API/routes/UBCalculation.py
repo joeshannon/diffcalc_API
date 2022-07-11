@@ -4,8 +4,16 @@ from typing import Optional, Tuple, Union
 import numpy as np
 from diffcalc.hkl.calc import HklCalculation
 from diffcalc.hkl.geometry import Position
-from fastapi import APIRouter, Body, Depends, HTTPException, Query
+from fastapi import APIRouter, Body, Depends, Query
 
+from diffcalc_API.errors.UBCalculation import (
+    calculate_UB_matrix,
+    check_params_not_empty,
+    check_property_is_valid,
+    get_orientation,
+    get_reflection,
+)
+from diffcalc_API.fileHandling import pickleHkl, unpickleHkl
 from diffcalc_API.models.UBCalculation import (
     addOrientationParams,
     addReflectionParams,
@@ -13,7 +21,6 @@ from diffcalc_API.models.UBCalculation import (
     editReflectionParams,
     setLatticeParams,
 )
-from diffcalc_API.utils import VectorProperties, pickleHkl, unpickleHkl
 
 router = APIRouter(prefix="/ub", tags=["ub"])
 
@@ -30,19 +37,16 @@ async def add_reflection(
             "tag": "refl1",
         },
     ),
-    hkl: HklCalculation = Depends(unpickleHkl),
+    hklCalc: HklCalculation = Depends(unpickleHkl),
 ):
-    try:
-        hkl.ubcalc.add_reflection(
-            params.hkl,
-            Position(*params.position),
-            params.energy,
-            params.tag,
-        )
-    except Exception as e:
-        raise HTTPException(status_code=401, detail=f"something happened: {e}")
+    hklCalc.ubcalc.add_reflection(
+        params.hkl,
+        Position(*params.position),
+        params.energy,
+        params.tag,
+    )
 
-    pickleHkl(hkl, name)
+    pickleHkl(hklCalc, name)
     return {"message": f"added reflection for UB Calculation of crystal {name}"}
 
 
@@ -57,42 +61,33 @@ async def add_orientation(
             "tag": "plane",
         },
     ),
-    hkl: HklCalculation = Depends(unpickleHkl),
+    hklCalc: HklCalculation = Depends(unpickleHkl),
 ):
     position = Position(*params.position) if params.position else None
 
-    try:
-        hkl.ubcalc.add_orientation(
-            params.hkl,
-            params.xyz,
-            position,
-            params.tag,
-        )
-    except Exception as e:
-        raise HTTPException(status_code=401, detail=f"something happened: {e}")
+    hklCalc.ubcalc.add_orientation(
+        params.hkl,
+        params.xyz,
+        position,
+        params.tag,
+    )
 
-    pickleHkl(hkl, name)
+    pickleHkl(hklCalc, name)
     return {"message": f"added orientation for UB Calculation of crystal {name}"}
 
 
-# ERROR CATCHING:
-# if params is an empty dict, we need to catch this and return status code 400,
-# bad request.
-# You should add a Depends function which catches any TypeErrors and raises a
-# new error with this.
 @router.patch("/{name}/lattice")
 async def set_lattice(
     name: str,
     params: setLatticeParams = Body(example={"a": 4.913, "c": 5.405}),
-    hkl: HklCalculation = Depends(unpickleHkl),
+    hklCalc: HklCalculation = Depends(unpickleHkl),
+    _=Depends(check_params_not_empty),
 ):
-    hkl.ubcalc.set_lattice(name=name, **params.dict())
-    pickleHkl(hkl, name)
+    hklCalc.ubcalc.set_lattice(name=name, **params.dict())
+    pickleHkl(hklCalc, name)
     return {"message": f"lattice set for UB calculation of crystal {name}"}
 
 
-# ERROR CATCHING:
-# If hklCalc doesnt have a reflist, throw an error.
 @router.patch("/{name}/reflection")
 async def edit_reflection(
     name: str,
@@ -103,27 +98,26 @@ async def edit_reflection(
             "tagOrIdx": "refl1",
         },
     ),
-    hkl: HklCalculation = Depends(unpickleHkl),
+    hklCalc: HklCalculation = Depends(unpickleHkl),
 ):
-    reflection = hkl.ubcalc.get_reflection(params.tagOrIdx)
+    print(params)
+    reflection = get_reflection(hklCalc, params.tagOrIdx)
 
-    hkl.ubcalc.edit_reflection(
+    hklCalc.ubcalc.edit_reflection(
         params.tagOrIdx,
         params.hkl if params.hkl else (reflection.h, reflection.k, reflection.l),
         Position(params.position) if params.position else reflection.pos,
         params.energy if params.energy else reflection.energy,
         params.tagOrIdx if isinstance(params.tagOrIdx, str) else None,
     )
-    pickleHkl(hkl, name)
+    pickleHkl(hklCalc, name)
     return {
         "message": (
-            f"reflection edited to: {hkl.ubcalc.get_reflection(params.tagOrIdx)}."
+            f"reflection edited to: {hklCalc.ubcalc.get_reflection(params.tagOrIdx)}."
         )
     }
 
 
-# ERROR CATCHING:
-# If hklCalc doesnt have an orientlist, throw an error.
 @router.patch("/{name}/orientation")
 async def edit_orientation(
     name: str,
@@ -134,90 +128,73 @@ async def edit_orientation(
             "tagOrIdx": "plane",
         },
     ),
-    hkl: HklCalculation = Depends(unpickleHkl),
+    hklCalc: HklCalculation = Depends(unpickleHkl),
 ):
-    orientation = hkl.ubcalc.get_orientation(params.tagOrIdx)
+    orientation = get_orientation(hklCalc, params.tagOrIdx)
 
-    hkl.ubcalc.edit_orientation(
+    hklCalc.ubcalc.edit_orientation(
         params.tagOrIdx,
         params.hkl if params.hkl else (orientation.h, orientation.k, orientation.l),
         params.xyz if params.xyz else (orientation.x, orientation.y, orientation.z),
         Position(params.position) if params.position else orientation.pos,
         params.tagOrIdx if isinstance(params.tagOrIdx, str) else None,
     )
-    pickleHkl(hkl, name)
+    pickleHkl(hklCalc, name)
     return {
         "message": (
-            f"orientation edited to: {hkl.ubcalc.get_orientation(params.tagOrIdx)}."
+            f"orientation edited to: {hklCalc.ubcalc.get_orientation(params.tagOrIdx)}."
         )
     }
 
 
-# ERROR CATCHING:
-# Nothing to do here.
 @router.patch("/{name}/{property}")
 async def modify_property(
     name: str,
     property: str,
     targetValue: Tuple[float, float, float] = Body(..., example=[1, 0, 0]),
-    hkl: HklCalculation = Depends(unpickleHkl),
+    hklCalc: HklCalculation = Depends(unpickleHkl),
+    _=Depends(check_property_is_valid),
 ):
-    if property not in VectorProperties:
-        raise HTTPException(
-            status_code=401,
-            detail=f"invalid property. Choose one of: {VectorProperties}",
-        )
+    setattr(hklCalc.ubcalc, property, targetValue)
+    pickleHkl(hklCalc, name)
 
-    try:
-        setattr(hkl.ubcalc, property, targetValue)
-    except Exception as e:
-        raise HTTPException(status_code=401, detail=f"something happened: {e}")
-
-    pickleHkl(hkl, name)
     return {"message": f"{property} set for UB calculation of crystal {name}"}
 
 
-# ERROR CATCHING:
-# If first tag or second tag don't actually exist, diffcalcerror will be thrown.
-# catch this and throw your own with an error code.
 @router.get("/{name}/UB")
 async def calculate_UB(
     name: str,
-    firstTag: Optional[str] = Query(default=None, example="refl1"),
-    secondTag: Optional[str] = Query(default=None, example="plane"),
-    hkl: HklCalculation = Depends(unpickleHkl),
+    firstTag: Optional[Union[int, str]] = Query(default=None, example="refl1"),
+    secondTag: Optional[Union[int, str]] = Query(default=None, example="plane"),
+    hklCalc: HklCalculation = Depends(unpickleHkl),
 ):
-    hkl.ubcalc.calc_ub(firstTag, secondTag)
+    calculate_UB_matrix(hklCalc, firstTag, secondTag)
 
-    pickleHkl(hkl, name)
-    return json.dumps(np.round(hkl.ubcalc.UB, 6).tolist())
+    pickleHkl(hklCalc, name)
+    return json.dumps(np.round(hklCalc.ubcalc.UB, 6).tolist())
 
 
-# ERROR CATCHING:
-# if the tag is not in the list, you'll get a ValueError.
-# If the index isn't, you'll get an index error.
-# Catch both here and throw your own error.
 @router.delete("/{name}/reflection")
 async def delete_reflection(
     name: str,
     tagOrIdx: Union[str, int] = Body(..., example="refl1"),
-    hkl: HklCalculation = Depends(unpickleHkl),
+    hklCalc: HklCalculation = Depends(unpickleHkl),
 ):
-    hkl.ubcalc.del_reflection(tagOrIdx)
-    pickleHkl(hkl, name)
+    _ = get_reflection(hklCalc, tagOrIdx)
+    hklCalc.ubcalc.del_reflection(tagOrIdx)
+    pickleHkl(hklCalc, name)
+
     return {"message": f"reflection with tag or index {tagOrIdx} deleted."}
 
 
-# ERROR CATCHING:
-# if the tag is not in the list, you'll get a ValueError.
-# If the index isn't, you'll get an index error.
-# Catch both here and throw your own error.
 @router.delete("/{name}/orientation")
 async def delete_orientation(
     name: str,
     tagOrIdx: Union[str, int] = Body(..., example="plane"),
-    hkl: HklCalculation = Depends(unpickleHkl),
+    hklCalc: HklCalculation = Depends(unpickleHkl),
 ):
-    hkl.ubcalc.del_orientation(tagOrIdx)
-    pickleHkl(hkl, name)
+    _ = get_orientation(hklCalc, tagOrIdx)
+    hklCalc.ubcalc.del_orientation(tagOrIdx)
+    pickleHkl(hklCalc, name)
+
     return {"message": f"reflection with tag or index {tagOrIdx} deleted."}

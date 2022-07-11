@@ -2,38 +2,32 @@ from typing import Dict, Tuple, Union
 
 from diffcalc.hkl.calc import HklCalculation
 from diffcalc.hkl.constraints import Constraints
-from fastapi import APIRouter, Body, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends
 
-from diffcalc_API.utils import (
-    allConstraints,
-    constraintsWithNoValue,
-    pickleHkl,
-    unpickleHkl,
-)
+from diffcalc_API.config import constraintsWithNoValue
+from diffcalc_API.errors.Constraints import check_constraint_exists
+from diffcalc_API.fileHandling import pickleHkl, unpickleHkl
 
 router = APIRouter(prefix="/constraints", tags=["constraints"])
 
 
 singleConstraintType = Union[Tuple[str, float], str]
 
-# ERROR HANDLING:
-# what happens if the dict has more than 3 items? Or just 2?
+
 @router.put("/{name}/set")
 async def set_constraints(
     name: str,
     constraintDict: Dict[str, Union[float, bool]] = Body(
         example={"qaz": 0, "alpha": 0, "eta": 0}
     ),
-    hkl: HklCalculation = Depends(unpickleHkl),
+    hklCalc: HklCalculation = Depends(unpickleHkl),
 ):
     booleanConstraints = set(constraintDict.keys()).intersection(constraintsWithNoValue)
     for constraint in booleanConstraints:
         constraintDict[constraint] = bool(constraintDict[constraint])
 
-    constraints = Constraints(constraintDict)
-
-    hkl.constraints = constraints
-    pickleHkl(hkl, name)
+    hklCalc.constraints = Constraints(constraintDict)
+    pickleHkl(hklCalc, name)
     return {"message": f"constraints updated (replaced) for crystal {name}"}
 
 
@@ -41,16 +35,16 @@ async def set_constraints(
 async def remove_constraint(
     name: str,
     property: str,
-    hkl: HklCalculation = Depends(unpickleHkl),
+    hklCalc: HklCalculation = Depends(unpickleHkl),
 ):
     check_constraint_exists(property)
-    setattr(hkl.constraints, property, None)
-    pickleHkl(hkl, name)
+    setattr(hklCalc.constraints, property, None)
+    pickleHkl(hklCalc, name)
 
     return {
         "message": (
             f"unconstrained {property} for crystal {name}. "
-            f"Constraints are now: {hkl.constraints.asdict}"
+            f"Constraints are now: {hklCalc.constraints.asdict}"
         )
     }
 
@@ -59,7 +53,7 @@ async def remove_constraint(
 async def set_constraint(
     name: str,
     property: str,
-    hkl: HklCalculation = Depends(unpickleHkl),
+    hklCalc: HklCalculation = Depends(unpickleHkl),
     value: Union[float, bool] = Body(...),
 ):
     check_constraint_exists(property)
@@ -67,26 +61,12 @@ async def set_constraint(
     if property in constraintsWithNoValue:
         value = bool(value)
 
-    try:
-        setattr(hkl.constraints, property, value)
-    except Exception as e:
-        raise HTTPException(status_code=401, detail=f"{e}")
+    setattr(hklCalc.constraints, property, value)
+    pickleHkl(hklCalc, name)
 
-    pickleHkl(hkl, name)
     return {
         "message": (
             f"constrained {property} for crystal {name}. "
-            f"Constraints are now: {hkl.constraints.asdict}"
+            f"Constraints are now: {hklCalc.constraints.asdict}"
         )
     }
-
-
-def check_constraint_exists(constraint: str):
-    if constraint not in allConstraints:
-        raise HTTPException(
-            status_code=402,
-            detail=(
-                f"property {constraint} does not exist as a valid constraint."
-                f" Choose one of {allConstraints}"
-            ),
-        )

@@ -1,19 +1,19 @@
-from diffcalc.hkl.calc import HklCalculation
-from diffcalc.hkl.constraints import Constraints
-from diffcalc.ub.calc import UBCalculation
 from diffcalc.util import DiffcalcException
 from fastapi import FastAPI, Request, responses
 
-from diffcalc_API import errors
-from diffcalc_API.errors import DiffcalcAPIException
-from diffcalc_API.utils import deletePickle, pickleHkl
+from diffcalc_API import errorDefinitions, errors
+from diffcalc_API.fileHandling import createPickle, deletePickle
 
 from . import routes
 
-app = FastAPI(responses=errors.responses)
-app.include_router(routes.UBCalculation.router)
-app.include_router(routes.Constraints.router)
-app.include_router(routes.HklCalculation.router)
+app = FastAPI(responses=errorDefinitions.responses)
+app.include_router(
+    routes.UBCalculation.router, responses=errors.UBCalculation.responses
+)
+app.include_router(routes.Constraints.router, responses=errors.Constraints.responses)
+app.include_router(
+    routes.HklCalculation.router, responses=errors.HklCalculation.responses
+)
 
 #######################################################################################
 #                              Middleware for Exceptions                              #
@@ -23,13 +23,15 @@ app.include_router(routes.HklCalculation.router)
 @app.exception_handler(DiffcalcException)
 async def diffcalc_exception_handler(request: Request, exc: DiffcalcException):
     return responses.JSONResponse(
-        status_code=428,
+        status_code=400,
         content={"message": exc.__str__(), "type": str(type(exc))},
     )
 
 
-@app.exception_handler(DiffcalcAPIException)
-async def http_exception_handler(request: Request, exc: DiffcalcAPIException):
+@app.exception_handler(errorDefinitions.DiffcalcAPIException)
+async def http_exception_handler(
+    request: Request, exc: errorDefinitions.DiffcalcAPIException
+):
     return responses.JSONResponse(
         status_code=exc.status_code,
         content={"message": exc.detail, "type": str(type(exc))},
@@ -57,12 +59,8 @@ app.middleware("http")(server_exceptions_middleware)
 
 
 @app.post("/{name}")
-async def save_hkl_object(name: str):
-    UBcalc = UBCalculation(name=name)
-    constraints = Constraints()
-    hkl = HklCalculation(UBcalc, constraints)
-
-    pickleLocation = pickleHkl(hkl, name)
+async def create_hkl_object(name: str):
+    pickleLocation = createPickle(name)
 
     return {"message": f"file created at {pickleLocation}"}
 
