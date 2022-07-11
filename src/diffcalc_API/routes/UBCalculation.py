@@ -25,6 +25,11 @@ from diffcalc_API.models.UBCalculation import (
 router = APIRouter(prefix="/ub", tags=["ub"])
 
 
+@router.get("/")
+async def read_main():
+    return {"msg": "Hello World"}
+
+
 @router.put("/{name}/reflection")
 async def add_reflection(
     name: str,
