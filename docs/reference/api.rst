@@ -17,10 +17,10 @@ using ``autoclass`` and ``autofunction`` directives instead of
 
     Version number as calculated by https://github.com/dls-controls/versiongit
 
-.. automodule:: diffcalc_API.hello
-    :members:
+.. .. automodule:: diffcalc_API.hello
+..     :members:
 
-    ``diffcalc_API.hello``
-    -----------------------------------------
+..     ``diffcalc_API.hello``
+..     -----------------------------------------
 
 No other modules yet.
