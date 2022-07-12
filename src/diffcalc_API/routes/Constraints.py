@@ -1,4 +1,5 @@
-from typing import Dict, Tuple, Union
+from pathlib import Path
+from typing import Callable, Dict, Tuple, Union
 
 from diffcalc.hkl.calc import HklCalculation
 from diffcalc.hkl.constraints import Constraints
@@ -6,7 +7,7 @@ from fastapi import APIRouter, Body, Depends
 
 from diffcalc_API.config import constraintsWithNoValue
 from diffcalc_API.errors.Constraints import check_constraint_exists
-from diffcalc_API.fileHandling import pickleHkl, unpickleHkl
+from diffcalc_API.fileHandling import supplyPersist, unpickleHkl
 
 router = APIRouter(prefix="/constraints", tags=["constraints"])
 
@@ -21,25 +22,28 @@ async def set_constraints(
         example={"qaz": 0, "alpha": 0, "eta": 0}
     ),
     hklCalc: HklCalculation = Depends(unpickleHkl),
+    persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
 ):
     booleanConstraints = set(constraintDict.keys()).intersection(constraintsWithNoValue)
     for constraint in booleanConstraints:
         constraintDict[constraint] = bool(constraintDict[constraint])
 
     hklCalc.constraints = Constraints(constraintDict)
-    pickleHkl(hklCalc, name)
+    persist(hklCalc, name)
     return {"message": f"constraints updated (replaced) for crystal {name}"}
 
 
+# is patch the correct choice here? What about delete instead?
 @router.patch("/{name}/unconstrain/{property}")
 async def remove_constraint(
     name: str,
     property: str,
     hklCalc: HklCalculation = Depends(unpickleHkl),
+    persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
 ):
     check_constraint_exists(property)
     setattr(hklCalc.constraints, property, None)
-    pickleHkl(hklCalc, name)
+    persist(hklCalc, name)
 
     return {
         "message": (
@@ -53,8 +57,9 @@ async def remove_constraint(
 async def set_constraint(
     name: str,
     property: str,
-    hklCalc: HklCalculation = Depends(unpickleHkl),
     value: Union[float, bool] = Body(...),
+    hklCalc: HklCalculation = Depends(unpickleHkl),
+    persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
 ):
     check_constraint_exists(property)
 
@@ -62,7 +67,7 @@ async def set_constraint(
         value = bool(value)
 
     setattr(hklCalc.constraints, property, value)
-    pickleHkl(hklCalc, name)
+    persist(hklCalc, name)
 
     return {
         "message": (

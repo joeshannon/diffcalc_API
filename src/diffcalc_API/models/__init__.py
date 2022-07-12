@@ -1,3 +1,3 @@
-from diffcalc_API.models import HklCalculation, UBCalculation
+from diffcalc_API.models import UBCalculation
 
-__all__ = ["HklCalculation", "UBCalculation"]
+__all__ = ["UBCalculation"]

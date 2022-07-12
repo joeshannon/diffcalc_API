@@ -1,5 +1,6 @@
 import pickle
 from pathlib import Path
+from typing import Callable
 
 from diffcalc.hkl.calc import HklCalculation
 from diffcalc.hkl.constraints import Constraints
@@ -17,6 +18,10 @@ def unpickleHkl(name: str) -> HklCalculation:
         diffcalcObject: HklCalculation = pickle.load(openedFile)
 
     return diffcalcObject
+
+
+def supplyPersist() -> Callable[[HklCalculation, str], Path]:
+    return pickleHkl
 
 
 def pickleHkl(object: HklCalculation, pickleFileName: str) -> Path:

@@ -1,5 +1,6 @@
 import json
-from typing import Optional, Tuple, Union
+from pathlib import Path
+from typing import Callable, Optional, Tuple, Union
 
 import numpy as np
 from diffcalc.hkl.calc import HklCalculation
@@ -13,7 +14,7 @@ from diffcalc_API.errors.UBCalculation import (
     get_orientation,
     get_reflection,
 )
-from diffcalc_API.fileHandling import pickleHkl, unpickleHkl
+from diffcalc_API.fileHandling import supplyPersist, unpickleHkl
 from diffcalc_API.models.UBCalculation import (
     addOrientationParams,
     addReflectionParams,
@@ -43,6 +44,7 @@ async def add_reflection(
         },
     ),
     hklCalc: HklCalculation = Depends(unpickleHkl),
+    persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
 ):
     hklCalc.ubcalc.add_reflection(
         params.hkl,
@@ -51,7 +53,7 @@ async def add_reflection(
         params.tag,
     )
 
-    pickleHkl(hklCalc, name)
+    persist(hklCalc, name)
     return {"message": f"added reflection for UB Calculation of crystal {name}"}
 
 
@@ -67,6 +69,7 @@ async def add_orientation(
         },
     ),
     hklCalc: HklCalculation = Depends(unpickleHkl),
+    persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
 ):
     position = Position(*params.position) if params.position else None
 
@@ -77,7 +80,7 @@ async def add_orientation(
         params.tag,
     )
 
-    pickleHkl(hklCalc, name)
+    persist(hklCalc, name)
     return {"message": f"added orientation for UB Calculation of crystal {name}"}
 
 
@@ -86,10 +89,11 @@ async def set_lattice(
     name: str,
     params: setLatticeParams = Body(example={"a": 4.913, "c": 5.405}),
     hklCalc: HklCalculation = Depends(unpickleHkl),
+    persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
     _=Depends(check_params_not_empty),
 ):
     hklCalc.ubcalc.set_lattice(name=name, **params.dict())
-    pickleHkl(hklCalc, name)
+    persist(hklCalc, name)
     return {"message": f"lattice set for UB calculation of crystal {name}"}
 
 
@@ -104,8 +108,8 @@ async def edit_reflection(
         },
     ),
     hklCalc: HklCalculation = Depends(unpickleHkl),
+    persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
 ):
-    print(params)
     reflection = get_reflection(hklCalc, params.tagOrIdx)
 
     hklCalc.ubcalc.edit_reflection(
@@ -115,7 +119,7 @@ async def edit_reflection(
         params.energy if params.energy else reflection.energy,
         params.tagOrIdx if isinstance(params.tagOrIdx, str) else None,
     )
-    pickleHkl(hklCalc, name)
+    persist(hklCalc, name)
     return {
         "message": (
             f"reflection edited to: {hklCalc.ubcalc.get_reflection(params.tagOrIdx)}."
@@ -134,6 +138,7 @@ async def edit_orientation(
         },
     ),
     hklCalc: HklCalculation = Depends(unpickleHkl),
+    persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
 ):
     orientation = get_orientation(hklCalc, params.tagOrIdx)
 
@@ -144,7 +149,7 @@ async def edit_orientation(
         Position(params.position) if params.position else orientation.pos,
         params.tagOrIdx if isinstance(params.tagOrIdx, str) else None,
     )
-    pickleHkl(hklCalc, name)
+    persist(hklCalc, name)
     return {
         "message": (
             f"orientation edited to: {hklCalc.ubcalc.get_orientation(params.tagOrIdx)}."
@@ -158,10 +163,11 @@ async def modify_property(
     property: str,
     targetValue: Tuple[float, float, float] = Body(..., example=[1, 0, 0]),
     hklCalc: HklCalculation = Depends(unpickleHkl),
+    persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
     _=Depends(check_property_is_valid),
 ):
     setattr(hklCalc.ubcalc, property, targetValue)
-    pickleHkl(hklCalc, name)
+    persist(hklCalc, name)
 
     return {"message": f"{property} set for UB calculation of crystal {name}"}
 
@@ -172,10 +178,11 @@ async def calculate_UB(
     firstTag: Optional[Union[int, str]] = Query(default=None, example="refl1"),
     secondTag: Optional[Union[int, str]] = Query(default=None, example="plane"),
     hklCalc: HklCalculation = Depends(unpickleHkl),
+    persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
 ):
     calculate_UB_matrix(hklCalc, firstTag, secondTag)
 
-    pickleHkl(hklCalc, name)
+    persist(hklCalc, name)
     return json.dumps(np.round(hklCalc.ubcalc.UB, 6).tolist())
 
 
@@ -184,10 +191,11 @@ async def delete_reflection(
     name: str,
     tagOrIdx: Union[str, int] = Body(..., example="refl1"),
     hklCalc: HklCalculation = Depends(unpickleHkl),
+    persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
 ):
     _ = get_reflection(hklCalc, tagOrIdx)
     hklCalc.ubcalc.del_reflection(tagOrIdx)
-    pickleHkl(hklCalc, name)
+    persist(hklCalc, name)
 
     return {"message": f"reflection with tag or index {tagOrIdx} deleted."}
 
@@ -197,9 +205,10 @@ async def delete_orientation(
     name: str,
     tagOrIdx: Union[str, int] = Body(..., example="plane"),
     hklCalc: HklCalculation = Depends(unpickleHkl),
+    persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
 ):
     _ = get_orientation(hklCalc, tagOrIdx)
     hklCalc.ubcalc.del_orientation(tagOrIdx)
-    pickleHkl(hklCalc, name)
+    persist(hklCalc, name)
 
     return {"message": f"reflection with tag or index {tagOrIdx} deleted."}

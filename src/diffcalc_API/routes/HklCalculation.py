@@ -8,16 +8,15 @@ from fastapi import APIRouter, Depends, Query
 
 from diffcalc_API.errors.HklCalculation import (
     check_valid_miller_indices,
-    check_valid_start_stop_inc,
-    get_positions,
+    check_valid_scan_bounds,
 )
 from diffcalc_API.fileHandling import unpickleHkl
-from diffcalc_API.models.HklCalculation import positionType
 
 router = APIRouter(prefix="/calculate", tags=["hkl"])
 
 
 singleConstraintType = Union[Tuple[str, float], str]
+positionType = Tuple[float, float, float]
 
 
 @router.get("/{name}/position/lab")
@@ -26,11 +25,11 @@ async def lab_position_from_miller_indices(
     millerIndices: Tuple[float, float, float] = Query(example=[0, 0, 1]),
     wavelength: float = Query(..., example=1.0),
     hklCalc: HklCalculation = Depends(unpickleHkl),
-    _=Depends(check_valid_miller_indices),
 ):
-    allPositions = get_positions(hklCalc, millerIndices, wavelength)
+    check_valid_miller_indices(millerIndices)
+    allPositions = hklCalc.get_position(*millerIndices, wavelength)
 
-    return {"payload": allPositions}
+    return {"payload": combine_lab_position_results(allPositions)}
 
 
 @router.get("/{name}/position/hkl")
@@ -47,7 +46,7 @@ async def miller_indices_from_lab_position(
 
 
 def generate_axis(start: float, stop: float, inc: float):
-    check_valid_start_stop_inc(start, stop, inc)
+    check_valid_scan_bounds(start, stop, inc)
     return np.arange(start, stop + inc, inc)
 
 
@@ -68,7 +67,8 @@ async def scan_hkl(
     results = {}
 
     for h, k, l in product(*valueOfAxes):
-        allPositions = get_positions(hklCalc, (h, k, l), wavelength)
+        check_valid_miller_indices((h, k, l))
+        allPositions = hklCalc.get_position(h, k, l, wavelength)
         results[f"({h}, {k}, {l})"] = combine_lab_position_results(allPositions)
 
     return {"payload": results}
@@ -82,13 +82,13 @@ async def scan_wavelength(
     inc: float = Query(..., example=0.2),
     hkl: positionType = Query(..., example=(1, 0, 1)),
     hklCalc: HklCalculation = Depends(unpickleHkl),
-    _=Depends(check_valid_start_stop_inc),
 ):
+    check_valid_scan_bounds(start, stop, inc)
     wavelengths = np.arange(start, stop + inc, inc)
     result = {}
 
     for wavelength in wavelengths:
-        allPositions = get_positions(hklCalc, hkl, wavelength)
+        allPositions = hklCalc.get_position(*hkl, wavelength)
         result[f"{wavelength}"] = combine_lab_position_results(allPositions)
 
     return {"payload": result}
@@ -97,19 +97,19 @@ async def scan_wavelength(
 @router.get("/{name}/scan/{constraint}")
 async def scan_constraint(
     name: str,
-    variable: str,
+    constraint: str,
     start: float = Query(..., example=1),
     stop: float = Query(..., example=4),
     inc: float = Query(..., example=1),
     hkl: positionType = Query(..., example=(1, 0, 1)),
     wavelength: float = Query(..., example=1.0),
     hklCalc: HklCalculation = Depends(unpickleHkl),
-    _=Depends(check_valid_start_stop_inc),
 ):
+    check_valid_scan_bounds(start, stop, inc)
     result = {}
     for value in np.arange(start, stop + inc, inc):
-        setattr(hklCalc, variable, value)
-        allPositions = get_positions(hklCalc, hkl, wavelength)
+        setattr(hklCalc, constraint, value)
+        allPositions = hklCalc.get_position(*hkl, wavelength)
         result[f"{value}"] = combine_lab_position_results(allPositions)
 
     return {"payload": result}
