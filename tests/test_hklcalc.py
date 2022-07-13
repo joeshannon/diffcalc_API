@@ -142,3 +142,24 @@ def test_invalid_scans(client: TestClient):
     )
 
     assert invalidWavelengthScan.status_code == codes.check_valid_scan_bounds
+
+
+def test_calculate_UB(client: TestClient):
+    response = client.get(
+        "/calculate/test/UB", params={"firstTag": "refl1", "secondTag": "plane"}
+    )
+    expected_UB = (
+        "[[ 1.27889  -0.        0.      ],  [-0.        1.278111  0.04057 ],"
+        "  [-0.       -0.044633  1.161768]]"
+    )
+
+    assert response.status_code == 200
+    assert response.text.replace("\n", ", ") == expected_UB
+
+
+def test_calculate_UB_fails_when_incorrect_tags(client: TestClient):
+    response = client.get(
+        "/calculate/test/UB", params={"firstTag": "one", "secondTag": "two"}
+    )
+
+    assert response.status_code == codes.calculate_UB_matrix

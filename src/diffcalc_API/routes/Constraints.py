@@ -3,7 +3,7 @@ from typing import Callable, Dict, Tuple, Union
 
 from diffcalc.hkl.calc import HklCalculation
 from diffcalc.hkl.constraints import Constraints
-from fastapi import APIRouter, Body, Depends
+from fastapi import APIRouter, Body, Depends, Response
 
 from diffcalc_API.config import constraintsWithNoValue
 from diffcalc_API.errors.Constraints import check_constraint_exists
@@ -13,6 +13,15 @@ router = APIRouter(prefix="/constraints", tags=["constraints"])
 
 
 singleConstraintType = Union[Tuple[str, float], str]
+
+
+@router.get("/{name}")
+async def get_constraints_status(
+    name: str, hklCalc: HklCalculation = Depends(unpickleHkl)
+):
+    return Response(
+        content=hklCalc.constraints.__str__(), media_type="application/text"
+    )
 
 
 @router.put("/{name}/set")
@@ -33,7 +42,6 @@ async def set_constraints(
     return {"message": f"constraints updated (replaced) for crystal {name}"}
 
 
-# is patch the correct choice here? What about delete instead?
 @router.patch("/{name}/unconstrain/{property}")
 async def remove_constraint(
     name: str,

@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import Union
 
 import numpy as np
 from diffcalc.hkl.calc import HklCalculation
@@ -14,7 +14,6 @@ class codes(ErrorCodes):
     get_reflection = 403
     get_orientation = 403
     check_property_is_valid = 400
-    calculate_UB_matrix = 400
 
 
 responses = {code: allResponses[code] for code in np.unique(codes().all_codes())}
@@ -66,20 +65,5 @@ def check_property_is_valid(property: str) -> None:
         raise DiffcalcAPIException(
             status_code=codes.check_property_is_valid,
             detail=f"invalid property. Choose one of: {VectorProperties}",
-        )
-    return
-
-
-def calculate_UB_matrix(
-    hkl: HklCalculation,
-    firstTag: Optional[Union[int, str]],
-    secondTag: Optional[Union[int, str]],
-) -> None:
-    try:
-        hkl.ubcalc.calc_ub(firstTag, secondTag)
-    except Exception as e:
-        raise DiffcalcAPIException(
-            status_code=codes.calculate_UB_matrix,
-            detail=f"Error calculating UB matrix: {e.__str__()}",
         )
     return
