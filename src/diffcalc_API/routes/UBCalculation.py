@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Callable, Tuple, Union
+from typing import Callable, Tuple
 
 from diffcalc.hkl.calc import HklCalculation
 from diffcalc.hkl.geometry import Position
