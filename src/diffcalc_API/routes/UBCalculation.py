@@ -189,28 +189,26 @@ async def calculate_UB(
 @router.delete("/{name}/reflection")
 async def delete_reflection(
     name: str,
-    tagOrIdx: deleteParams = Body(..., example={"tagOrIdx": "refl1"}),
+    params: deleteParams = Body(..., example={"tagOrIdx": "refl1"}),
     hklCalc: HklCalculation = Depends(unpickleHkl),
     persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
 ):
-    print(tagOrIdx)
-    print(type(tagOrIdx))
-    _ = get_reflection(hklCalc, tagOrIdx)
-    hklCalc.ubcalc.del_reflection(tagOrIdx)
+    _ = get_reflection(hklCalc, params.tagOrIdx)
+    hklCalc.ubcalc.del_reflection(params.tagOrIdx)
     persist(hklCalc, name)
 
-    return {"message": f"reflection with tag or index {tagOrIdx} deleted."}
+    return {"message": f"reflection with tag or index {params.tagOrIdx} deleted."}
 
 
 @router.delete("/{name}/orientation")
 async def delete_orientation(
     name: str,
-    tagOrIdx: deleteParams = Body(..., example={"tagOrIdx": "plane"}),
+    params: deleteParams = Body(..., example={"tagOrIdx": "plane"}),
     hklCalc: HklCalculation = Depends(unpickleHkl),
     persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
 ):
-    _ = get_orientation(hklCalc, tagOrIdx)
-    hklCalc.ubcalc.del_orientation(tagOrIdx)
+    _ = get_orientation(hklCalc, params.tagOrIdx)
+    hklCalc.ubcalc.del_orientation(params.tagOrIdx)
     persist(hklCalc, name)
 
-    return {"message": f"reflection with tag or index {tagOrIdx} deleted."}
+    return {"message": f"reflection with tag or index {params.tagOrIdx} deleted."}

@@ -68,7 +68,7 @@ def test_edit_reflection(client: TestClient):
 
 def test_delete_reflection(client: TestClient):
     dummyHkl.ubcalc.add_reflection([0, 0, 1], Position(7, 0, 10, 0, 0, 0), 12, "foo")
-    response = client.delete("/ub/test/reflection", json="foo")
+    response = client.delete("/ub/test/reflection", json={"tagOrIdx": "foo"})
 
     assert response.status_code == 200
     with pytest.raises(Exception):
@@ -87,7 +87,7 @@ def test_edit_or_delete_reflection_fails_for_non_existing_reflection(
     )
     deleteResponse = client.delete(
         "/ub/test/reflection",
-        json="foo",
+        json={"tagOrIdx": "foo"},
     )
 
     assert editResponse.status_code == codes.get_reflection
@@ -134,7 +134,7 @@ def test_delete_orientation(client: TestClient):
     dummyHkl.ubcalc.add_orientation([0, 0, 1], [0, 0, 1], None, "bar")
     response = client.delete(
         "/ub/test/orientation",
-        json="bar",
+        json={"tagOrIdx": "bar"},
     )
 
     assert response.status_code == 200
@@ -154,7 +154,7 @@ def test_edit_or_delete_orientation_fails_for_non_existing_orientation(
     )
     deleteResponse = client.delete(
         "/ub/test/orientation",
-        json="bar",
+        json={"tagOrIdx": "bar"},
     )
 
     assert editResponse.status_code == codes.get_orientation
