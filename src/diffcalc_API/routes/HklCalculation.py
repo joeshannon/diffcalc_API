@@ -33,7 +33,7 @@ async def calculate_UB(
 
     persist(hklCalc, name)
     return Response(
-        content=np.round(hklCalc.ubcalc.UB, 6).__str__(), media_type="application/text"
+        content=str(np.round(hklCalc.ubcalc.UB, 6)), media_type="application/text"
     )
 
 

@@ -25,7 +25,7 @@ router = APIRouter(prefix="/ub", tags=["ub"])
 
 @router.get("/{name}")
 async def get_UB_status(name: str, hklCalc: HklCalculation = Depends(unpickleHkl)):
-    return Response(content=hklCalc.ubcalc.__str__(), media_type="application/text")
+    return Response(content=str(hklCalc.ubcalc), media_type="application/text")
 
 
 @router.put("/{name}/reflection")

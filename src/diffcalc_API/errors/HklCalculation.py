@@ -46,6 +46,6 @@ def calculate_UB_matrix(
     except Exception as e:
         raise DiffcalcAPIException(
             status_code=codes.calculate_UB_matrix,
-            detail=f"Error calculating UB matrix: {e.__str__()}",
+            detail=f"Error calculating UB matrix: {str(e)}",
         )
     return

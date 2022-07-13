@@ -19,9 +19,7 @@ singleConstraintType = Union[Tuple[str, float], str]
 async def get_constraints_status(
     name: str, hklCalc: HklCalculation = Depends(unpickleHkl)
 ):
-    return Response(
-        content=hklCalc.constraints.__str__(), media_type="application/text"
-    )
+    return Response(content=str(hklCalc.constraints), media_type="application/text")
 
 
 @router.put("/{name}/set")
