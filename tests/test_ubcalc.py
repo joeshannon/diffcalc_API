@@ -1,4 +1,3 @@
-import ast
 from pathlib import Path
 
 import numpy as np
@@ -202,22 +201,3 @@ def test_modify_non_existent_property(client: TestClient):
         json=[0, 0, 1],
     )
     assert response.status_code == codes.check_property_is_valid
-
-
-def test_calculate_UB(client: TestClient):
-    dummyHkl.ubcalc.add_reflection([0, 0, 1], Position(7, 0, 10, 0, 0, 0), 12, "foo")
-    dummyHkl.ubcalc.add_orientation([0, 1, 0], [0, 1, 0], None, "bar")
-    dummyHkl.ubcalc.set_lattice(name="test", a=2)
-
-    response = client.get("/ub/test/UB", params={"firstTag": "foo", "secondTag": "bar"})
-
-    expected_UB = [[3.141593, 0, 0], [0, 3.139679, 0.10964], [-0, -0.10964, 3.139679]]
-
-    assert response.status_code == 200
-    assert ast.literal_eval(response._content.decode().replace('"', "")) == expected_UB
-
-
-def test_calculate_UB_fails_when_incorrect_tags(client: TestClient):
-    response = client.get("/ub/test/UB", params={"firstTag": "one", "secondTag": "two"})
-
-    assert response.status_code == codes.calculate_UB_matrix

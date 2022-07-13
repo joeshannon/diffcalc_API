@@ -1,14 +1,11 @@
-import json
 from pathlib import Path
-from typing import Callable, Optional, Tuple, Union
+from typing import Callable, Tuple, Union
 
-import numpy as np
 from diffcalc.hkl.calc import HklCalculation
 from diffcalc.hkl.geometry import Position
-from fastapi import APIRouter, Body, Depends, Query
+from fastapi import APIRouter, Body, Depends, Response
 
 from diffcalc_API.errors.UBCalculation import (
-    calculate_UB_matrix,
     check_params_not_empty,
     check_property_is_valid,
     get_orientation,
@@ -25,6 +22,11 @@ from diffcalc_API.models.UBCalculation import (
 )
 
 router = APIRouter(prefix="/ub", tags=["ub"])
+
+
+@router.get("/{name}")
+async def get_UB_status(name: str, hklCalc: HklCalculation = Depends(unpickleHkl)):
+    return Response(content=str(hklCalc.ubcalc), media_type="application/text")
 
 
 @router.put("/{name}/reflection")
@@ -170,20 +172,6 @@ async def modify_property(
     persist(hklCalc, name)
 
     return {"message": f"{property} set for UB calculation of crystal {name}"}
-
-
-@router.get("/{name}/UB")
-async def calculate_UB(
-    name: str,
-    firstTag: Optional[Union[int, str]] = Query(default=None, example="refl1"),
-    secondTag: Optional[Union[int, str]] = Query(default=None, example="plane"),
-    hklCalc: HklCalculation = Depends(unpickleHkl),
-    persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
-):
-    calculate_UB_matrix(hklCalc, firstTag, secondTag)
-
-    persist(hklCalc, name)
-    return json.dumps(np.round(hklCalc.ubcalc.UB, 6).tolist())
 
 
 @router.delete("/{name}/reflection")
