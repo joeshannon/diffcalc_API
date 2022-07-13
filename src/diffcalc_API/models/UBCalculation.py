@@ -41,3 +41,7 @@ class editOrientationParams(BaseModel):
     xyz: Optional[Tuple[float, float, float]] = None
     position: Optional[Tuple[float, float, float, float, float, float]] = None
     tagOrIdx: Union[int, str]
+
+
+class deleteParams(BaseModel):
+    tagOrIdx: Union[int, str]

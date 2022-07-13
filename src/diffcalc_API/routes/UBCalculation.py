@@ -18,17 +18,13 @@ from diffcalc_API.fileHandling import supplyPersist, unpickleHkl
 from diffcalc_API.models.UBCalculation import (
     addOrientationParams,
     addReflectionParams,
+    deleteParams,
     editOrientationParams,
     editReflectionParams,
     setLatticeParams,
 )
 
 router = APIRouter(prefix="/ub", tags=["ub"])
-
-
-@router.get("/")
-async def read_main():
-    return {"msg": "Hello World"}
 
 
 @router.put("/{name}/reflection")
@@ -54,7 +50,12 @@ async def add_reflection(
     )
 
     persist(hklCalc, name)
-    return {"message": f"added reflection for UB Calculation of crystal {name}"}
+    return {
+        "message": (
+            f"added reflection for UB Calculation of crystal {name}. "
+            f"Reflist is: {hklCalc.ubcalc.reflist.reflections}"
+        )
+    }
 
 
 @router.put("/{name}/orientation")
@@ -111,7 +112,6 @@ async def edit_reflection(
     persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
 ):
     reflection = get_reflection(hklCalc, params.tagOrIdx)
-
     hklCalc.ubcalc.edit_reflection(
         params.tagOrIdx,
         params.hkl if params.hkl else (reflection.h, reflection.k, reflection.l),
@@ -189,26 +189,26 @@ async def calculate_UB(
 @router.delete("/{name}/reflection")
 async def delete_reflection(
     name: str,
-    tagOrIdx: Union[str, int] = Body(..., example="refl1"),
+    params: deleteParams = Body(..., example={"tagOrIdx": "refl1"}),
     hklCalc: HklCalculation = Depends(unpickleHkl),
     persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
 ):
-    _ = get_reflection(hklCalc, tagOrIdx)
-    hklCalc.ubcalc.del_reflection(tagOrIdx)
+    _ = get_reflection(hklCalc, params.tagOrIdx)
+    hklCalc.ubcalc.del_reflection(params.tagOrIdx)
     persist(hklCalc, name)
 
-    return {"message": f"reflection with tag or index {tagOrIdx} deleted."}
+    return {"message": f"reflection with tag or index {params.tagOrIdx} deleted."}
 
 
 @router.delete("/{name}/orientation")
 async def delete_orientation(
     name: str,
-    tagOrIdx: Union[str, int] = Body(..., example="plane"),
+    params: deleteParams = Body(..., example={"tagOrIdx": "plane"}),
     hklCalc: HklCalculation = Depends(unpickleHkl),
     persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
 ):
-    _ = get_orientation(hklCalc, tagOrIdx)
-    hklCalc.ubcalc.del_orientation(tagOrIdx)
+    _ = get_orientation(hklCalc, params.tagOrIdx)
+    hklCalc.ubcalc.del_orientation(params.tagOrIdx)
     persist(hklCalc, name)
 
-    return {"message": f"reflection with tag or index {tagOrIdx} deleted."}
+    return {"message": f"reflection with tag or index {params.tagOrIdx} deleted."}
