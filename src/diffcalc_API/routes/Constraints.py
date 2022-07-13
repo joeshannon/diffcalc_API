@@ -1,18 +1,13 @@
 from pathlib import Path
-from typing import Callable, Dict, Tuple, Union
+from typing import Callable, Dict, Union
 
 from diffcalc.hkl.calc import HklCalculation
-from diffcalc.hkl.constraints import Constraints
 from fastapi import APIRouter, Body, Depends
 
-from diffcalc_API.config import constraintsWithNoValue
-from diffcalc_API.errors.Constraints import check_constraint_exists
+from diffcalc_API.controllers import Constraints as controller
 from diffcalc_API.fileHandling import supplyPersist, unpickleHkl
 
 router = APIRouter(prefix="/constraints", tags=["constraints"])
-
-
-singleConstraintType = Union[Tuple[str, float], str]
 
 
 @router.put("/{name}/set")
@@ -24,16 +19,10 @@ async def set_constraints(
     hklCalc: HklCalculation = Depends(unpickleHkl),
     persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
 ):
-    booleanConstraints = set(constraintDict.keys()).intersection(constraintsWithNoValue)
-    for constraint in booleanConstraints:
-        constraintDict[constraint] = bool(constraintDict[constraint])
-
-    hklCalc.constraints = Constraints(constraintDict)
-    persist(hklCalc, name)
+    controller.set_constraints(name, constraintDict, hklCalc, persist)
     return {"message": f"constraints updated (replaced) for crystal {name}"}
 
 
-# is patch the correct choice here? What about delete instead?
 @router.patch("/{name}/unconstrain/{property}")
 async def remove_constraint(
     name: str,
@@ -41,9 +30,7 @@ async def remove_constraint(
     hklCalc: HklCalculation = Depends(unpickleHkl),
     persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
 ):
-    check_constraint_exists(property)
-    setattr(hklCalc.constraints, property, None)
-    persist(hklCalc, name)
+    controller.remove_constraint(name, property, hklCalc, persist)
 
     return {
         "message": (
@@ -61,13 +48,7 @@ async def set_constraint(
     hklCalc: HklCalculation = Depends(unpickleHkl),
     persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
 ):
-    check_constraint_exists(property)
-
-    if property in constraintsWithNoValue:
-        value = bool(value)
-
-    setattr(hklCalc.constraints, property, value)
-    persist(hklCalc, name)
+    controller.set_constraint(name, property, value, hklCalc, persist)
 
     return {
         "message": (
