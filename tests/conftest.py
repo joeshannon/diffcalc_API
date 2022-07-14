@@ -1,9 +1,7 @@
 from diffcalc.hkl.calc import HklCalculation
 
-from diffcalc_API.persistence import HklCalcStore
 
-
-class FakeHklCalcStore(HklCalcStore):
+class FakeHklCalcStore:
     def __init__(self, useHkl: HklCalculation):
         self.hkl = useHkl
 

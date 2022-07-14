@@ -1,6 +1,6 @@
 import pickle
-from abc import ABC, abstractmethod
 from pathlib import Path
+from typing import Protocol
 
 from diffcalc.hkl.calc import HklCalculation
 from diffcalc.hkl.constraints import Constraints
@@ -10,30 +10,25 @@ from diffcalc_API.config import savePicklesFolder
 from diffcalc_API.errorDefinitions import attempting_to_overwrite, check_file_exists
 
 
-class HklCalcStore(ABC):
+class HklCalcStore(Protocol):
     """
-    Abstract representation of persistence, can have various implementations to edit
-    the state which the API is managing (hkl object).
+    Protocol, or interface, for interacting with the Hkl object.
     """
 
-    @abstractmethod
     async def create(self, name: str) -> None:
         ...
 
-    @abstractmethod
     async def delete(self, name: str) -> None:
         ...
 
-    @abstractmethod
     async def save(self, name: str, calc: HklCalculation) -> None:
         ...
 
-    @abstractmethod
     async def load(self, name: str) -> HklCalculation:
         ...
 
 
-class PicklingHklCalcStore(HklCalcStore):
+class PicklingHklCalcStore:
     _root_directory: Path
 
     def __init__(self, root_directory: Path) -> None:
