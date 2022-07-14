@@ -10,7 +10,7 @@ from diffcalc_API.errors.HklCalculation import (
     check_valid_scan_bounds,
 )
 
-positionType = Tuple[float, float, float]
+PositionType = Tuple[float, float, float]
 
 
 def lab_position_from_miller_indices(
@@ -34,9 +34,9 @@ def miller_indices_from_lab_position(
 
 
 def scan_hkl(
-    start: positionType,
-    stop: positionType,
-    inc: positionType,
+    start: PositionType,
+    stop: PositionType,
+    inc: PositionType,
     wavelength: float,
     hklCalc: HklCalculation,
 ):
@@ -59,7 +59,7 @@ def scan_wavelength(
     start: float,
     stop: float,
     inc: float,
-    hkl: positionType,
+    hkl: PositionType,
     hklCalc: HklCalculation,
 ):
     check_valid_scan_bounds(start, stop, inc)
@@ -78,7 +78,7 @@ def scan_constraint(
     start: float,
     stop: float,
     inc: float,
-    hkl: positionType,
+    hkl: PositionType,
     wavelength: float,
     hklCalc: HklCalculation,
 ):
