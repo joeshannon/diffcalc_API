@@ -33,7 +33,7 @@ async def add_reflection(
         params.tag,
     )
 
-    repo.save(name, hklCalc)
+    await repo.save(name, hklCalc)
 
 
 async def edit_reflection(
@@ -52,7 +52,7 @@ async def edit_reflection(
         params.tagOrIdx if isinstance(params.tagOrIdx, str) else None,
     )
 
-    repo.save(name, hklCalc)
+    await repo.save(name, hklCalc)
 
 
 async def delete_reflection(
@@ -65,7 +65,7 @@ async def delete_reflection(
     _ = get_reflection(hklCalc, tagOrIdx)
     hklCalc.ubcalc.del_reflection(tagOrIdx)
 
-    repo.save(name, hklCalc)
+    await repo.save(name, hklCalc)
 
 
 async def add_orientation(
@@ -83,7 +83,7 @@ async def add_orientation(
         params.tag,
     )
 
-    repo.save(name, hklCalc)
+    await repo.save(name, hklCalc)
 
 
 async def edit_orientation(
@@ -102,7 +102,7 @@ async def edit_orientation(
         params.tagOrIdx if isinstance(params.tagOrIdx, str) else None,
     )
 
-    repo.save(name, hklCalc)
+    await repo.save(name, hklCalc)
 
 
 async def delete_orientation(
@@ -115,7 +115,7 @@ async def delete_orientation(
     _ = get_orientation(hklCalc, tagOrIdx)
     hklCalc.ubcalc.del_orientation(tagOrIdx)
 
-    repo.save(name, hklCalc)
+    await repo.save(name, hklCalc)
 
 
 async def set_lattice(name: str, params: setLatticeParams, repo: HklCalcRepo) -> None:
@@ -123,7 +123,7 @@ async def set_lattice(name: str, params: setLatticeParams, repo: HklCalcRepo) ->
 
     hklCalc.ubcalc.set_lattice(name=name, **params.dict())
 
-    repo.save(name, hklCalc)
+    await repo.save(name, hklCalc)
 
 
 async def modify_property(
@@ -133,4 +133,4 @@ async def modify_property(
 
     setattr(hklCalc.ubcalc, property, targetValue)
 
-    repo.save(name, hklCalc)
+    await repo.save(name, hklCalc)

@@ -50,7 +50,7 @@ def get_repo() -> HklCalcRepo:
     return PicklingHklCalcRepo(Path(savePicklesFolder))
 
 
-def createPickle(pickleFileName: str) -> Path:
+async def createPickle(pickleFileName: str) -> Path:
     attempting_to_overwrite(pickleFileName)
 
     UBcalc = UBCalculation(name=pickleFileName)
@@ -58,7 +58,7 @@ def createPickle(pickleFileName: str) -> Path:
     hkl = HklCalculation(UBcalc, constraints)
 
     repo = get_repo()
-    repo.save(pickleFileName, hkl)
+    await repo.save(pickleFileName, hkl)
 
     return Path(savePicklesFolder, pickleFileName)
 

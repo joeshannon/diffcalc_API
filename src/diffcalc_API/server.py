@@ -58,7 +58,7 @@ async def server_exceptions_middleware(request: Request, call_next):
 
 @app.post("/{name}")
 async def create_hkl_object(name: str):
-    pickleLocation = createPickle(name)
+    pickleLocation = await createPickle(name)
 
     return {"message": f"file created at {pickleLocation}"}
 
