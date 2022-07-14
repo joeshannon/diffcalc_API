@@ -27,7 +27,7 @@ async def set_constraints(
     ),
     repo: HklCalculationRepository = Depends(get_repo),
 ):
-    # await controller.set_constraints(name, constraintDict, repo)
+    await controller.set_constraints(name, constraintDict, repo)
     return {"message": f"constraints updated (replaced) for crystal {name}"}
 
 
