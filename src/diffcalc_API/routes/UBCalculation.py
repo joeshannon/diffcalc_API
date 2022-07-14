@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Callable, Tuple, Union
+from typing import Callable, Tuple
 
 from diffcalc.hkl.calc import HklCalculation
 from fastapi import APIRouter, Body, Depends, Response
@@ -13,6 +13,7 @@ from diffcalc_API.fileHandling import supplyPersist, unpickleHkl
 from diffcalc_API.models.UBCalculation import (
     addOrientationParams,
     addReflectionParams,
+    deleteParams,
     editOrientationParams,
     editReflectionParams,
     setLatticeParams,
@@ -61,12 +62,12 @@ async def edit_reflection(
 @router.delete("/{name}/reflection")
 async def delete_reflection(
     name: str,
-    tagOrIdx: Union[str, int] = Body(..., example="refl1"),
+    params: deleteParams = Body(..., example={"tagOrIdx": "refl1"}),
     hklCalc: HklCalculation = Depends(unpickleHkl),
     persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
 ):
-    service.delete_reflection(name, tagOrIdx, hklCalc, persist)
-    return {"message": f"reflection with tag/index {tagOrIdx} deleted."}
+    service.delete_reflection(name, params.tagOrIdx, hklCalc, persist)
+    return {"message": f"reflection with tag/index {params.tagOrIdx} deleted."}
 
 
 @router.put("/{name}/orientation")
@@ -99,12 +100,12 @@ async def edit_orientation(
 @router.delete("/{name}/orientation")
 async def delete_orientation(
     name: str,
-    tagOrIdx: Union[str, int] = Body(..., example="plane"),
+    params: deleteParams = Body(..., example={"tagOrIdx": "plane"}),
     hklCalc: HklCalculation = Depends(unpickleHkl),
     persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
 ):
-    service.delete_orientation(name, tagOrIdx, hklCalc, persist)
-    return {"message": f"reflection with tag or index {tagOrIdx} deleted."}
+    service.delete_orientation(name, params.tagOrIdx, hklCalc, persist)
+    return {"message": f"reflection with tag or index {params.tagOrIdx} deleted."}
 
 
 @router.patch("/{name}/lattice")
