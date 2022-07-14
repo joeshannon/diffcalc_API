@@ -9,7 +9,6 @@ from fastapi import APIRouter, Depends, Query, Response
 from diffcalc_API.fileHandling import supplyPersist, unpickleHkl
 from diffcalc_API.services import HklCalculation as service
 
-
 router = APIRouter(
     prefix="/calculate", tags=["hkl"], dependencies=[Depends(unpickleHkl)]
 )

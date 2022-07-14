@@ -17,13 +17,6 @@ async def get_constraints_status(
     return Response(content=str(hklCalc.constraints), media_type="application/text")
 
 
-@router.get("/{name}")
-async def get_constraints_status(
-    name: str, hklCalc: HklCalculation = Depends(unpickleHkl)
-):
-    return Response(content=str(hklCalc.constraints), media_type="application/text")
-
-
 @router.put("/{name}/set")
 async def set_constraints(
     name: str,

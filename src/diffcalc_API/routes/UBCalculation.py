@@ -43,7 +43,6 @@ async def add_reflection(
     return {"message": f"added reflection for UB Calculation of crystal {name}"}
 
 
-
 @router.patch("/{name}/reflection")
 async def edit_reflection(
     name: str,
