@@ -6,21 +6,22 @@ from diffcalc.hkl.constraints import Constraints
 
 from diffcalc_API.config import constraintsWithNoValue
 from diffcalc_API.errors.Constraints import check_constraint_exists
+from diffcalc_API.persistence import HklCalculationRepository
 
 
-def set_constraints(
+async def set_constraints(
     name: str,
     constraintDict: Dict[str, Union[float, bool]],
-    hklCalc: HklCalculation,
-    persist: Callable[[HklCalculation, str], Path],
-):
+    repo: HklCalculationRepository,
+) -> None:
+    hkl_calc = await repo.load(name)
+
     booleanConstraints = set(constraintDict.keys()).intersection(constraintsWithNoValue)
     for constraint in booleanConstraints:
         constraintDict[constraint] = bool(constraintDict[constraint])
 
-    hklCalc.constraints = Constraints(constraintDict)
-    persist(hklCalc, name)
-    return
+    hkl_calc.constraints = Constraints(constraintDict)
+    await repo.save(name, hkl_calc)
 
 
 def remove_constraint(

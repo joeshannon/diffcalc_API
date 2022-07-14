@@ -4,10 +4,19 @@ from typing import Callable, Dict, Union
 from diffcalc.hkl.calc import HklCalculation
 from fastapi import APIRouter, Body, Depends
 
+from diffcalc_API.config import savePicklesFolder
 from diffcalc_API.controllers import Constraints as controller
 from diffcalc_API.fileHandling import supplyPersist, unpickleHkl
+from diffcalc_API.persistence import (
+    HklCalculationRepository,
+    PicklingHklCalculationRepository,
+)
 
 router = APIRouter(prefix="/constraints", tags=["constraints"])
+
+
+def get_repo() -> HklCalculationRepository:
+    return PicklingHklCalculationRepository(Path(savePicklesFolder))
 
 
 @router.put("/{name}/set")
@@ -16,10 +25,9 @@ async def set_constraints(
     constraintDict: Dict[str, Union[float, bool]] = Body(
         example={"qaz": 0, "alpha": 0, "eta": 0}
     ),
-    hklCalc: HklCalculation = Depends(unpickleHkl),
-    persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
+    repo: HklCalculationRepository = Depends(get_repo),
 ):
-    controller.set_constraints(name, constraintDict, hklCalc, persist)
+    # await controller.set_constraints(name, constraintDict, repo)
     return {"message": f"constraints updated (replaced) for crystal {name}"}
 
 
