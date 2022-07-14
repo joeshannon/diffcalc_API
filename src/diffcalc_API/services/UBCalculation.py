@@ -1,14 +1,10 @@
 from pathlib import Path
-from typing import Callable, Optional, Tuple, Union
+from typing import Callable, Tuple, Union
 
 from diffcalc.hkl.calc import HklCalculation
 from diffcalc.hkl.geometry import Position
 
-from diffcalc_API.errors.UBCalculation import (
-    calculate_UB_matrix,
-    get_orientation,
-    get_reflection,
-)
+from diffcalc_API.errors.UBCalculation import get_orientation, get_reflection
 from diffcalc_API.models.UBCalculation import (
     addOrientationParams,
     addReflectionParams,
@@ -133,15 +129,4 @@ def modify_property(
     persist: Callable[[HklCalculation, str], Path],
 ):
     setattr(hklCalc.ubcalc, property, targetValue)
-    persist(hklCalc, name)
-
-
-def calculate_UB(
-    name: str,
-    firstTag: Optional[Union[int, str]],
-    secondTag: Optional[Union[int, str]],
-    hklCalc: HklCalculation,
-    persist: Callable[[HklCalculation, str], Path],
-):
-    calculate_UB_matrix(hklCalc, firstTag, secondTag)
     persist(hklCalc, name)

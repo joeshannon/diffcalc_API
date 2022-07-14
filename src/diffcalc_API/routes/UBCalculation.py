@@ -1,10 +1,8 @@
-import json
 from pathlib import Path
-from typing import Callable, Optional, Tuple, Union
+from typing import Callable, Tuple, Union
 
-import numpy as np
 from diffcalc.hkl.calc import HklCalculation
-from fastapi import APIRouter, Body, Depends, Query
+from fastapi import APIRouter, Body, Depends, Response
 
 from diffcalc_API.errors.UBCalculation import (
     check_params_not_empty,
@@ -26,6 +24,11 @@ router = APIRouter(
     tags=["ub"],
     dependencies=[Depends(unpickleHkl), Depends(supplyPersist)],
 )
+
+
+@router.get("/{name}")
+async def get_UB_status(name: str, hklCalc: HklCalculation = Depends(unpickleHkl)):
+    return Response(content=str(hklCalc.ubcalc), media_type="application/text")
 
 
 @router.put("/{name}/reflection")
@@ -127,15 +130,3 @@ async def modify_property(
 ):
     service.modify_property(name, property, targetValue, hklCalc, persist)
     return {"message": f"{property} has been set for UB calculation of crystal {name}"}
-
-
-@router.get("/{name}/UB")
-async def calculate_UB(
-    name: str,
-    firstTag: Optional[Union[int, str]] = Query(default=None, example="refl1"),
-    secondTag: Optional[Union[int, str]] = Query(default=None, example="plane"),
-    hklCalc: HklCalculation = Depends(unpickleHkl),
-    persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
-):
-    service.calculate_UB(name, firstTag, secondTag, hklCalc, persist)
-    return json.dumps(np.round(hklCalc.ubcalc.UB, 6).tolist())

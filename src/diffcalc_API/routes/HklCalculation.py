@@ -1,9 +1,11 @@
-from typing import Tuple, Union
+from pathlib import Path
+from typing import Callable, Optional, Tuple, Union
 
+import numpy as np
 from diffcalc.hkl.calc import HklCalculation
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Response
 
-from diffcalc_API.fileHandling import unpickleHkl
+from diffcalc_API.fileHandling import supplyPersist, unpickleHkl
 from diffcalc_API.services import HklCalculation as service
 
 router = APIRouter(
@@ -13,6 +15,20 @@ router = APIRouter(
 
 singleConstraintType = Union[Tuple[str, float], str]
 positionType = Tuple[float, float, float]
+
+
+@router.get("/{name}/UB")
+async def calculate_UB(
+    name: str,
+    firstTag: Optional[Union[int, str]] = Query(default=None, example="refl1"),
+    secondTag: Optional[Union[int, str]] = Query(default=None, example="plane"),
+    hklCalc: HklCalculation = Depends(unpickleHkl),
+    persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
+):
+    service.calculate_UB(name, firstTag, secondTag, hklCalc, persist)
+    return Response(
+        content=str(np.round(hklCalc.ubcalc.UB, 6)), media_type="application/text"
+    )
 
 
 @router.get("/{name}/position/lab")

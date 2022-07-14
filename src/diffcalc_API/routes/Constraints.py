@@ -2,12 +2,19 @@ from pathlib import Path
 from typing import Callable, Dict, Union
 
 from diffcalc.hkl.calc import HklCalculation
-from fastapi import APIRouter, Body, Depends
+from fastapi import APIRouter, Body, Depends, Response
 
 from diffcalc_API.fileHandling import supplyPersist, unpickleHkl
 from diffcalc_API.services import Constraints as service
 
 router = APIRouter(prefix="/constraints", tags=["constraints"])
+
+
+@router.get("/{name}")
+async def get_constraints_status(
+    name: str, hklCalc: HklCalculation = Depends(unpickleHkl)
+):
+    return Response(content=str(hklCalc.constraints), media_type="application/text")
 
 
 @router.put("/{name}/set")

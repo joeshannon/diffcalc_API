@@ -1,11 +1,13 @@
 from itertools import product
-from typing import Dict, List, Tuple
+from pathlib import Path
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 from diffcalc.hkl.calc import HklCalculation
 from diffcalc.hkl.geometry import Position
 
 from diffcalc_API.errors.HklCalculation import (
+    calculate_UB_matrix,
     check_valid_miller_indices,
     check_valid_scan_bounds,
 )
@@ -104,3 +106,14 @@ def combine_lab_position_results(positions: List[Tuple[Position, Dict[str, float
         result.append({**position[0].asdict, **position[1]})
 
     return result
+
+
+def calculate_UB(
+    name: str,
+    firstTag: Optional[Union[int, str]],
+    secondTag: Optional[Union[int, str]],
+    hklCalc: HklCalculation,
+    persist: Callable[[HklCalculation, str], Path],
+):
+    calculate_UB_matrix(hklCalc, firstTag, secondTag)
+    persist(hklCalc, name)
