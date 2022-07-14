@@ -24,7 +24,7 @@ app.include_router(routes.HklCalculation.router, responses=responsesHkl)
 async def diffcalc_exception_handler(request: Request, exc: DiffcalcException):
     return responses.JSONResponse(
         status_code=400,
-        content={"message": exc.__str__(), "type": str(type(exc))},
+        content={"message": str(exc), "type": str(type(exc))},
     )
 
 
@@ -47,7 +47,7 @@ async def server_exceptions_middleware(request: Request, call_next):
 
         return responses.JSONResponse(
             status_code=500,
-            content={"message": e.__str__(), "type": str(type(e))},
+            content={"message": str(e), "type": str(type(e))},
         )
 
 
