@@ -1,16 +1,11 @@
-from pathlib import Path
-from typing import Callable, Optional, Tuple, Union
+from typing import Optional, Tuple, Union
 
-import numpy as np
-from diffcalc.hkl.calc import HklCalculation
 from fastapi import APIRouter, Depends, Query, Response
 
-from diffcalc_API.fileHandling import supplyPersist, unpickleHkl
+from diffcalc_API.fileHandling import HklCalcRepo, get_repo
 from diffcalc_API.services import HklCalculation as service
 
-router = APIRouter(
-    prefix="/calculate", tags=["hkl"], dependencies=[Depends(unpickleHkl)]
-)
+router = APIRouter(prefix="/calculate", tags=["hkl"])
 
 
 singleConstraintType = Union[Tuple[str, float], str]
@@ -22,13 +17,10 @@ async def calculate_UB(
     name: str,
     firstTag: Optional[Union[int, str]] = Query(default=None, example="refl1"),
     secondTag: Optional[Union[int, str]] = Query(default=None, example="plane"),
-    hklCalc: HklCalculation = Depends(unpickleHkl),
-    persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
+    repo: HklCalcRepo = Depends(get_repo),
 ):
-    service.calculate_UB(name, firstTag, secondTag, hklCalc, persist)
-    return Response(
-        content=str(np.round(hklCalc.ubcalc.UB, 6)), media_type="application/text"
-    )
+    content = await service.calculate_UB(name, firstTag, secondTag, repo)
+    return Response(content=content, media_type="application/text")
 
 
 @router.get("/{name}/position/lab")
@@ -36,10 +28,10 @@ async def lab_position_from_miller_indices(
     name: str,
     millerIndices: Tuple[float, float, float] = Query(example=[0, 0, 1]),
     wavelength: float = Query(..., example=1.0),
-    hklCalc: HklCalculation = Depends(unpickleHkl),
+    repo: HklCalcRepo = Depends(get_repo),
 ):
-    positions = service.lab_position_from_miller_indices(
-        millerIndices, wavelength, hklCalc
+    positions = await service.lab_position_from_miller_indices(
+        name, millerIndices, wavelength, repo
     )
 
     return {"payload": positions}
@@ -52,9 +44,9 @@ async def miller_indices_from_lab_position(
         ..., example=[7.31, 0, 10.62, 0, 0, 0]
     ),
     wavelength: float = Query(..., example=1.0),
-    hklCalc: HklCalculation = Depends(unpickleHkl),
+    repo: HklCalcRepo = Depends(get_repo),
 ):
-    hkl = service.miller_indices_from_lab_position(pos, wavelength, hklCalc)
+    hkl = await service.miller_indices_from_lab_position(name, pos, wavelength, repo)
     return {"payload": hkl}
 
 
@@ -65,9 +57,9 @@ async def scan_hkl(
     stop: positionType = Query(..., example=(2, 0, 2)),
     inc: positionType = Query(..., example=(0.1, 0, 0.1)),
     wavelength: float = Query(..., example=1),
-    hklCalc: HklCalculation = Depends(unpickleHkl),
+    repo: HklCalcRepo = Depends(get_repo),
 ):
-    scanResults = service.scan_hkl(start, stop, inc, wavelength, hklCalc)
+    scanResults = await service.scan_hkl(name, start, stop, inc, wavelength, repo)
     return {"payload": scanResults}
 
 
@@ -78,9 +70,9 @@ async def scan_wavelength(
     stop: float = Query(..., example=2.0),
     inc: float = Query(..., example=0.2),
     hkl: positionType = Query(..., example=(1, 0, 1)),
-    hklCalc: HklCalculation = Depends(unpickleHkl),
+    repo: HklCalcRepo = Depends(get_repo),
 ):
-    scanResults = service.scan_wavelength(start, stop, inc, hkl, hklCalc)
+    scanResults = await service.scan_wavelength(name, start, stop, inc, hkl, repo)
     return {"payload": scanResults}
 
 
@@ -93,10 +85,10 @@ async def scan_constraint(
     inc: float = Query(..., example=1),
     hkl: positionType = Query(..., example=(1, 0, 1)),
     wavelength: float = Query(..., example=1.0),
-    hklCalc: HklCalculation = Depends(unpickleHkl),
+    repo: HklCalcRepo = Depends(get_repo),
 ):
-    scanResults = service.scan_constraint(
-        constraint, start, stop, inc, hkl, wavelength, hklCalc
+    scanResults = await service.scan_constraint(
+        name, constraint, start, stop, inc, hkl, wavelength, repo
     )
 
     return {"payload": scanResults}

@@ -1,20 +1,18 @@
-from pathlib import Path
-from typing import Callable, Dict, Union
+from typing import Dict, Union
 
-from diffcalc.hkl.calc import HklCalculation
 from fastapi import APIRouter, Body, Depends, Response
 
-from diffcalc_API.fileHandling import supplyPersist, unpickleHkl
+from diffcalc_API.fileHandling import HklCalcRepo, get_repo
 from diffcalc_API.services import Constraints as service
 
 router = APIRouter(prefix="/constraints", tags=["constraints"])
 
 
 @router.get("/{name}")
-async def get_constraints_status(
-    name: str, hklCalc: HklCalculation = Depends(unpickleHkl)
-):
-    return Response(content=str(hklCalc.constraints), media_type="application/text")
+async def get_constraints(name: str, repo: HklCalcRepo = Depends(get_repo)):
+    content = await service.get_constraints(name, repo)
+
+    return Response(content=content, media_type="application/text")
 
 
 @router.put("/{name}/set")
@@ -23,10 +21,10 @@ async def set_constraints(
     constraintDict: Dict[str, Union[float, bool]] = Body(
         example={"qaz": 0, "alpha": 0, "eta": 0}
     ),
-    hklCalc: HklCalculation = Depends(unpickleHkl),
-    persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
+    repo: HklCalcRepo = Depends(get_repo),
 ):
-    service.set_constraints(name, constraintDict, hklCalc, persist)
+    await service.set_constraints(name, constraintDict, repo)
+
     return {"message": f"constraints updated (replaced) for crystal {name}"}
 
 
@@ -34,17 +32,11 @@ async def set_constraints(
 async def remove_constraint(
     name: str,
     property: str,
-    hklCalc: HklCalculation = Depends(unpickleHkl),
-    persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
+    repo: HklCalcRepo = Depends(get_repo),
 ):
-    service.remove_constraint(name, property, hklCalc, persist)
+    await service.remove_constraint(name, property, repo)
 
-    return {
-        "message": (
-            f"unconstrained {property} for crystal {name}. "
-            f"Constraints are now: {hklCalc.constraints.asdict}"
-        )
-    }
+    return {"message": f"unconstrained {property} for crystal {name}. "}
 
 
 @router.patch("/{name}/constrain/{property}")
@@ -52,14 +44,8 @@ async def set_constraint(
     name: str,
     property: str,
     value: Union[float, bool] = Body(...),
-    hklCalc: HklCalculation = Depends(unpickleHkl),
-    persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
+    repo: HklCalcRepo = Depends(get_repo),
 ):
-    service.set_constraint(name, property, value, hklCalc, persist)
+    await service.set_constraint(name, property, value, repo)
 
-    return {
-        "message": (
-            f"constrained {property} for crystal {name}. "
-            f"Constraints are now: {hklCalc.constraints.asdict}"
-        )
-    }
+    return {"message": f"constrained {property} for crystal {name}. "}

@@ -7,8 +7,9 @@ from diffcalc.ub.calc import UBCalculation
 from fastapi.testclient import TestClient
 
 from diffcalc_API.errors.HklCalculation import codes
-from diffcalc_API.fileHandling import unpickleHkl
+from diffcalc_API.fileHandling import HklCalcRepo, get_repo
 from diffcalc_API.server import app
+from tests.conftest import FakeHklCalcRepo
 
 dummyHkl = HklCalculation(UBCalculation(name="sixcircle"), Constraints())
 
@@ -23,13 +24,14 @@ dummyHkl.ubcalc.calc_ub("refl1", "plane")
 dummyHkl.constraints = Constraints({"qaz": 0, "alpha": 0, "eta": 0})
 
 
-def dummy_unpickleHkl(name: str) -> HklCalculation:
-    return dummyHkl
+def dummy_get_repo() -> HklCalcRepo:
+    return FakeHklCalcRepo(dummyHkl)
 
 
 @pytest.fixture
 def client() -> TestClient:
-    app.dependency_overrides[unpickleHkl] = dummy_unpickleHkl
+    app.dependency_overrides[get_repo] = dummy_get_repo
+
     return TestClient(app)
 
 
