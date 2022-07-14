@@ -1,7 +1,6 @@
 import pickle
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Callable
 
 from diffcalc.hkl.calc import HklCalculation
 from diffcalc.hkl.constraints import Constraints
@@ -51,28 +50,6 @@ def get_repo() -> HklCalcRepo:
     return PicklingHklCalcRepo(Path(savePicklesFolder))
 
 
-def unpickleHkl(name: str) -> HklCalculation:
-    pickleFilePath = Path(savePicklesFolder) / name
-    check_file_exists(pickleFilePath, name)
-
-    with open(pickleFilePath, "rb") as openedFile:
-        diffcalcObject: HklCalculation = pickle.load(openedFile)
-
-    return diffcalcObject
-
-
-def supplyPersist() -> Callable[[HklCalculation, str], Path]:
-    return pickleHkl
-
-
-def pickleHkl(object: HklCalculation, pickleFileName: str) -> Path:
-    pickleFilePath = Path(savePicklesFolder) / pickleFileName
-    with open(pickleFilePath, "wb") as pickleFile:
-        pickle.dump(obj=object, file=pickleFile)
-
-    return pickleFilePath
-
-
 def createPickle(pickleFileName: str) -> Path:
     attempting_to_overwrite(pickleFileName)
 
@@ -80,8 +57,10 @@ def createPickle(pickleFileName: str) -> Path:
     constraints = Constraints()
     hkl = HklCalculation(UBcalc, constraints)
 
-    pickleLocation = pickleHkl(hkl, pickleFileName)
-    return pickleLocation
+    repo = get_repo()
+    repo.save(pickleFileName, hkl)
+
+    return Path(savePicklesFolder, pickleFileName)
 
 
 def deletePickle(pickleFileName: str) -> Path:

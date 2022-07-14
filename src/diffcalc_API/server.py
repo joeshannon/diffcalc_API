@@ -5,7 +5,7 @@ from diffcalc_API import errorDefinitions
 from diffcalc_API.errors.Constraints import responses as responsesConstraints
 from diffcalc_API.errors.HklCalculation import responses as responsesHkl
 from diffcalc_API.errors.UBCalculation import responses as responsesUb
-from diffcalc_API.fileHandling import createPickle, deletePickle
+from diffcalc_API.persistence import createPickle, deletePickle
 
 from . import routes
 

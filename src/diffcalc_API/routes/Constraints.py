@@ -2,7 +2,7 @@ from typing import Dict, Union
 
 from fastapi import APIRouter, Body, Depends, Response
 
-from diffcalc_API.fileHandling import HklCalcRepo, get_repo
+from diffcalc_API.persistence import HklCalcRepo, get_repo
 from diffcalc_API.services import Constraints as service
 
 router = APIRouter(prefix="/constraints", tags=["constraints"])

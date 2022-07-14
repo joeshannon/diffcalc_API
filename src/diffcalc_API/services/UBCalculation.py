@@ -3,7 +3,6 @@ from typing import Tuple, Union
 from diffcalc.hkl.geometry import Position
 
 from diffcalc_API.errors.UBCalculation import get_orientation, get_reflection
-from diffcalc_API.fileHandling import HklCalcRepo
 from diffcalc_API.models.UBCalculation import (
     addOrientationParams,
     addReflectionParams,
@@ -11,6 +10,7 @@ from diffcalc_API.models.UBCalculation import (
     editReflectionParams,
     setLatticeParams,
 )
+from diffcalc_API.persistence import HklCalcRepo
 
 
 async def get_UB(name: str, repo: HklCalcRepo) -> str:

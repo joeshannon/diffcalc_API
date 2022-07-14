@@ -1,6 +1,6 @@
 from diffcalc.hkl.calc import HklCalculation
 
-from diffcalc_API.fileHandling import HklCalcRepo
+from diffcalc_API.persistence import HklCalcRepo
 
 
 class FakeHklCalcRepo(HklCalcRepo):

@@ -2,7 +2,7 @@ from typing import Optional, Tuple, Union
 
 from fastapi import APIRouter, Depends, Query, Response
 
-from diffcalc_API.fileHandling import HklCalcRepo, get_repo
+from diffcalc_API.persistence import HklCalcRepo, get_repo
 from diffcalc_API.services import HklCalculation as service
 
 router = APIRouter(prefix="/calculate", tags=["hkl"])

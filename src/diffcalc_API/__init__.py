@@ -1,4 +1,4 @@
-from . import config, errorDefinitions, fileHandling, server
+from . import config, errorDefinitions, persistence, server
 from ._version_git import __version__
 
 # __all__ defines the public API for the package.
@@ -6,7 +6,7 @@ from ._version_git import __version__
 __all__ = [
     "__version__",
     "server",
-    "fileHandling",
+    "persistence",
     "errorDefinitions",
     "config",
 ]

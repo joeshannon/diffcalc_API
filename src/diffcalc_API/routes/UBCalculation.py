@@ -7,7 +7,6 @@ from diffcalc_API.errors.UBCalculation import (
     check_property_is_valid,
 )
 from diffcalc_API.examples import UBCalculation as examples
-from diffcalc_API.fileHandling import HklCalcRepo, get_repo
 from diffcalc_API.models.UBCalculation import (
     addOrientationParams,
     addReflectionParams,
@@ -16,6 +15,7 @@ from diffcalc_API.models.UBCalculation import (
     editReflectionParams,
     setLatticeParams,
 )
+from diffcalc_API.persistence import HklCalcRepo, get_repo
 from diffcalc_API.services import UBCalculation as service
 
 router = APIRouter(prefix="/ub", tags=["ub"])

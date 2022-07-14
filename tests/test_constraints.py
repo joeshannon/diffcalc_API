@@ -7,7 +7,7 @@ from diffcalc.ub.calc import UBCalculation
 from fastapi.testclient import TestClient
 
 from diffcalc_API.errors.Constraints import codes
-from diffcalc_API.fileHandling import HklCalcRepo, get_repo
+from diffcalc_API.persistence import HklCalcRepo, get_repo
 from diffcalc_API.server import app
 from tests.conftest import FakeHklCalcRepo
 
