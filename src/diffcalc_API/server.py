@@ -1,11 +1,11 @@
 from diffcalc.util import DiffcalcException
-from fastapi import FastAPI, Request, responses
+from fastapi import Depends, FastAPI, Request, responses
 
 from diffcalc_API import errorDefinitions
 from diffcalc_API.errors.Constraints import responses as responsesConstraints
 from diffcalc_API.errors.HklCalculation import responses as responsesHkl
 from diffcalc_API.errors.UBCalculation import responses as responsesUb
-from diffcalc_API.persistence import createPickle, deletePickle
+from diffcalc_API.persistence import get_store
 
 from . import routes
 
@@ -57,14 +57,14 @@ async def server_exceptions_middleware(request: Request, call_next):
 
 
 @app.post("/{name}")
-async def create_hkl_object(name: str):
-    pickleLocation = await createPickle(name)
+async def create_hkl_object(name: str, repo=Depends(get_store)):
+    await repo.create(name)
 
-    return {"message": f"file created at {pickleLocation}"}
+    return {"message": f"file for crystal {name} created"}
 
 
 @app.delete("/{name}")
-async def delete_hkl_object(name: str):
-    pickleLocation = deletePickle(name)
+async def delete_hkl_object(name: str, repo=Depends(get_store)):
+    await repo.delete(name)
 
-    return {"message": f"file at location {pickleLocation} deleted"}
+    return {"message": f"file for crystal {name} deleted"}

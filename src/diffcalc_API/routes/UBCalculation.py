@@ -15,15 +15,15 @@ from diffcalc_API.models.UBCalculation import (
     editReflectionParams,
     setLatticeParams,
 )
-from diffcalc_API.persistence import HklCalcRepo, get_repo
+from diffcalc_API.persistence import HklCalcStore, get_store
 from diffcalc_API.services import UBCalculation as service
 
 router = APIRouter(prefix="/ub", tags=["ub"])
 
 
 @router.get("/{name}")
-async def get_UB(name: str, repo: HklCalcRepo = Depends(get_repo)):
-    content = await service.get_UB(name, repo)
+async def get_UB(name: str, store: HklCalcStore = Depends(get_store)):
+    content = await service.get_UB(name, store)
     return Response(content=content, media_type="application/text")
 
 
@@ -31,9 +31,9 @@ async def get_UB(name: str, repo: HklCalcRepo = Depends(get_repo)):
 async def add_reflection(
     name: str,
     params: addReflectionParams = Body(..., example=examples.addReflection),
-    repo: HklCalcRepo = Depends(get_repo),
+    store: HklCalcStore = Depends(get_store),
 ):
-    await service.add_reflection(name, params, repo)
+    await service.add_reflection(name, params, store)
     return {"message": f"added reflection for UB Calculation of crystal {name}"}
 
 
@@ -41,9 +41,9 @@ async def add_reflection(
 async def edit_reflection(
     name: str,
     params: editReflectionParams = Body(..., example=examples.editReflection),
-    repo: HklCalcRepo = Depends(get_repo),
+    store: HklCalcStore = Depends(get_store),
 ):
-    await service.edit_reflection(name, params, repo)
+    await service.edit_reflection(name, params, store)
     return {"message": f"reflection with tag/index {params.tagOrIdx} edited. "}
 
 
@@ -51,9 +51,9 @@ async def edit_reflection(
 async def delete_reflection(
     name: str,
     params: deleteParams = Body(..., example={"tagOrIdx": "refl1"}),
-    repo: HklCalcRepo = Depends(get_repo),
+    store: HklCalcStore = Depends(get_store),
 ):
-    await service.delete_reflection(name, params.tagOrIdx, repo)  # TODO Change this!
+    await service.delete_reflection(name, params.tagOrIdx, store)  # TODO Change this!
     return {"message": f"reflection with tag/index {params.tagOrIdx} deleted."}
 
 
@@ -61,9 +61,9 @@ async def delete_reflection(
 async def add_orientation(
     name: str,
     params: addOrientationParams = Body(..., example=examples.addOrientation),
-    repo: HklCalcRepo = Depends(get_repo),
+    store: HklCalcStore = Depends(get_store),
 ):
-    await service.add_orientation(name, params, repo)
+    await service.add_orientation(name, params, store)
     return {"message": f"added orientation for UB Calculation of crystal {name}"}
 
 
@@ -71,9 +71,9 @@ async def add_orientation(
 async def edit_orientation(
     name: str,
     params: editOrientationParams = Body(..., example=examples.editOrientation),
-    repo: HklCalcRepo = Depends(get_repo),
+    store: HklCalcStore = Depends(get_store),
 ):
-    await service.edit_orientation(name, params, repo)
+    await service.edit_orientation(name, params, store)
     return {"message": f"orientation with tag/index {params.tagOrIdx} edited."}
 
 
@@ -81,9 +81,9 @@ async def edit_orientation(
 async def delete_orientation(
     name: str,
     params: deleteParams = Body(..., example={"tagOrIdx": "plane"}),
-    repo: HklCalcRepo = Depends(get_repo),
+    store: HklCalcStore = Depends(get_store),
 ):
-    await service.delete_orientation(name, params.tagOrIdx, repo)
+    await service.delete_orientation(name, params.tagOrIdx, store)
     return {"message": f"reflection with tag or index {params.tagOrIdx} deleted."}
 
 
@@ -91,10 +91,10 @@ async def delete_orientation(
 async def set_lattice(
     name: str,
     params: setLatticeParams = Body(example=examples.setLattice),
-    repo: HklCalcRepo = Depends(get_repo),
+    store: HklCalcStore = Depends(get_store),
     _=Depends(check_params_not_empty),
 ):
-    await service.set_lattice(name, params, repo)
+    await service.set_lattice(name, params, store)
     return {"message": f"lattice has been set for UB calculation of crystal {name}"}
 
 
@@ -103,8 +103,8 @@ async def modify_property(
     name: str,
     property: str,
     targetValue: Tuple[float, float, float] = Body(..., example=[1, 0, 0]),
-    repo: HklCalcRepo = Depends(get_repo),
+    store: HklCalcStore = Depends(get_store),
     _=Depends(check_property_is_valid),
 ):
-    await service.modify_property(name, property, targetValue, repo)
+    await service.modify_property(name, property, targetValue, store)
     return {"message": f"{property} has been set for UB calculation of crystal {name}"}

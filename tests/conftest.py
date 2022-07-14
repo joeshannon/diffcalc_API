@@ -1,14 +1,20 @@
 from diffcalc.hkl.calc import HklCalculation
 
-from diffcalc_API.persistence import HklCalcRepo
+from diffcalc_API.persistence import HklCalcStore
 
 
-class FakeHklCalcRepo(HklCalcRepo):
+class FakeHklCalcStore(HklCalcStore):
     def __init__(self, useHkl: HklCalculation):
         self.hkl = useHkl
 
+    async def create(self, name: str) -> None:
+        pass
+
+    async def delete(self, name: str) -> None:
+        pass
+
     async def save(self, name: str, calc: HklCalculation) -> None:
-        return
+        pass
 
     async def load(self, name: str) -> HklCalculation:
         return self.hkl

@@ -9,7 +9,7 @@ from diffcalc_API.errors.HklCalculation import (
     check_valid_miller_indices,
     check_valid_scan_bounds,
 )
-from diffcalc_API.persistence import HklCalcRepo
+from diffcalc_API.persistence import HklCalcStore
 
 PositionType = Tuple[float, float, float]
 
@@ -18,9 +18,9 @@ async def lab_position_from_miller_indices(
     name: str,
     millerIndices: Tuple[float, float, float],
     wavelength: float,
-    repo: HklCalcRepo,
+    store: HklCalcStore,
 ) -> List[Tuple[Position, Dict[str, float]]]:
-    hklCalc = await repo.load(name)
+    hklCalc = await store.load(name)
 
     check_valid_miller_indices(millerIndices)
     allPositions = hklCalc.get_position(*millerIndices, wavelength)
@@ -32,9 +32,9 @@ async def miller_indices_from_lab_position(
     name: str,
     pos: Tuple[float, float, float, float, float, float],
     wavelength: float,
-    repo: HklCalcRepo,
+    store: HklCalcStore,
 ):
-    hklCalc = await repo.load(name)
+    hklCalc = await store.load(name)
     hklPosition = hklCalc.get_hkl(Position(*pos), wavelength)
     return tuple(np.round(hklPosition, 16))
 
@@ -45,9 +45,9 @@ async def scan_hkl(
     stop: PositionType,
     inc: PositionType,
     wavelength: float,
-    repo: HklCalcRepo,
+    store: HklCalcStore,
 ):
-    hklCalc = await repo.load(name)
+    hklCalc = await store.load(name)
     valueOfAxes = [
         generate_axis(start[i], stop[i], inc[i]) if inc[i] != 0 else [0]
         for i in range(3)
@@ -69,9 +69,9 @@ async def scan_wavelength(
     stop: float,
     inc: float,
     hkl: PositionType,
-    repo: HklCalcRepo,
+    store: HklCalcStore,
 ):
-    hklCalc = await repo.load(name)
+    hklCalc = await store.load(name)
     check_valid_scan_bounds(start, stop, inc)
     wavelengths = np.arange(start, stop + inc, inc)
     result = {}
@@ -91,9 +91,9 @@ async def scan_constraint(
     inc: float,
     hkl: PositionType,
     wavelength: float,
-    repo: HklCalcRepo,
+    store: HklCalcStore,
 ):
-    hklCalc = await repo.load(name)
+    hklCalc = await store.load(name)
     check_valid_scan_bounds(start, stop, inc)
     result = {}
     for value in np.arange(start, stop + inc, inc):
@@ -122,11 +122,11 @@ async def calculate_UB(
     name: str,
     firstTag: Optional[Union[int, str]],
     secondTag: Optional[Union[int, str]],
-    repo: HklCalcRepo,
+    store: HklCalcStore,
 ) -> str:
-    hklCalc = await repo.load(name)
+    hklCalc = await store.load(name)
 
     calculate_UB_matrix(hklCalc, firstTag, secondTag)
 
-    await repo.save(name, hklCalc)
+    await store.save(name, hklCalc)
     return str(np.round(hklCalc.ubcalc.UB, 6))

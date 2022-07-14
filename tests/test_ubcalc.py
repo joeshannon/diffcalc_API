@@ -7,20 +7,20 @@ from diffcalc.ub.calc import UBCalculation
 from fastapi.testclient import TestClient
 
 from diffcalc_API.errors.UBCalculation import codes
-from diffcalc_API.persistence import HklCalcRepo, get_repo
+from diffcalc_API.persistence import HklCalcStore, get_store
 from diffcalc_API.server import app
-from tests.conftest import FakeHklCalcRepo
+from tests.conftest import FakeHklCalcStore
 
 dummyHkl = HklCalculation(UBCalculation(name="dummy"), Constraints())
 
 
-def dummy_get_repo() -> HklCalcRepo:
-    return FakeHklCalcRepo(dummyHkl)
+def dummy_get_store() -> HklCalcStore:
+    return FakeHklCalcStore(dummyHkl)
 
 
 @pytest.fixture(scope="session")
 def client() -> TestClient:
-    app.dependency_overrides[get_repo] = dummy_get_repo
+    app.dependency_overrides[get_store] = dummy_get_store
 
     return TestClient(app)
 

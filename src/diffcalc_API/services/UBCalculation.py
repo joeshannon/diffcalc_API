@@ -10,11 +10,11 @@ from diffcalc_API.models.UBCalculation import (
     editReflectionParams,
     setLatticeParams,
 )
-from diffcalc_API.persistence import HklCalcRepo
+from diffcalc_API.persistence import HklCalcStore
 
 
-async def get_UB(name: str, repo: HklCalcRepo) -> str:
-    hklCalc = await repo.load(name)
+async def get_UB(name: str, store: HklCalcStore) -> str:
+    hklCalc = await store.load(name)
 
     return str(hklCalc.ubcalc)
 
@@ -22,9 +22,9 @@ async def get_UB(name: str, repo: HklCalcRepo) -> str:
 async def add_reflection(
     name: str,
     params: addReflectionParams,
-    repo: HklCalcRepo,
+    store: HklCalcStore,
 ) -> None:
-    hklCalc = await repo.load(name)
+    hklCalc = await store.load(name)
 
     hklCalc.ubcalc.add_reflection(
         params.hkl,
@@ -33,15 +33,15 @@ async def add_reflection(
         params.tag,
     )
 
-    await repo.save(name, hklCalc)
+    await store.save(name, hklCalc)
 
 
 async def edit_reflection(
     name: str,
     params: editReflectionParams,
-    repo: HklCalcRepo,
+    store: HklCalcStore,
 ) -> None:
-    hklCalc = await repo.load(name)
+    hklCalc = await store.load(name)
 
     reflection = get_reflection(hklCalc, params.tagOrIdx)
     hklCalc.ubcalc.edit_reflection(
@@ -52,28 +52,28 @@ async def edit_reflection(
         params.tagOrIdx if isinstance(params.tagOrIdx, str) else None,
     )
 
-    await repo.save(name, hklCalc)
+    await store.save(name, hklCalc)
 
 
 async def delete_reflection(
     name: str,
     tagOrIdx: Union[str, int],
-    repo: HklCalcRepo,
+    store: HklCalcStore,
 ) -> None:
-    hklCalc = await repo.load(name)
+    hklCalc = await store.load(name)
 
     _ = get_reflection(hklCalc, tagOrIdx)
     hklCalc.ubcalc.del_reflection(tagOrIdx)
 
-    await repo.save(name, hklCalc)
+    await store.save(name, hklCalc)
 
 
 async def add_orientation(
     name: str,
     params: addOrientationParams,
-    repo: HklCalcRepo,
+    store: HklCalcStore,
 ) -> None:
-    hklCalc = await repo.load(name)
+    hklCalc = await store.load(name)
 
     position = Position(*params.position) if params.position else None
     hklCalc.ubcalc.add_orientation(
@@ -83,15 +83,15 @@ async def add_orientation(
         params.tag,
     )
 
-    await repo.save(name, hklCalc)
+    await store.save(name, hklCalc)
 
 
 async def edit_orientation(
     name: str,
     params: editOrientationParams,
-    repo: HklCalcRepo,
+    store: HklCalcStore,
 ) -> None:
-    hklCalc = await repo.load(name)
+    hklCalc = await store.load(name)
 
     orientation = get_orientation(hklCalc, params.tagOrIdx)
     hklCalc.ubcalc.edit_orientation(
@@ -102,35 +102,38 @@ async def edit_orientation(
         params.tagOrIdx if isinstance(params.tagOrIdx, str) else None,
     )
 
-    await repo.save(name, hklCalc)
+    await store.save(name, hklCalc)
 
 
 async def delete_orientation(
     name: str,
     tagOrIdx: Union[str, int],
-    repo: HklCalcRepo,
+    store: HklCalcStore,
 ) -> None:
-    hklCalc = await repo.load(name)
+    hklCalc = await store.load(name)
 
     _ = get_orientation(hklCalc, tagOrIdx)
     hklCalc.ubcalc.del_orientation(tagOrIdx)
 
-    await repo.save(name, hklCalc)
+    await store.save(name, hklCalc)
 
 
-async def set_lattice(name: str, params: setLatticeParams, repo: HklCalcRepo) -> None:
-    hklCalc = await repo.load(name)
+async def set_lattice(name: str, params: setLatticeParams, store: HklCalcStore) -> None:
+    hklCalc = await store.load(name)
 
     hklCalc.ubcalc.set_lattice(name=name, **params.dict())
 
-    await repo.save(name, hklCalc)
+    await store.save(name, hklCalc)
 
 
 async def modify_property(
-    name: str, property: str, targetValue: Tuple[float, float, float], repo: HklCalcRepo
+    name: str,
+    property: str,
+    targetValue: Tuple[float, float, float],
+    store: HklCalcStore,
 ):
-    hklCalc = await repo.load(name)
+    hklCalc = await store.load(name)
 
     setattr(hklCalc.ubcalc, property, targetValue)
 
-    await repo.save(name, hklCalc)
+    await store.save(name, hklCalc)

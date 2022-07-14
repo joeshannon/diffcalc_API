@@ -10,11 +10,19 @@ from diffcalc_API.config import savePicklesFolder
 from diffcalc_API.errorDefinitions import attempting_to_overwrite, check_file_exists
 
 
-class HklCalcRepo(ABC):
+class HklCalcStore(ABC):
     """
     Abstract representation of persistence, can have various implementations to edit
     the state which the API is managing (hkl object).
     """
+
+    @abstractmethod
+    async def create(self, name: str) -> None:
+        ...
+
+    @abstractmethod
+    async def delete(self, name: str) -> None:
+        ...
 
     @abstractmethod
     async def save(self, name: str, calc: HklCalculation) -> None:
@@ -25,11 +33,25 @@ class HklCalcRepo(ABC):
         ...
 
 
-class PicklingHklCalcRepo(HklCalcRepo):
+class PicklingHklCalcStore(HklCalcStore):
     _root_directory: Path
 
     def __init__(self, root_directory: Path) -> None:
         self._root_directory = root_directory
+
+    async def create(self, name: str) -> None:
+        attempting_to_overwrite(name)
+
+        UBcalc = UBCalculation(name=name)
+        constraints = Constraints()
+        hkl = HklCalculation(UBcalc, constraints)
+
+        await self.save(name, hkl)
+
+    async def delete(self, name: str) -> None:
+        pickleFilePath = Path(savePicklesFolder) / name
+        check_file_exists(pickleFilePath, name)
+        Path(pickleFilePath).unlink()
 
     async def save(self, name: str, calc: HklCalculation) -> None:
         file_path = self._root_directory / name
@@ -46,26 +68,5 @@ class PicklingHklCalcRepo(HklCalcRepo):
         return diffcalcObject
 
 
-def get_repo() -> HklCalcRepo:
-    return PicklingHklCalcRepo(Path(savePicklesFolder))
-
-
-async def createPickle(pickleFileName: str) -> Path:
-    attempting_to_overwrite(pickleFileName)
-
-    UBcalc = UBCalculation(name=pickleFileName)
-    constraints = Constraints()
-    hkl = HklCalculation(UBcalc, constraints)
-
-    repo = get_repo()
-    await repo.save(pickleFileName, hkl)
-
-    return Path(savePicklesFolder, pickleFileName)
-
-
-def deletePickle(pickleFileName: str) -> Path:
-    pickleFilePath = Path(savePicklesFolder) / pickleFileName
-    check_file_exists(pickleFilePath, pickleFileName)
-    Path(pickleFilePath).unlink()
-
-    return pickleFilePath
+def get_store() -> HklCalcStore:
+    return PicklingHklCalcStore(Path(savePicklesFolder))
