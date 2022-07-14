@@ -4,8 +4,8 @@ from typing import Callable, Dict, Union
 from diffcalc.hkl.calc import HklCalculation
 from fastapi import APIRouter, Body, Depends
 
-from diffcalc_API.controllers import Constraints as controller
 from diffcalc_API.fileHandling import supplyPersist, unpickleHkl
+from diffcalc_API.services import Constraints as service
 
 router = APIRouter(prefix="/constraints", tags=["constraints"])
 
@@ -19,7 +19,7 @@ async def set_constraints(
     hklCalc: HklCalculation = Depends(unpickleHkl),
     persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
 ):
-    controller.set_constraints(name, constraintDict, hklCalc, persist)
+    service.set_constraints(name, constraintDict, hklCalc, persist)
     return {"message": f"constraints updated (replaced) for crystal {name}"}
 
 
@@ -30,7 +30,7 @@ async def remove_constraint(
     hklCalc: HklCalculation = Depends(unpickleHkl),
     persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
 ):
-    controller.remove_constraint(name, property, hklCalc, persist)
+    service.remove_constraint(name, property, hklCalc, persist)
 
     return {
         "message": (
@@ -48,7 +48,7 @@ async def set_constraint(
     hklCalc: HklCalculation = Depends(unpickleHkl),
     persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
 ):
-    controller.set_constraint(name, property, value, hklCalc, persist)
+    service.set_constraint(name, property, value, hklCalc, persist)
 
     return {
         "message": (

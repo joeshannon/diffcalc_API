@@ -6,7 +6,6 @@ import numpy as np
 from diffcalc.hkl.calc import HklCalculation
 from fastapi import APIRouter, Body, Depends, Query
 
-from diffcalc_API.controllers import UBCalculation as controller
 from diffcalc_API.errors.UBCalculation import (
     check_params_not_empty,
     check_property_is_valid,
@@ -20,6 +19,7 @@ from diffcalc_API.models.UBCalculation import (
     editReflectionParams,
     setLatticeParams,
 )
+from diffcalc_API.services import UBCalculation as service
 
 router = APIRouter(
     prefix="/ub",
@@ -35,7 +35,7 @@ async def add_reflection(
     hklCalc: HklCalculation = Depends(unpickleHkl),
     persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
 ):
-    controller.add_reflection(name, params, hklCalc, persist)
+    service.add_reflection(name, params, hklCalc, persist)
     return {"message": f"added reflection for UB Calculation of crystal {name}"}
 
 
@@ -46,7 +46,7 @@ async def edit_reflection(
     hklCalc: HklCalculation = Depends(unpickleHkl),
     persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
 ):
-    controller.edit_reflection(name, params, hklCalc, persist)
+    service.edit_reflection(name, params, hklCalc, persist)
     return {
         "message": (
             f"reflection with tag/index {params.tagOrIdx} edited to: "
@@ -62,7 +62,7 @@ async def delete_reflection(
     hklCalc: HklCalculation = Depends(unpickleHkl),
     persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
 ):
-    controller.delete_reflection(name, tagOrIdx, hklCalc, persist)
+    service.delete_reflection(name, tagOrIdx, hklCalc, persist)
     return {"message": f"reflection with tag/index {tagOrIdx} deleted."}
 
 
@@ -73,7 +73,7 @@ async def add_orientation(
     hklCalc: HklCalculation = Depends(unpickleHkl),
     persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
 ):
-    controller.add_orientation(name, params, hklCalc, persist)
+    service.add_orientation(name, params, hklCalc, persist)
     return {"message": f"added orientation for UB Calculation of crystal {name}"}
 
 
@@ -84,7 +84,7 @@ async def edit_orientation(
     hklCalc: HklCalculation = Depends(unpickleHkl),
     persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
 ):
-    controller.edit_orientation(name, params, hklCalc, persist)
+    service.edit_orientation(name, params, hklCalc, persist)
     return {
         "message": (
             f"orientation with tag/index {params.tagOrIdx} edited to: "
@@ -100,7 +100,7 @@ async def delete_orientation(
     hklCalc: HklCalculation = Depends(unpickleHkl),
     persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
 ):
-    controller.delete_orientation(name, tagOrIdx, hklCalc, persist)
+    service.delete_orientation(name, tagOrIdx, hklCalc, persist)
     return {"message": f"reflection with tag or index {tagOrIdx} deleted."}
 
 
@@ -112,7 +112,7 @@ async def set_lattice(
     persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
     _=Depends(check_params_not_empty),
 ):
-    controller.set_lattice(name, params, hklCalc, persist)
+    service.set_lattice(name, params, hklCalc, persist)
     return {"message": f"lattice has been set for UB calculation of crystal {name}"}
 
 
@@ -125,7 +125,7 @@ async def modify_property(
     persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
     _=Depends(check_property_is_valid),
 ):
-    controller.modify_property(name, property, targetValue, hklCalc, persist)
+    service.modify_property(name, property, targetValue, hklCalc, persist)
     return {"message": f"{property} has been set for UB calculation of crystal {name}"}
 
 
@@ -137,5 +137,5 @@ async def calculate_UB(
     hklCalc: HklCalculation = Depends(unpickleHkl),
     persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
 ):
-    controller.calculate_UB(name, firstTag, secondTag, hklCalc, persist)
+    service.calculate_UB(name, firstTag, secondTag, hklCalc, persist)
     return json.dumps(np.round(hklCalc.ubcalc.UB, 6).tolist())

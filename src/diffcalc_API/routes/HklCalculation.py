@@ -3,8 +3,8 @@ from typing import Tuple, Union
 from diffcalc.hkl.calc import HklCalculation
 from fastapi import APIRouter, Depends, Query
 
-from diffcalc_API.controllers import HklCalculation as controller
 from diffcalc_API.fileHandling import unpickleHkl
+from diffcalc_API.services import HklCalculation as service
 
 router = APIRouter(
     prefix="/calculate", tags=["hkl"], dependencies=[Depends(unpickleHkl)]
@@ -22,7 +22,7 @@ async def lab_position_from_miller_indices(
     wavelength: float = Query(..., example=1.0),
     hklCalc: HklCalculation = Depends(unpickleHkl),
 ):
-    positions = controller.lab_position_from_miller_indices(
+    positions = service.lab_position_from_miller_indices(
         millerIndices, wavelength, hklCalc
     )
 
@@ -38,7 +38,7 @@ async def miller_indices_from_lab_position(
     wavelength: float = Query(..., example=1.0),
     hklCalc: HklCalculation = Depends(unpickleHkl),
 ):
-    hkl = controller.miller_indices_from_lab_position(pos, wavelength, hklCalc)
+    hkl = service.miller_indices_from_lab_position(pos, wavelength, hklCalc)
     return {"payload": hkl}
 
 
@@ -51,7 +51,7 @@ async def scan_hkl(
     wavelength: float = Query(..., example=1),
     hklCalc: HklCalculation = Depends(unpickleHkl),
 ):
-    scanResults = controller.scan_hkl(start, stop, inc, wavelength, hklCalc)
+    scanResults = service.scan_hkl(start, stop, inc, wavelength, hklCalc)
     return {"payload": scanResults}
 
 
@@ -64,7 +64,7 @@ async def scan_wavelength(
     hkl: positionType = Query(..., example=(1, 0, 1)),
     hklCalc: HklCalculation = Depends(unpickleHkl),
 ):
-    scanResults = controller.scan_wavelength(start, stop, inc, hkl, hklCalc)
+    scanResults = service.scan_wavelength(start, stop, inc, hkl, hklCalc)
     return {"payload": scanResults}
 
 
@@ -79,7 +79,7 @@ async def scan_constraint(
     wavelength: float = Query(..., example=1.0),
     hklCalc: HklCalculation = Depends(unpickleHkl),
 ):
-    scanResults = controller.scan_constraint(
+    scanResults = service.scan_constraint(
         constraint, start, stop, inc, hkl, wavelength, hklCalc
     )
 
