@@ -1,19 +1,19 @@
 from diffcalc.util import DiffcalcException
 from fastapi import FastAPI, Request, responses
 
-from diffcalc_API import errorDefinitions, errors
+from diffcalc_API import errorDefinitions
+from diffcalc_API.errors.Constraints import responses as responsesConstraints
+from diffcalc_API.errors.HklCalculation import responses as responsesHkl
+from diffcalc_API.errors.UBCalculation import responses as responsesUb
 from diffcalc_API.fileHandling import createPickle, deletePickle
 
 from . import routes
 
 app = FastAPI(responses=errorDefinitions.responses)
-app.include_router(
-    routes.UBCalculation.router, responses=errors.UBCalculation.responses
-)
-app.include_router(routes.Constraints.router, responses=errors.Constraints.responses)
-app.include_router(
-    routes.HklCalculation.router, responses=errors.HklCalculation.responses
-)
+
+app.include_router(routes.UBCalculation.router, responses=responsesUb)
+app.include_router(routes.Constraints.router, responses=responsesConstraints)
+app.include_router(routes.HklCalculation.router, responses=responsesHkl)
 
 #######################################################################################
 #                              Middleware for Exceptions                              #
@@ -38,6 +38,7 @@ async def http_exception_handler(
     )
 
 
+@app.middleware("http")
 async def server_exceptions_middleware(request: Request, call_next):
     try:
         return await call_next(request)
@@ -48,9 +49,6 @@ async def server_exceptions_middleware(request: Request, call_next):
             status_code=500,
             content={"message": str(e), "type": str(type(e))},
         )
-
-
-app.middleware("http")(server_exceptions_middleware)
 
 
 #######################################################################################
