@@ -9,7 +9,7 @@ from diffcalc_API.errors.HklCalculation import (
     check_valid_miller_indices,
     check_valid_scan_bounds,
 )
-from diffcalc_API.persistence import HklCalcStore
+from diffcalc_API.stores.protocol import HklCalcStore
 
 PositionType = Tuple[float, float, float]
 

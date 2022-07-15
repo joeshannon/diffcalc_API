@@ -4,7 +4,7 @@ from diffcalc.hkl.constraints import Constraints
 
 from diffcalc_API.config import constraintsWithNoValue
 from diffcalc_API.errors.Constraints import check_constraint_exists
-from diffcalc_API.persistence import HklCalcStore
+from diffcalc_API.stores.protocol import HklCalcStore
 
 
 async def get_constraints(name: str, store: HklCalcStore) -> str:

@@ -7,8 +7,9 @@ from diffcalc.ub.calc import UBCalculation
 from fastapi.testclient import TestClient
 
 from diffcalc_API.errors.UBCalculation import codes
-from diffcalc_API.persistence import HklCalcStore, get_store
 from diffcalc_API.server import app
+from diffcalc_API.stores.pickling import get_store
+from diffcalc_API.stores.protocol import HklCalcStore
 from tests.conftest import FakeHklCalcStore
 
 dummyHkl = HklCalculation(UBCalculation(name="dummy"), Constraints())

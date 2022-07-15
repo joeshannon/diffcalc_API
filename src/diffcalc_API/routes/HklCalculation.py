@@ -2,8 +2,9 @@ from typing import Optional, Tuple, Union
 
 from fastapi import APIRouter, Depends, Query, Response
 
-from diffcalc_API.persistence import HklCalcStore, get_store
 from diffcalc_API.services import HklCalculation as service
+from diffcalc_API.stores.pickling import get_store
+from diffcalc_API.stores.protocol import HklCalcStore
 
 router = APIRouter(prefix="/calculate", tags=["hkl"])
 

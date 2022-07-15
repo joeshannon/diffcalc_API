@@ -15,8 +15,9 @@ from diffcalc_API.models.UBCalculation import (
     editReflectionParams,
     setLatticeParams,
 )
-from diffcalc_API.persistence import HklCalcStore, get_store
 from diffcalc_API.services import UBCalculation as service
+from diffcalc_API.stores.pickling import get_store
+from diffcalc_API.stores.protocol import HklCalcStore
 
 router = APIRouter(prefix="/ub", tags=["ub"])
 

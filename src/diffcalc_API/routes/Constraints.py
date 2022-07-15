@@ -2,8 +2,9 @@ from typing import Dict, Union
 
 from fastapi import APIRouter, Body, Depends, Response
 
-from diffcalc_API.persistence import HklCalcStore, get_store
 from diffcalc_API.services import Constraints as service
+from diffcalc_API.stores.pickling import get_store
+from diffcalc_API.stores.protocol import HklCalcStore
 
 router = APIRouter(prefix="/constraints", tags=["constraints"])
 

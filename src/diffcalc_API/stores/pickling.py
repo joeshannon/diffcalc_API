@@ -1,6 +1,5 @@
 import pickle
 from pathlib import Path
-from typing import Protocol
 
 from diffcalc.hkl.calc import HklCalculation
 from diffcalc.hkl.constraints import Constraints
@@ -8,24 +7,7 @@ from diffcalc.ub.calc import UBCalculation
 
 from diffcalc_API.config import savePicklesFolder
 from diffcalc_API.errorDefinitions import attempting_to_overwrite, check_file_exists
-
-
-class HklCalcStore(Protocol):
-    """
-    Protocol, or interface, for interacting with the Hkl object.
-    """
-
-    async def create(self, name: str) -> None:
-        ...
-
-    async def delete(self, name: str) -> None:
-        ...
-
-    async def save(self, name: str, calc: HklCalculation) -> None:
-        ...
-
-    async def load(self, name: str) -> HklCalculation:
-        ...
+from diffcalc_API.stores.protocol import HklCalcStore
 
 
 class PicklingHklCalcStore:

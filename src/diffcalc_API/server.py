@@ -5,7 +5,7 @@ from diffcalc_API import errorDefinitions
 from diffcalc_API.errors.Constraints import responses as responsesConstraints
 from diffcalc_API.errors.HklCalculation import responses as responsesHkl
 from diffcalc_API.errors.UBCalculation import responses as responsesUb
-from diffcalc_API.persistence import get_store
+from diffcalc_API.stores.pickling import get_store
 
 from . import routes
 

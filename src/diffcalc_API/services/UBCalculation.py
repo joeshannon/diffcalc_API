@@ -10,7 +10,7 @@ from diffcalc_API.models.UBCalculation import (
     editReflectionParams,
     setLatticeParams,
 )
-from diffcalc_API.persistence import HklCalcStore
+from diffcalc_API.stores.protocol import HklCalcStore
 
 
 async def get_UB(name: str, store: HklCalcStore) -> str:
