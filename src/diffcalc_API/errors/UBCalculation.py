@@ -5,7 +5,11 @@ from diffcalc.hkl.calc import HklCalculation
 from diffcalc.ub.reference import Orientation, Reflection
 
 from diffcalc_API.config import VectorProperties
-from diffcalc_API.errorDefinitions import DiffcalcAPIException, ErrorCodes, allResponses
+from diffcalc_API.errors.definitions import (
+    DiffcalcAPIException,
+    ErrorCodes,
+    allResponses,
+)
 from diffcalc_API.models.UBCalculation import setLatticeParams
 
 

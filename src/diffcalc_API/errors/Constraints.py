@@ -1,7 +1,11 @@
 import numpy as np
 
 from diffcalc_API.config import allConstraints
-from diffcalc_API.errorDefinitions import DiffcalcAPIException, ErrorCodes, allResponses
+from diffcalc_API.errors.definitions import (
+    DiffcalcAPIException,
+    ErrorCodes,
+    allResponses,
+)
 
 
 class codes(ErrorCodes):

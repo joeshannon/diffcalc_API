@@ -3,7 +3,11 @@ from typing import Optional, Tuple, Union
 import numpy as np
 from diffcalc.hkl.calc import HklCalculation
 
-from diffcalc_API.errorDefinitions import DiffcalcAPIException, ErrorCodes, allResponses
+from diffcalc_API.errors.definitions import (
+    DiffcalcAPIException,
+    ErrorCodes,
+    allResponses,
+)
 
 
 class codes(ErrorCodes):

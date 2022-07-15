@@ -2,7 +2,6 @@
 
 savePicklesFolder = "/dls/tmp/ton99817/diffcalc_pickles"
 VectorProperties = ["n_hkl", "n_phi", "surf_nhkl", "surf_nphi"]
-pickledNames = {"ub", "constraints", "hkl"}
 constraintsWithNoValue = {"a_eq_b", "bin_eq_bout", "mu_is_gam", "bisect"}
 
 allConstraints = {
