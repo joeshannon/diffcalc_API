@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import numpy as np
 import pytest
 from diffcalc.hkl.calc import HklCalculation
@@ -9,24 +7,21 @@ from diffcalc.ub.calc import UBCalculation
 from fastapi.testclient import TestClient
 
 from diffcalc_API.errors.UBCalculation import codes
-from diffcalc_API.fileHandling import supplyPersist, unpickleHkl
 from diffcalc_API.server import app
+from diffcalc_API.stores.pickling import get_store
+from diffcalc_API.stores.protocol import HklCalcStore
+from tests.conftest import FakeHklCalcStore
 
 dummyHkl = HklCalculation(UBCalculation(name="dummy"), Constraints())
 
 
-def dummy_unpickleHkl(name: str) -> HklCalculation:
-    return dummyHkl
+def dummy_get_store() -> HklCalcStore:
+    return FakeHklCalcStore(dummyHkl)
 
 
-def dummy_pickleHkl(object: HklCalculation, pickleFileName: str) -> Path:
-    return Path("/does/not/exist")
-
-
-@pytest.fixture
+@pytest.fixture(scope="session")
 def client() -> TestClient:
-    app.dependency_overrides[unpickleHkl] = dummy_unpickleHkl
-    app.dependency_overrides[supplyPersist] = lambda: dummy_pickleHkl
+    app.dependency_overrides[get_store] = dummy_get_store
 
     return TestClient(app)
 

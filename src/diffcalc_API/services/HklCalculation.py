@@ -1,9 +1,7 @@
 from itertools import product
-from pathlib import Path
-from typing import Callable, Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
-from diffcalc.hkl.calc import HklCalculation
 from diffcalc.hkl.geometry import Position
 
 from diffcalc_API.errors.HklCalculation import (
@@ -11,37 +9,45 @@ from diffcalc_API.errors.HklCalculation import (
     check_valid_miller_indices,
     check_valid_scan_bounds,
 )
+from diffcalc_API.stores.protocol import HklCalcStore
 
 PositionType = Tuple[float, float, float]
 
 
-def lab_position_from_miller_indices(
+async def lab_position_from_miller_indices(
+    name: str,
     millerIndices: Tuple[float, float, float],
     wavelength: float,
-    hklCalc: HklCalculation,
+    store: HklCalcStore,
 ) -> List[Tuple[Position, Dict[str, float]]]:
+    hklCalc = await store.load(name)
+
     check_valid_miller_indices(millerIndices)
     allPositions = hklCalc.get_position(*millerIndices, wavelength)
 
     return combine_lab_position_results(allPositions)
 
 
-def miller_indices_from_lab_position(
+async def miller_indices_from_lab_position(
+    name: str,
     pos: Tuple[float, float, float, float, float, float],
     wavelength: float,
-    hklCalc: HklCalculation,
+    store: HklCalcStore,
 ):
+    hklCalc = await store.load(name)
     hklPosition = hklCalc.get_hkl(Position(*pos), wavelength)
     return tuple(np.round(hklPosition, 16))
 
 
-def scan_hkl(
+async def scan_hkl(
+    name: str,
     start: PositionType,
     stop: PositionType,
     inc: PositionType,
     wavelength: float,
-    hklCalc: HklCalculation,
+    store: HklCalcStore,
 ):
+    hklCalc = await store.load(name)
     valueOfAxes = [
         generate_axis(start[i], stop[i], inc[i]) if inc[i] != 0 else [0]
         for i in range(3)
@@ -57,13 +63,15 @@ def scan_hkl(
     return results
 
 
-def scan_wavelength(
+async def scan_wavelength(
+    name: str,
     start: float,
     stop: float,
     inc: float,
     hkl: PositionType,
-    hklCalc: HklCalculation,
+    store: HklCalcStore,
 ):
+    hklCalc = await store.load(name)
     check_valid_scan_bounds(start, stop, inc)
     wavelengths = np.arange(start, stop + inc, inc)
     result = {}
@@ -75,15 +83,17 @@ def scan_wavelength(
     return result
 
 
-def scan_constraint(
+async def scan_constraint(
+    name: str,
     constraint: str,
     start: float,
     stop: float,
     inc: float,
     hkl: PositionType,
     wavelength: float,
-    hklCalc: HklCalculation,
+    store: HklCalcStore,
 ):
+    hklCalc = await store.load(name)
     check_valid_scan_bounds(start, stop, inc)
     result = {}
     for value in np.arange(start, stop + inc, inc):
@@ -108,12 +118,15 @@ def combine_lab_position_results(positions: List[Tuple[Position, Dict[str, float
     return result
 
 
-def calculate_UB(
+async def calculate_UB(
     name: str,
     firstTag: Optional[Union[int, str]],
     secondTag: Optional[Union[int, str]],
-    hklCalc: HklCalculation,
-    persist: Callable[[HklCalculation, str], Path],
-):
+    store: HklCalcStore,
+) -> str:
+    hklCalc = await store.load(name)
+
     calculate_UB_matrix(hklCalc, firstTag, secondTag)
-    persist(hklCalc, name)
+
+    await store.save(name, hklCalc)
+    return str(np.round(hklCalc.ubcalc.UB, 6))

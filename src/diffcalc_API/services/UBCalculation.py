@@ -1,7 +1,5 @@
-from pathlib import Path
-from typing import Callable, Tuple, Union
+from typing import Tuple, Union
 
-from diffcalc.hkl.calc import HklCalculation
 from diffcalc.hkl.geometry import Position
 
 from diffcalc_API.errors.UBCalculation import get_orientation, get_reflection
@@ -12,14 +10,22 @@ from diffcalc_API.models.UBCalculation import (
     editReflectionParams,
     setLatticeParams,
 )
+from diffcalc_API.stores.protocol import HklCalcStore
 
 
-def add_reflection(
+async def get_UB(name: str, store: HklCalcStore) -> str:
+    hklCalc = await store.load(name)
+
+    return str(hklCalc.ubcalc)
+
+
+async def add_reflection(
     name: str,
     params: addReflectionParams,
-    hklCalc: HklCalculation,
-    persist: Callable[[HklCalculation, str], Path],
-):
+    store: HklCalcStore,
+) -> None:
+    hklCalc = await store.load(name)
+
     hklCalc.ubcalc.add_reflection(
         params.hkl,
         Position(*params.position),
@@ -27,18 +33,17 @@ def add_reflection(
         params.tag,
     )
 
-    persist(hklCalc, name)
-    return
+    await store.save(name, hklCalc)
 
 
-def edit_reflection(
+async def edit_reflection(
     name: str,
     params: editReflectionParams,
-    hklCalc: HklCalculation,
-    persist: Callable[[HklCalculation, str], Path],
-):
-    reflection = get_reflection(hklCalc, params.tagOrIdx)
+    store: HklCalcStore,
+) -> None:
+    hklCalc = await store.load(name)
 
+    reflection = get_reflection(hklCalc, params.tagOrIdx)
     hklCalc.ubcalc.edit_reflection(
         params.tagOrIdx,
         params.hkl if params.hkl else (reflection.h, reflection.k, reflection.l),
@@ -46,30 +51,31 @@ def edit_reflection(
         params.energy if params.energy else reflection.energy,
         params.tagOrIdx if isinstance(params.tagOrIdx, str) else None,
     )
-    persist(hklCalc, name)
-    return
+
+    await store.save(name, hklCalc)
 
 
-def delete_reflection(
+async def delete_reflection(
     name: str,
     tagOrIdx: Union[str, int],
-    hklCalc: HklCalculation,
-    persist: Callable[[HklCalculation, str], Path],
-):
+    store: HklCalcStore,
+) -> None:
+    hklCalc = await store.load(name)
+
     _ = get_reflection(hklCalc, tagOrIdx)
     hklCalc.ubcalc.del_reflection(tagOrIdx)
-    persist(hklCalc, name)
-    return
+
+    await store.save(name, hklCalc)
 
 
-def add_orientation(
+async def add_orientation(
     name: str,
     params: addOrientationParams,
-    hklCalc: HklCalculation,
-    persist: Callable[[HklCalculation, str], Path],
-):
-    position = Position(*params.position) if params.position else None
+    store: HklCalcStore,
+) -> None:
+    hklCalc = await store.load(name)
 
+    position = Position(*params.position) if params.position else None
     hklCalc.ubcalc.add_orientation(
         params.hkl,
         params.xyz,
@@ -77,18 +83,17 @@ def add_orientation(
         params.tag,
     )
 
-    persist(hklCalc, name)
-    return
+    await store.save(name, hklCalc)
 
 
-def edit_orientation(
+async def edit_orientation(
     name: str,
     params: editOrientationParams,
-    hklCalc: HklCalculation,
-    persist: Callable[[HklCalculation, str], Path],
-):
-    orientation = get_orientation(hklCalc, params.tagOrIdx)
+    store: HklCalcStore,
+) -> None:
+    hklCalc = await store.load(name)
 
+    orientation = get_orientation(hklCalc, params.tagOrIdx)
     hklCalc.ubcalc.edit_orientation(
         params.tagOrIdx,
         params.hkl if params.hkl else (orientation.h, orientation.k, orientation.l),
@@ -96,37 +101,39 @@ def edit_orientation(
         Position(params.position) if params.position else orientation.pos,
         params.tagOrIdx if isinstance(params.tagOrIdx, str) else None,
     )
-    persist(hklCalc, name)
-    return
+
+    await store.save(name, hklCalc)
 
 
-def delete_orientation(
+async def delete_orientation(
     name: str,
     tagOrIdx: Union[str, int],
-    hklCalc: HklCalculation,
-    persist: Callable[[HklCalculation, str], Path],
-):
+    store: HklCalcStore,
+) -> None:
+    hklCalc = await store.load(name)
+
     _ = get_orientation(hklCalc, tagOrIdx)
     hklCalc.ubcalc.del_orientation(tagOrIdx)
-    persist(hklCalc, name)
+
+    await store.save(name, hklCalc)
 
 
-def set_lattice(
-    name: str,
-    params: setLatticeParams,
-    hklCalc: HklCalculation,
-    persist: Callable[[HklCalculation, str], Path],
-):
+async def set_lattice(name: str, params: setLatticeParams, store: HklCalcStore) -> None:
+    hklCalc = await store.load(name)
+
     hklCalc.ubcalc.set_lattice(name=name, **params.dict())
-    persist(hklCalc, name)
+
+    await store.save(name, hklCalc)
 
 
-def modify_property(
+async def modify_property(
     name: str,
     property: str,
     targetValue: Tuple[float, float, float],
-    hklCalc: HklCalculation,
-    persist: Callable[[HklCalculation, str], Path],
+    store: HklCalcStore,
 ):
+    hklCalc = await store.load(name)
+
     setattr(hklCalc.ubcalc, property, targetValue)
-    persist(hklCalc, name)
+
+    await store.save(name, hklCalc)

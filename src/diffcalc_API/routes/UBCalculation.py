@@ -1,7 +1,5 @@
-from pathlib import Path
-from typing import Callable, Tuple
+from typing import Tuple
 
-from diffcalc.hkl.calc import HklCalculation
 from fastapi import APIRouter, Body, Depends, Response
 
 from diffcalc_API.errors.UBCalculation import (
@@ -9,7 +7,6 @@ from diffcalc_API.errors.UBCalculation import (
     check_property_is_valid,
 )
 from diffcalc_API.examples import UBCalculation as examples
-from diffcalc_API.fileHandling import supplyPersist, unpickleHkl
 from diffcalc_API.models.UBCalculation import (
     addOrientationParams,
     addReflectionParams,
@@ -19,27 +16,25 @@ from diffcalc_API.models.UBCalculation import (
     setLatticeParams,
 )
 from diffcalc_API.services import UBCalculation as service
+from diffcalc_API.stores.pickling import get_store
+from diffcalc_API.stores.protocol import HklCalcStore
 
-router = APIRouter(
-    prefix="/ub",
-    tags=["ub"],
-    dependencies=[Depends(unpickleHkl), Depends(supplyPersist)],
-)
+router = APIRouter(prefix="/ub", tags=["ub"])
 
 
 @router.get("/{name}")
-async def get_UB_status(name: str, hklCalc: HklCalculation = Depends(unpickleHkl)):
-    return Response(content=str(hklCalc.ubcalc), media_type="application/text")
+async def get_UB(name: str, store: HklCalcStore = Depends(get_store)):
+    content = await service.get_UB(name, store)
+    return Response(content=content, media_type="application/text")
 
 
 @router.put("/{name}/reflection")
 async def add_reflection(
     name: str,
     params: addReflectionParams = Body(..., example=examples.addReflection),
-    hklCalc: HklCalculation = Depends(unpickleHkl),
-    persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
+    store: HklCalcStore = Depends(get_store),
 ):
-    service.add_reflection(name, params, hklCalc, persist)
+    await service.add_reflection(name, params, store)
     return {"message": f"added reflection for UB Calculation of crystal {name}"}
 
 
@@ -47,26 +42,19 @@ async def add_reflection(
 async def edit_reflection(
     name: str,
     params: editReflectionParams = Body(..., example=examples.editReflection),
-    hklCalc: HklCalculation = Depends(unpickleHkl),
-    persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
+    store: HklCalcStore = Depends(get_store),
 ):
-    service.edit_reflection(name, params, hklCalc, persist)
-    return {
-        "message": (
-            f"reflection with tag/index {params.tagOrIdx} edited to: "
-            f"{hklCalc.ubcalc.get_reflection(params.tagOrIdx)}."
-        )
-    }
+    await service.edit_reflection(name, params, store)
+    return {"message": f"reflection with tag/index {params.tagOrIdx} edited. "}
 
 
 @router.delete("/{name}/reflection")
 async def delete_reflection(
     name: str,
     params: deleteParams = Body(..., example={"tagOrIdx": "refl1"}),
-    hklCalc: HklCalculation = Depends(unpickleHkl),
-    persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
+    store: HklCalcStore = Depends(get_store),
 ):
-    service.delete_reflection(name, params.tagOrIdx, hklCalc, persist)
+    await service.delete_reflection(name, params.tagOrIdx, store)  # TODO Change this!
     return {"message": f"reflection with tag/index {params.tagOrIdx} deleted."}
 
 
@@ -74,10 +62,9 @@ async def delete_reflection(
 async def add_orientation(
     name: str,
     params: addOrientationParams = Body(..., example=examples.addOrientation),
-    hklCalc: HklCalculation = Depends(unpickleHkl),
-    persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
+    store: HklCalcStore = Depends(get_store),
 ):
-    service.add_orientation(name, params, hklCalc, persist)
+    await service.add_orientation(name, params, store)
     return {"message": f"added orientation for UB Calculation of crystal {name}"}
 
 
@@ -85,26 +72,19 @@ async def add_orientation(
 async def edit_orientation(
     name: str,
     params: editOrientationParams = Body(..., example=examples.editOrientation),
-    hklCalc: HklCalculation = Depends(unpickleHkl),
-    persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
+    store: HklCalcStore = Depends(get_store),
 ):
-    service.edit_orientation(name, params, hklCalc, persist)
-    return {
-        "message": (
-            f"orientation with tag/index {params.tagOrIdx} edited to: "
-            f"{hklCalc.ubcalc.get_orientation(params.tagOrIdx)}."
-        )
-    }
+    await service.edit_orientation(name, params, store)
+    return {"message": f"orientation with tag/index {params.tagOrIdx} edited."}
 
 
 @router.delete("/{name}/orientation")
 async def delete_orientation(
     name: str,
     params: deleteParams = Body(..., example={"tagOrIdx": "plane"}),
-    hklCalc: HklCalculation = Depends(unpickleHkl),
-    persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
+    store: HklCalcStore = Depends(get_store),
 ):
-    service.delete_orientation(name, params.tagOrIdx, hklCalc, persist)
+    await service.delete_orientation(name, params.tagOrIdx, store)
     return {"message": f"reflection with tag or index {params.tagOrIdx} deleted."}
 
 
@@ -112,11 +92,10 @@ async def delete_orientation(
 async def set_lattice(
     name: str,
     params: setLatticeParams = Body(example=examples.setLattice),
-    hklCalc: HklCalculation = Depends(unpickleHkl),
-    persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
+    store: HklCalcStore = Depends(get_store),
     _=Depends(check_params_not_empty),
 ):
-    service.set_lattice(name, params, hklCalc, persist)
+    await service.set_lattice(name, params, store)
     return {"message": f"lattice has been set for UB calculation of crystal {name}"}
 
 
@@ -125,9 +104,8 @@ async def modify_property(
     name: str,
     property: str,
     targetValue: Tuple[float, float, float] = Body(..., example=[1, 0, 0]),
-    hklCalc: HklCalculation = Depends(unpickleHkl),
-    persist: Callable[[HklCalculation, str], Path] = Depends(supplyPersist),
+    store: HklCalcStore = Depends(get_store),
     _=Depends(check_property_is_valid),
 ):
-    service.modify_property(name, property, targetValue, hklCalc, persist)
+    await service.modify_property(name, property, targetValue, store)
     return {"message": f"{property} has been set for UB calculation of crystal {name}"}
