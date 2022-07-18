@@ -1,3 +1,3 @@
-from diffcalc_API.errors import Constraints, HklCalculation, UBCalculation
+from diffcalc_API.errors import constraints, hkl, ub
 
-__all__ = ["HklCalculation", "UBCalculation", "Constraints"]
+__all__ = ["hkl", "ub", "constraints"]

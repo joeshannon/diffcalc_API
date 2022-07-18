@@ -2,7 +2,7 @@ from typing import Dict, Union
 
 from fastapi import APIRouter, Body, Depends, Response
 
-from diffcalc_API.services import Constraints as service
+from diffcalc_API.services import constraints as service
 from diffcalc_API.stores.pickling import get_store
 from diffcalc_API.stores.protocol import HklCalcStore
 
@@ -19,12 +19,12 @@ async def get_constraints(name: str, store: HklCalcStore = Depends(get_store)):
 @router.put("/{name}/set")
 async def set_constraints(
     name: str,
-    constraintDict: Dict[str, Union[float, bool]] = Body(
+    constraints: Dict[str, Union[float, bool]] = Body(
         example={"qaz": 0, "alpha": 0, "eta": 0}
     ),
     store: HklCalcStore = Depends(get_store),
 ):
-    await service.set_constraints(name, constraintDict, store)
+    await service.set_constraints(name, constraints, store)
 
     return {"message": f"constraints updated (replaced) for crystal {name}"}
 

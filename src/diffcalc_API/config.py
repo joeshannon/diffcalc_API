@@ -1,11 +1,10 @@
 # this file is for defining constants
 
-savePicklesFolder = "/dls/tmp/ton99817/diffcalc_pickles"
-VectorProperties = ["n_hkl", "n_phi", "surf_nhkl", "surf_nphi"]
-pickledNames = {"ub", "constraints", "hkl"}
-constraintsWithNoValue = {"a_eq_b", "bin_eq_bout", "mu_is_gam", "bisect"}
+SAVE_PICKLES_FOLDER = "/dls/tmp/ton99817/diffcalc_pickles"
+VECTOR_PROPERTIES = ["n_hkl", "n_phi", "surf_nhkl", "surf_nphi"]
+CONSTRAINTS_WITH_NO_VALUE = {"a_eq_b", "bin_eq_bout", "mu_is_gam", "bisect"}
 
-allConstraints = {
+ALL_CONSTRAINTS = {
     "delta",
     "gam" "qaz",
     "naz",

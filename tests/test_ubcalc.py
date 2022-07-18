@@ -6,17 +6,17 @@ from diffcalc.hkl.geometry import Position
 from diffcalc.ub.calc import UBCalculation
 from fastapi.testclient import TestClient
 
-from diffcalc_API.errors.UBCalculation import codes
+from diffcalc_API.errors.ub import Codes
 from diffcalc_API.server import app
 from diffcalc_API.stores.pickling import get_store
 from diffcalc_API.stores.protocol import HklCalcStore
 from tests.conftest import FakeHklCalcStore
 
-dummyHkl = HklCalculation(UBCalculation(name="dummy"), Constraints())
+dummy_hkl = HklCalculation(UBCalculation(name="dummy"), Constraints())
 
 
 def dummy_get_store() -> HklCalcStore:
-    return FakeHklCalcStore(dummyHkl)
+    return FakeHklCalcStore(dummy_hkl)
 
 
 @pytest.fixture(scope="session")
@@ -38,54 +38,54 @@ def test_add_reflection(client: TestClient):
     )
 
     assert response.status_code == 200
-    assert dummyHkl.ubcalc.get_reflection("foo")
+    assert dummy_hkl.ubcalc.get_reflection("foo")
 
-    dummyHkl.ubcalc.del_reflection("foo")
+    dummy_hkl.ubcalc.del_reflection("foo")
 
 
 def test_edit_reflection(client: TestClient):
-    dummyHkl.ubcalc.add_reflection([0, 0, 1], Position(7, 0, 10, 0, 0, 0), 12, "foo")
+    dummy_hkl.ubcalc.add_reflection([0, 0, 1], Position(7, 0, 10, 0, 0, 0), 12, "foo")
     response = client.patch(
         "/ub/test/reflection",
         json={
             "energy": 13,
-            "tagOrIdx": "foo",
+            "tag_or_idx": "foo",
         },
     )
-    reflection = dummyHkl.ubcalc.get_reflection("foo")
+    reflection = dummy_hkl.ubcalc.get_reflection("foo")
 
     assert response.status_code == 200
     assert reflection.energy == 13
 
-    dummyHkl.ubcalc.del_reflection("foo")
+    dummy_hkl.ubcalc.del_reflection("foo")
 
 
 def test_delete_reflection(client: TestClient):
-    dummyHkl.ubcalc.add_reflection([0, 0, 1], Position(7, 0, 10, 0, 0, 0), 12, "foo")
-    response = client.delete("/ub/test/reflection", json={"tagOrIdx": "foo"})
+    dummy_hkl.ubcalc.add_reflection([0, 0, 1], Position(7, 0, 10, 0, 0, 0), 12, "foo")
+    response = client.delete("/ub/test/reflection", json={"tag_or_idx": "foo"})
 
     assert response.status_code == 200
     with pytest.raises(Exception):
-        dummyHkl.ubcalc.get_reflection("foo")
+        dummy_hkl.ubcalc.get_reflection("foo")
 
 
 def test_edit_or_delete_reflection_fails_for_non_existing_reflection(
     client: TestClient,
 ):
-    editResponse = client.patch(
+    edit_response = client.patch(
         "/ub/test/reflection",
         json={
             "energy": 13,
-            "tagOrIdx": "foo",
+            "tag_or_idx": "foo",
         },
     )
-    deleteResponse = client.delete(
+    delete_response = client.delete(
         "/ub/test/reflection",
-        json={"tagOrIdx": "foo"},
+        json={"tag_or_idx": "foo"},
     )
 
-    assert editResponse.status_code == codes.get_reflection
-    assert deleteResponse.status_code == codes.get_reflection
+    assert edit_response.status_code == Codes.GET_REFLECTION
+    assert delete_response.status_code == Codes.GET_REFLECTION
 
 
 def test_add_orientation(client: TestClient):
@@ -99,21 +99,21 @@ def test_add_orientation(client: TestClient):
     )
 
     assert response.status_code == 200
-    assert dummyHkl.ubcalc.get_orientation("bar")
+    assert dummy_hkl.ubcalc.get_orientation("bar")
 
-    dummyHkl.ubcalc.del_orientation("bar")
+    dummy_hkl.ubcalc.del_orientation("bar")
 
 
 def test_edit_orientation(client: TestClient):
-    dummyHkl.ubcalc.add_orientation([0, 0, 1], [0, 0, 1], None, "bar")
+    dummy_hkl.ubcalc.add_orientation([0, 0, 1], [0, 0, 1], None, "bar")
     response = client.patch(
         "/ub/test/orientation",
         json={
             "xyz": [1, 1, 0],
-            "tagOrIdx": "bar",
+            "tag_or_idx": "bar",
         },
     )
-    orientation = dummyHkl.ubcalc.get_orientation("bar")
+    orientation = dummy_hkl.ubcalc.get_orientation("bar")
 
     assert response.status_code == 200
 
@@ -121,38 +121,38 @@ def test_edit_orientation(client: TestClient):
     assert orientation.y == 1
     assert orientation.z == 0
 
-    dummyHkl.ubcalc.del_orientation("bar")
+    dummy_hkl.ubcalc.del_orientation("bar")
 
 
 def test_delete_orientation(client: TestClient):
-    dummyHkl.ubcalc.add_orientation([0, 0, 1], [0, 0, 1], None, "bar")
+    dummy_hkl.ubcalc.add_orientation([0, 0, 1], [0, 0, 1], None, "bar")
     response = client.delete(
         "/ub/test/orientation",
-        json={"tagOrIdx": "bar"},
+        json={"tag_or_idx": "bar"},
     )
 
     assert response.status_code == 200
     with pytest.raises(Exception):
-        dummyHkl.ubcalc.get_orientation("bar")
+        dummy_hkl.ubcalc.get_orientation("bar")
 
 
 def test_edit_or_delete_orientation_fails_for_non_existing_orientation(
     client: TestClient,
 ):
-    editResponse = client.patch(
+    edit_response = client.patch(
         "/ub/test/orientation",
         json={
             "xyz": [1, 1, 0],
-            "tagOrIdx": "bar",
+            "tag_or_idx": "bar",
         },
     )
-    deleteResponse = client.delete(
+    delete_response = client.delete(
         "/ub/test/orientation",
-        json={"tagOrIdx": "bar"},
+        json={"tag_or_idx": "bar"},
     )
 
-    assert editResponse.status_code == codes.get_orientation
-    assert deleteResponse.status_code == codes.get_orientation
+    assert edit_response.status_code == Codes.GET_ORIENTATION
+    assert delete_response.status_code == Codes.GET_ORIENTATION
 
 
 def test_set_lattice(client: TestClient):
@@ -162,22 +162,22 @@ def test_set_lattice(client: TestClient):
     )
 
     assert response.status_code == 200
-    assert dummyHkl.ubcalc.crystal
+    assert dummy_hkl.ubcalc.crystal
 
 
 def test_set_lattice_fails_for_empty_data(client: TestClient):
-    responseWithNoInput = client.patch(
+    response_with_no_input = client.patch(
         "/ub/test/lattice",
         json={},
     )
 
-    responseWithWrongInput = client.patch(
+    response_with_wrong_input = client.patch(
         "/ub/test/lattice",
         json={"unknown": "fields"},
     )
 
-    assert responseWithWrongInput.status_code == codes.check_params_not_empty
-    assert responseWithNoInput.status_code == codes.check_params_not_empty
+    assert response_with_wrong_input.status_code == Codes.CHECK_PARAMS_NOT_EMPTY
+    assert response_with_no_input.status_code == Codes.CHECK_PARAMS_NOT_EMPTY
 
 
 def test_modify_property(client: TestClient):
@@ -187,7 +187,7 @@ def test_modify_property(client: TestClient):
     )
 
     assert response.status_code == 200
-    assert np.all(dummyHkl.ubcalc.n_hkl == np.transpose([[0, 0, 1]]))
+    assert np.all(dummy_hkl.ubcalc.n_hkl == np.transpose([[0, 0, 1]]))
 
 
 def test_modify_non_existent_property(client: TestClient):
@@ -195,4 +195,4 @@ def test_modify_non_existent_property(client: TestClient):
         "/ub/test/silly_property",
         json=[0, 0, 1],
     )
-    assert response.status_code == codes.check_property_is_valid
+    assert response.status_code == Codes.CHECK_PROPERTY_IS_VALID

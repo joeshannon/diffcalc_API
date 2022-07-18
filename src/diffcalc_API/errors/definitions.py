@@ -1,10 +1,7 @@
-from pathlib import Path
+from typing import Any, Dict, Union
 
-import numpy as np
 from diffcalc.util import DiffcalcException
 from pydantic import BaseModel
-
-from diffcalc_API.config import savePicklesFolder
 
 #######################################################################################
 #                                  Class definitions                                  #
@@ -39,45 +36,14 @@ class ErrorCodes:
 
 
 #######################################################################################
-#                               Error throwing functions                              #
+#                             All possible error responses                            #
 #######################################################################################
 
 
-class codes(ErrorCodes):
-    attempting_to_overwrite = 405
-    check_file_exists = 404
-
-
-allResponses = {
+ALL_RESPONSES: Dict[Union[int, str], Dict[str, Any]] = {
     400: {"model": DiffcalcExceptionModel, "description": "Bad Request"},
     403: {"model": DiffcalcExceptionModel, "description": "Forbidden Request"},
     404: {"model": DiffcalcExceptionModel, "description": "Resource Not Found"},
     405: {"model": DiffcalcExceptionModel, "description": "Request disabled"},
     500: {"model": DiffcalcExceptionModel, "description": "Internal Server Error"},
 }
-
-responses = {code: allResponses[code] for code in np.unique(codes().all_codes())}
-
-
-def attempting_to_overwrite(fileName: str) -> None:
-    pickledFile = Path(savePicklesFolder) / fileName
-    if (pickledFile).is_file():
-        errorMessage = (
-            f"File already exists for crystal {fileName}!"
-            f"\nEither delete via DELETE request to this URL "
-            f"or change the existing properties. "
-        )
-        raise DiffcalcAPIException(status_code=405, detail=errorMessage)
-
-    return
-
-
-def check_file_exists(pickledFile: Path, name: str) -> None:
-    if not (pickledFile).is_file():
-        errorMessage = (
-            f"File for crystal {name} not found."
-            f"\nYou need to post to"
-            f" http://localhost:8000/{name}"
-            f" first to generate the pickled file.\n"
-        )
-        raise DiffcalcAPIException(status_code=404, detail=errorMessage)

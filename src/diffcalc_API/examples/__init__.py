@@ -1,3 +1,3 @@
-from diffcalc_API.examples import UBCalculation
+from diffcalc_API.examples import ub
 
-__all__ = ["UBCalculation"]
+__all__ = ["ub"]
