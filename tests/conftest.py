@@ -1,9 +1,12 @@
+from typing import Any, Dict, Union
+
 from diffcalc.hkl.calc import HklCalculation
 
 
 class FakeHklCalcStore:
     def __init__(self, hkl: HklCalculation):
         self.hkl = hkl
+        self.responses: Dict[Union[int, str], Dict[str, Any]] = {}
 
     async def create(self, name: str) -> None:
         pass
