@@ -6,17 +6,17 @@ from diffcalc.hkl.constraints import Constraints
 from diffcalc.ub.calc import UBCalculation
 from fastapi.testclient import TestClient
 
-from diffcalc_API.errors.Constraints import codes
+from diffcalc_API.errors.constraints import Codes
 from diffcalc_API.server import app
 from diffcalc_API.stores.pickling import get_store
 from diffcalc_API.stores.protocol import HklCalcStore
 from tests.conftest import FakeHklCalcStore
 
-dummyHkl = HklCalculation(UBCalculation(name="dummy"), Constraints())
+dummy_hkl = HklCalculation(UBCalculation(name="dummy"), Constraints())
 
 
 def dummy_get_store() -> HklCalcStore:
-    return FakeHklCalcStore(dummyHkl)
+    return FakeHklCalcStore(dummy_hkl)
 
 
 @pytest.fixture(scope="session")
@@ -37,73 +37,77 @@ def test_set_constraints(client: TestClient):
     )
 
     assert response.status_code == 200
-    assert dummyHkl.constraints.asdict == {"delta": 1.0, "bin_eq_bout": True, "mu": 2.0}
+    assert dummy_hkl.constraints.asdict == {
+        "delta": 1.0,
+        "bin_eq_bout": True,
+        "mu": 2.0,
+    }
 
 
 def test_set_varying_number_of_constraints_and_with_incorrect_fields(
     client: TestClient,
 ):
-    wrongFieldResponse = client.put(
+    wrong_field_response = client.put(
         "/constraints/test/set",
         json={
             "fakeField": 10,
         },
     )
 
-    assert wrongFieldResponse.status_code == 400  # make this more concrete.
+    assert wrong_field_response.status_code == 400  # make this more concrete.
     assert (
-        ast.literal_eval(wrongFieldResponse._content.decode())["type"]
+        ast.literal_eval(wrong_field_response._content.decode())["type"]
         == "<class 'diffcalc.util.DiffcalcException'>"
     )
 
-    tooManyFieldsResponse = client.put(
+    too_many_fields_response = client.put(
         "/constraints/test/set",
         json={"delta": 1, "bin_eq_bout": 1, "mu": 2, "omega": 5},
     )
 
-    assert tooManyFieldsResponse.status_code == 200
-    assert dummyHkl.constraints.asdict == {
+    assert too_many_fields_response.status_code == 200
+    assert dummy_hkl.constraints.asdict == {
         "delta": 1.0,
         "bin_eq_bout": True,
         "omega": 5.0,
     }
 
-    dummyHkl.constraints = Constraints()
-    tooFewFieldsResponse = client.put(
+    dummy_hkl.constraints = Constraints()
+    too_few_fields_response = client.put(
         "/constraints/test/set",
         json={"delta": 1, "bin_eq_bout": 1},
     )
 
-    assert tooFewFieldsResponse.status_code == 200
+    assert too_few_fields_response.status_code == 200
 
 
 def test_set_and_remove_constraint(client: TestClient):
-    dummyHkl.constraints = Constraints()
-    setResponse = client.patch(
+    dummy_hkl.constraints = Constraints()
+    set_response = client.patch(
         "/constraints/test/constrain/alpha",
         json=1,
     )
 
-    assert setResponse.status_code == 200
-    assert dummyHkl.constraints.asdict == {"alpha": 1.0}
+    assert set_response.status_code == 200
+    assert dummy_hkl.constraints.asdict == {"alpha": 1.0}
 
-    removeResponse = client.patch("/constraints/test/unconstrain/alpha")
+    remove_response = client.patch("/constraints/test/unconstrain/alpha")
 
-    assert removeResponse.status_code == 200
-    assert dummyHkl.constraints.asdict == {}
+    assert remove_response.status_code == 200
+    assert dummy_hkl.constraints.asdict == {}
 
 
 def test_set_or_remove_nonexisting_constraint(client: TestClient):
-    dummyHkl.constraints = Constraints()
-    setResponse = client.patch(
+    dummy_hkl.constraints = Constraints()
+    set_response = client.patch(
         "/constraints/test/constrain/fake",
         json=1,
     )
 
-    assert setResponse.status_code == codes.check_constraint_exists
-    assert dummyHkl.constraints.asdict == {}
+    assert set_response.status_code == Codes.check_constraint_exists
+    assert dummy_hkl.constraints.asdict == {}
 
-    removeResponse = client.patch("/constraints/test/unconstrain/fake")
+    remove_response = client.patch("/constraints/test/unconstrain/fake")
 
-    assert removeResponse.status_code == codes.check_constraint_exists
-    assert dummyHkl.constraints.asdict == {}
+    assert remove_response.status_code == Codes.check_constraint_exists
+    assert dummy_hkl.constraints.asdict == {}

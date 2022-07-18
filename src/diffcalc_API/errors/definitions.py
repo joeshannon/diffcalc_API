@@ -40,7 +40,7 @@ class ErrorCodes:
 #######################################################################################
 
 
-allResponses: Dict[Union[int, str], Dict[str, Any]] = {
+all_responses: Dict[Union[int, str], Dict[str, Any]] = {
     400: {"model": DiffcalcExceptionModel, "description": "Bad Request"},
     403: {"model": DiffcalcExceptionModel, "description": "Forbidden Request"},
     404: {"model": DiffcalcExceptionModel, "description": "Resource Not Found"},

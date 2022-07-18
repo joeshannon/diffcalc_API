@@ -1,26 +1,26 @@
 import numpy as np
 
-from diffcalc_API.config import allConstraints
+from diffcalc_API.config import all_constraints
 from diffcalc_API.errors.definitions import (
     DiffcalcAPIException,
     ErrorCodes,
-    allResponses,
+    all_responses,
 )
 
 
-class codes(ErrorCodes):
+class Codes(ErrorCodes):
     check_constraint_exists = 400
 
 
-responses = {code: allResponses[code] for code in np.unique(codes().all_codes())}
+responses = {code: all_responses[code] for code in np.unique(Codes().all_codes())}
 
 
 def check_constraint_exists(constraint: str) -> None:
-    if constraint not in allConstraints:
+    if constraint not in all_constraints:
         raise DiffcalcAPIException(
-            status_code=codes.check_constraint_exists,
+            status_code=Codes.check_constraint_exists,
             detail=(
                 f"property {constraint} does not exist as a valid constraint."
-                f" Choose one of {allConstraints}"
+                f" Choose one of {all_constraints}"
             ),
         )

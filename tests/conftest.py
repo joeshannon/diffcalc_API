@@ -2,8 +2,8 @@ from diffcalc.hkl.calc import HklCalculation
 
 
 class FakeHklCalcStore:
-    def __init__(self, useHkl: HklCalculation):
-        self.hkl = useHkl
+    def __init__(self, hkl: HklCalculation):
+        self.hkl = hkl
 
     async def create(self, name: str) -> None:
         pass
