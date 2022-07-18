@@ -4,23 +4,23 @@ import numpy as np
 from diffcalc.hkl.calc import HklCalculation
 from diffcalc.ub.reference import Orientation, Reflection
 
-from diffcalc_API.config import vector_properties
+from diffcalc_API.config import VECTOR_PROPERTIES
 from diffcalc_API.errors.definitions import (
+    ALL_RESPONSES,
     DiffcalcAPIException,
     ErrorCodes,
-    all_responses,
 )
 from diffcalc_API.models.ub import SetLatticeParams
 
 
 class Codes(ErrorCodes):
-    check_params_not_empty = 400
-    get_reflection = 403
-    get_orientation = 403
-    check_property_is_valid = 400
+    CHECK_PARAMS_NOT_EMPTY = 400
+    GET_REFLECTION = 403
+    GET_ORIENTATION = 403
+    CHECK_PROPERTY_IS_VALID = 400
 
 
-responses = {code: all_responses[code] for code in np.unique(Codes().all_codes())}
+responses = {code: ALL_RESPONSES[code] for code in np.unique(Codes().all_codes())}
 
 
 def check_params_not_empty(params: SetLatticeParams) -> None:
@@ -28,10 +28,9 @@ def check_params_not_empty(params: SetLatticeParams) -> None:
 
     if len(non_empty_vars) == 0:
         raise DiffcalcAPIException(
-            status_code=Codes.check_params_not_empty,
+            status_code=Codes.CHECK_PARAMS_NOT_EMPTY,
             detail="please provide parameters in request body",
         )
-    return
 
 
 def get_reflection(hkl: HklCalculation, tag_or_idx: Union[str, int]) -> Reflection:
@@ -39,7 +38,7 @@ def get_reflection(hkl: HklCalculation, tag_or_idx: Union[str, int]) -> Reflecti
         reflection = hkl.ubcalc.get_reflection(tag_or_idx)
     except Exception:
         raise DiffcalcAPIException(
-            status_code=Codes.get_reflection,
+            status_code=Codes.GET_REFLECTION,
             detail=(
                 "Cannot edit or delete reflection: "
                 "No reflection with this tag or index"
@@ -54,7 +53,7 @@ def get_orientation(hkl: HklCalculation, tag_or_idx: Union[str, int]) -> Orienta
         orientation = hkl.ubcalc.get_orientation(tag_or_idx)
     except Exception:
         raise DiffcalcAPIException(
-            status_code=Codes.get_orientation,
+            status_code=Codes.GET_ORIENTATION,
             detail=(
                 "Cannot edit or delete orientation: "
                 "No orientation with this tag or index"
@@ -65,9 +64,8 @@ def get_orientation(hkl: HklCalculation, tag_or_idx: Union[str, int]) -> Orienta
 
 
 def check_property_is_valid(property: str) -> None:
-    if property not in vector_properties:
+    if property not in VECTOR_PROPERTIES:
         raise DiffcalcAPIException(
-            status_code=Codes.check_property_is_valid,
-            detail=f"invalid property. Choose one of: {vector_properties}",
+            status_code=Codes.CHECK_PROPERTY_IS_VALID,
+            detail=f"invalid property. Choose one of: {VECTOR_PROPERTIES}",
         )
-    return

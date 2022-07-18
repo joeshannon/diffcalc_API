@@ -134,7 +134,7 @@ def test_invalid_scans(client: TestClient):
         },
     )
 
-    assert invalid_miller_indices.status_code == Codes.check_valid_miller_indices
+    assert invalid_miller_indices.status_code == Codes.CHECK_VALID_MILLER_INDICES
 
     invalid_wavelength_scan = client.get(
         "/calculate/test/scan/wavelength",
@@ -146,7 +146,7 @@ def test_invalid_scans(client: TestClient):
         },
     )
 
-    assert invalid_wavelength_scan.status_code == Codes.check_valid_scan_bounds
+    assert invalid_wavelength_scan.status_code == Codes.CHECK_VALID_SCAN_BOUNDS
 
 
 def test_calc_ub(client: TestClient):
@@ -167,4 +167,4 @@ def test_calc_ub_fails_when_incorrect_tags(client: TestClient):
         "/calculate/test/UB", params={"first_tag": "one", "second_tag": "two"}
     )
 
-    assert response.status_code == Codes.calculate_ub_matrix
+    assert response.status_code == Codes.CALCULATE_UB_MATRIX

@@ -2,7 +2,7 @@ from typing import Dict, Union
 
 from diffcalc.hkl.constraints import Constraints
 
-from diffcalc_API.config import constraints_with_no_value
+from diffcalc_API.config import CONSTRAINTS_WITH_NO_VALUE
 from diffcalc_API.errors.constraints import check_constraint_exists
 from diffcalc_API.stores.protocol import HklCalcStore
 
@@ -20,7 +20,7 @@ async def set_constraints(
     hklcalc = await store.load(name)
 
     boolean_constraints = set(constraints.keys()).intersection(
-        constraints_with_no_value
+        CONSTRAINTS_WITH_NO_VALUE
     )
     for constraint in boolean_constraints:
         constraints[constraint] = bool(constraints[constraint])
@@ -48,11 +48,11 @@ async def set_constraint(
     property: str,
     value: Union[float, bool],
     store: HklCalcStore,
-):
+) -> None:
     hklcalc = await store.load(name)
 
     check_constraint_exists(property)
-    if property in constraints_with_no_value:
+    if property in CONSTRAINTS_WITH_NO_VALUE:
         value = bool(value)
 
     setattr(hklcalc.constraints, property, value)

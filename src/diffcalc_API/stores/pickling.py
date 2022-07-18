@@ -6,11 +6,11 @@ from diffcalc.hkl.calc import HklCalculation
 from diffcalc.hkl.constraints import Constraints
 from diffcalc.ub.calc import UBCalculation
 
-from diffcalc_API.config import save_pickles_folder
+from diffcalc_API.config import SAVE_PICKLES_FOLDER
 from diffcalc_API.errors.definitions import (
+    ALL_RESPONSES,
     DiffcalcAPIException,
     ErrorCodes,
-    all_responses,
 )
 from diffcalc_API.stores.protocol import HklCalcStore
 
@@ -21,7 +21,7 @@ class Codes(ErrorCodes):
 
 
 def attempting_to_overwrite(filename: str) -> None:
-    pickled_file = Path(save_pickles_folder) / filename
+    pickled_file = Path(SAVE_PICKLES_FOLDER) / filename
     if (pickled_file).is_file():
         message = (
             f"File already exists for crystal {filename}!"
@@ -50,7 +50,7 @@ class PicklingHklCalcStore:
     def __init__(self, root_directory: Path) -> None:
         self._root_directory = root_directory
         self.responses = {
-            code: all_responses[code] for code in np.unique(Codes().all_codes())
+            code: ALL_RESPONSES[code] for code in np.unique(Codes().all_codes())
         }
 
     async def create(self, name: str) -> None:
@@ -63,7 +63,7 @@ class PicklingHklCalcStore:
         await self.save(name, hkl)
 
     async def delete(self, name: str) -> None:
-        pickle_file_path = Path(save_pickles_folder) / name
+        pickle_file_path = Path(SAVE_PICKLES_FOLDER) / name
         check_file_exists(pickle_file_path, name)
         Path(pickle_file_path).unlink()
 
@@ -83,4 +83,4 @@ class PicklingHklCalcStore:
 
 
 def get_store() -> HklCalcStore:
-    return PicklingHklCalcStore(Path(save_pickles_folder))
+    return PicklingHklCalcStore(Path(SAVE_PICKLES_FOLDER))

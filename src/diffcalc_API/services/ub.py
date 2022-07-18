@@ -131,7 +131,7 @@ async def modify_property(
     property: str,
     target_value: Tuple[float, float, float],
     store: HklCalcStore,
-):
+) -> None:
     hklcalc = await store.load(name)
 
     setattr(hklcalc.ubcalc, property, target_value)

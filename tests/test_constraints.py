@@ -104,10 +104,10 @@ def test_set_or_remove_nonexisting_constraint(client: TestClient):
         json=1,
     )
 
-    assert set_response.status_code == Codes.check_constraint_exists
+    assert set_response.status_code == Codes.CHECK_CONSTRAINT_EXISTS
     assert dummy_hkl.constraints.asdict == {}
 
     remove_response = client.patch("/constraints/test/unconstrain/fake")
 
-    assert remove_response.status_code == Codes.check_constraint_exists
+    assert remove_response.status_code == Codes.CHECK_CONSTRAINT_EXISTS
     assert dummy_hkl.constraints.asdict == {}

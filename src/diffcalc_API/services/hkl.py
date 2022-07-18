@@ -1,5 +1,5 @@
 from itertools import product
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 from diffcalc.hkl.geometry import Position
@@ -19,7 +19,7 @@ async def lab_position_from_miller_indices(
     miller_indices: Tuple[float, float, float],
     wavelength: float,
     store: HklCalcStore,
-) -> List[Tuple[Position, Dict[str, float]]]:
+) -> List[Dict[str, float]]:
     hklcalc = await store.load(name)
 
     check_valid_miller_indices(miller_indices)
@@ -33,7 +33,7 @@ async def miller_indices_from_lab_position(
     pos: Tuple[float, float, float, float, float, float],
     wavelength: float,
     store: HklCalcStore,
-):
+) -> Tuple[Any, ...]:
     hklcalc = await store.load(name)
     position = hklcalc.get_hkl(Position(*pos), wavelength)
     return tuple(np.round(position, 16))
@@ -46,7 +46,7 @@ async def scan_hkl(
     inc: PositionType,
     wavelength: float,
     store: HklCalcStore,
-):
+) -> Dict[str, List[Dict[str, float]]]:
     hklcalc = await store.load(name)
     axes_values = [
         generate_axis(start[i], stop[i], inc[i]) if inc[i] != 0 else [0]
@@ -70,7 +70,7 @@ async def scan_wavelength(
     inc: float,
     hkl: PositionType,
     store: HklCalcStore,
-):
+) -> Dict[str, List[Dict[str, float]]]:
     hklcalc = await store.load(name)
     check_valid_scan_bounds(start, stop, inc)
     wavelengths = np.arange(start, stop + inc, inc)
@@ -92,7 +92,7 @@ async def scan_constraint(
     hkl: PositionType,
     wavelength: float,
     store: HklCalcStore,
-):
+) -> Dict[str, List[Dict[str, float]]]:
     hklcalc = await store.load(name)
     check_valid_scan_bounds(start, stop, inc)
     result = {}
@@ -109,7 +109,9 @@ def generate_axis(start: float, stop: float, inc: float):
     return np.arange(start, stop + inc, inc)
 
 
-def combine_lab_position_results(positions: List[Tuple[Position, Dict[str, float]]]):
+def combine_lab_position_results(
+    positions: List[Tuple[Position, Dict[str, float]]]
+) -> List[Dict[str, float]]:
     result = []
 
     for position in positions:

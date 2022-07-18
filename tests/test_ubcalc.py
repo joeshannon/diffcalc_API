@@ -84,8 +84,8 @@ def test_edit_or_delete_reflection_fails_for_non_existing_reflection(
         json={"tag_or_idx": "foo"},
     )
 
-    assert edit_response.status_code == Codes.get_reflection
-    assert delete_response.status_code == Codes.get_reflection
+    assert edit_response.status_code == Codes.GET_REFLECTION
+    assert delete_response.status_code == Codes.GET_REFLECTION
 
 
 def test_add_orientation(client: TestClient):
@@ -151,8 +151,8 @@ def test_edit_or_delete_orientation_fails_for_non_existing_orientation(
         json={"tag_or_idx": "bar"},
     )
 
-    assert edit_response.status_code == Codes.get_orientation
-    assert delete_response.status_code == Codes.get_orientation
+    assert edit_response.status_code == Codes.GET_ORIENTATION
+    assert delete_response.status_code == Codes.GET_ORIENTATION
 
 
 def test_set_lattice(client: TestClient):
@@ -176,8 +176,8 @@ def test_set_lattice_fails_for_empty_data(client: TestClient):
         json={"unknown": "fields"},
     )
 
-    assert response_with_wrong_input.status_code == Codes.check_params_not_empty
-    assert response_with_no_input.status_code == Codes.check_params_not_empty
+    assert response_with_wrong_input.status_code == Codes.CHECK_PARAMS_NOT_EMPTY
+    assert response_with_no_input.status_code == Codes.CHECK_PARAMS_NOT_EMPTY
 
 
 def test_modify_property(client: TestClient):
@@ -195,4 +195,4 @@ def test_modify_non_existent_property(client: TestClient):
         "/ub/test/silly_property",
         json=[0, 0, 1],
     )
-    assert response.status_code == Codes.check_property_is_valid
+    assert response.status_code == Codes.CHECK_PROPERTY_IS_VALID
