@@ -1,11 +1,13 @@
+from typing import Optional
+
 from diffcalc.util import DiffcalcException
-from fastapi import Depends, FastAPI, Request, responses
+from fastapi import Depends, FastAPI, Query, Request, responses
 
 from diffcalc_API.errors.constraints import responses as constraints_responses
 from diffcalc_API.errors.definitions import DiffcalcAPIException
 from diffcalc_API.errors.hkl import responses as hkl_responses
 from diffcalc_API.errors.ub import responses as ub_responses
-from diffcalc_API.stores.pickling import get_store
+from diffcalc_API.stores.mongo import get_store
 
 from . import routes
 
@@ -55,14 +57,22 @@ async def server_exceptions_middleware(request: Request, call_next):
 
 
 @app.post("/{name}")
-async def create_hkl_object(name: str, repo=Depends(get_store)):
-    await repo.create(name)
+async def create_hkl_object(
+    name: str,
+    repo=Depends(get_store),
+    collection: Optional[str] = Query(default=None, example="B07"),
+):
+    await repo.create(name, collection)
 
-    return {"message": f"file for crystal {name} created"}
+    return {"message": f"crystal {name} in collection {collection} created"}
 
 
 @app.delete("/{name}")
-async def delete_hkl_object(name: str, repo=Depends(get_store)):
-    await repo.delete(name)
+async def delete_hkl_object(
+    name: str,
+    repo=Depends(get_store),
+    collection: Optional[str] = Query(default=None, example="B07"),
+):
+    await repo.delete(name, collection)
 
-    return {"message": f"file for crystal {name} deleted"}
+    return {"message": f"crystal {name} in collection {collection} deleted"}

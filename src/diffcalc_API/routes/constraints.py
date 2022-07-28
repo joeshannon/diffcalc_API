@@ -1,52 +1,74 @@
-from typing import Dict, Union
+from typing import Dict, Optional, Union
 
-from fastapi import APIRouter, Body, Depends, Response
+from fastapi import APIRouter, Body, Depends, Query, Response
 
 from diffcalc_API.services import constraints as service
-from diffcalc_API.stores.pickling import get_store
+from diffcalc_API.stores.mongo import get_store
 from diffcalc_API.stores.protocol import HklCalcStore
 
 router = APIRouter(prefix="/constraints", tags=["constraints"])
 
 
 @router.get("/{name}")
-async def get_constraints(name: str, store: HklCalcStore = Depends(get_store)):
-    content = await service.get_constraints(name, store)
+async def get_constraints(
+    name: str,
+    store: HklCalcStore = Depends(get_store),
+    collection: Optional[str] = Query(default=None, example="B07"),
+):
+    content = await service.get_constraints(name, store, collection)
 
     return Response(content=content, media_type="application/text")
 
 
-@router.put("/{name}/set")
+@router.post("/{name}")
 async def set_constraints(
     name: str,
     constraints: Dict[str, Union[float, bool]] = Body(
         example={"qaz": 0, "alpha": 0, "eta": 0}
     ),
     store: HklCalcStore = Depends(get_store),
+    collection: Optional[str] = Query(default=None, example="B07"),
 ):
-    await service.set_constraints(name, constraints, store)
+    await service.set_constraints(name, constraints, store, collection)
 
-    return {"message": f"constraints updated (replaced) for crystal {name}"}
+    return {
+        "message": (
+            f"constraints updated (replaced) for crystal {name} in ",
+            f"collection {collection}",
+        )
+    }
 
 
-@router.patch("/{name}/unconstrain/{property}")
+@router.delete("/{name}/{property}")
 async def remove_constraint(
     name: str,
     property: str,
     store: HklCalcStore = Depends(get_store),
+    collection: Optional[str] = Query(default=None, example="B07"),
 ):
-    await service.remove_constraint(name, property, store)
+    await service.remove_constraint(name, property, store, collection)
 
-    return {"message": f"unconstrained {property} for crystal {name}. "}
+    return {
+        "message": (
+            f"unconstrained {property} for crystal {name} in "
+            f"collection {collection}. "
+        )
+    }
 
 
-@router.patch("/{name}/constrain/{property}")
+@router.patch("/{name}/{property}")
 async def set_constraint(
     name: str,
     property: str,
     value: Union[float, bool] = Body(...),
     store: HklCalcStore = Depends(get_store),
+    collection: Optional[str] = Query(default=None, example="B07"),
 ):
-    await service.set_constraint(name, property, value, store)
+    await service.set_constraint(name, property, value, store, collection)
 
-    return {"message": f"constrained {property} for crystal {name}. "}
+    return {
+        "message": (
+            f"constrained {property} for crystal {name} in collection ",
+            f"{collection}. ",
+        )
+    }
