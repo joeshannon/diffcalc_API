@@ -1,7 +1,5 @@
-import pymongo
+from pymongo import MongoClient
+from pymongo.database import Database
 
-client = pymongo.MongoClient()
-
-database = client.test_db
-
-collection = database.B07
+client: MongoClient = MongoClient()
+database: Database = client.test_db

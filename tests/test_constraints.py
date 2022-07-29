@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 
 from diffcalc_API.errors.constraints import Codes
 from diffcalc_API.server import app
-from diffcalc_API.stores.pickling import get_store
+from diffcalc_API.stores.mongo import get_store
 from diffcalc_API.stores.protocol import HklCalcStore
 from tests.conftest import FakeHklCalcStore
 
@@ -27,8 +27,8 @@ def client() -> TestClient:
 
 
 def test_set_constraints(client: TestClient):
-    response = client.put(
-        "/constraints/test/set",
+    response = client.post(
+        "/constraints/test?collection=B07",
         json={
             "delta": 1,
             "bin_eq_bout": 1,
@@ -47,21 +47,21 @@ def test_set_constraints(client: TestClient):
 def test_set_varying_number_of_constraints_and_with_incorrect_fields(
     client: TestClient,
 ):
-    wrong_field_response = client.put(
-        "/constraints/test/set",
+    wrong_field_response = client.post(
+        "/constraints/test",
         json={
             "fakeField": 10,
         },
     )
 
-    assert wrong_field_response.status_code == 400  # make this more concrete.
+    assert wrong_field_response.status_code == 400
     assert (
         ast.literal_eval(wrong_field_response._content.decode())["type"]
         == "<class 'diffcalc.util.DiffcalcException'>"
     )
 
-    too_many_fields_response = client.put(
-        "/constraints/test/set",
+    too_many_fields_response = client.post(
+        "/constraints/test",
         json={"delta": 1, "bin_eq_bout": 1, "mu": 2, "omega": 5},
     )
 
@@ -73,8 +73,8 @@ def test_set_varying_number_of_constraints_and_with_incorrect_fields(
     }
 
     dummy_hkl.constraints = Constraints()
-    too_few_fields_response = client.put(
-        "/constraints/test/set",
+    too_few_fields_response = client.post(
+        "/constraints/test",
         json={"delta": 1, "bin_eq_bout": 1},
     )
 
@@ -84,14 +84,14 @@ def test_set_varying_number_of_constraints_and_with_incorrect_fields(
 def test_set_and_remove_constraint(client: TestClient):
     dummy_hkl.constraints = Constraints()
     set_response = client.patch(
-        "/constraints/test/constrain/alpha",
+        "/constraints/test/alpha",
         json=1,
     )
 
     assert set_response.status_code == 200
     assert dummy_hkl.constraints.asdict == {"alpha": 1.0}
 
-    remove_response = client.patch("/constraints/test/unconstrain/alpha")
+    remove_response = client.delete("/constraints/test/alpha")
 
     assert remove_response.status_code == 200
     assert dummy_hkl.constraints.asdict == {}
@@ -100,14 +100,14 @@ def test_set_and_remove_constraint(client: TestClient):
 def test_set_or_remove_nonexisting_constraint(client: TestClient):
     dummy_hkl.constraints = Constraints()
     set_response = client.patch(
-        "/constraints/test/constrain/fake",
+        "/constraints/test/fake",
         json=1,
     )
 
     assert set_response.status_code == Codes.CHECK_CONSTRAINT_EXISTS
     assert dummy_hkl.constraints.asdict == {}
 
-    remove_response = client.patch("/constraints/test/unconstrain/fake")
+    remove_response = client.delete("/constraints/test/fake")
 
     assert remove_response.status_code == Codes.CHECK_CONSTRAINT_EXISTS
     assert dummy_hkl.constraints.asdict == {}

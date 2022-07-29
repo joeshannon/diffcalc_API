@@ -66,7 +66,7 @@ class MongoHklCalcStore:
         coll.insert_one(hkl.asdict)
 
     async def delete(self, name: str, collection: Optional[str]) -> None:
-        coll: Collection = database[collection]
+        coll: Collection = database[collection if collection else "default"]
         result = coll.delete_one({"ubcalc.name": name})
         nothing_to_delete(name, result)
 

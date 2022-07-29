@@ -8,11 +8,11 @@ from fastapi.testclient import TestClient
 
 from diffcalc_API.errors.hkl import Codes
 from diffcalc_API.server import app
-from diffcalc_API.stores.pickling import get_store
+from diffcalc_API.stores.mongo import get_store
 from diffcalc_API.stores.protocol import HklCalcStore
 from tests.conftest import FakeHklCalcStore
 
-dummy_hkl = HklCalculation(UBCalculation(name="sixcircle"), Constraints())
+dummy_hkl = HklCalculation(UBCalculation(name="dummy"), Constraints())
 
 dummy_hkl.ubcalc.set_lattice("SiO2", 4.913, 5.405)
 dummy_hkl.ubcalc.n_hkl = (1, 0, 0)
@@ -29,7 +29,7 @@ def dummy_get_store() -> HklCalcStore:
     return FakeHklCalcStore(dummy_hkl)
 
 
-@pytest.fixture
+@pytest.fixture()
 def client() -> TestClient:
     app.dependency_overrides[get_store] = dummy_get_store
 
@@ -37,9 +37,8 @@ def client() -> TestClient:
 
 
 def test_miller_indices_stay_the_same_after_transformation(client: TestClient):
-
     lab_positions = client.get(
-        "/calculate/test/position/lab",
+        "/hkl/test/position/lab",
         params={"miller_indices": [0, 0, 1], "wavelength": 1},
     )
 
@@ -48,7 +47,7 @@ def test_miller_indices_stay_the_same_after_transformation(client: TestClient):
 
     for pos in possible_positions:
         miller_positions = client.get(
-            "/calculate/test/position/hkl",
+            "/hkl/test/position/hkl",
             params={
                 "pos": [
                     pos["mu"],
@@ -72,7 +71,7 @@ def test_scan_hkl(
     client: TestClient,
 ):
     lab_positions = client.get(
-        "/calculate/test/scan/hkl",
+        "/hkl/test/scan/hkl",
         params={
             "start": [1, 0, 1],
             "stop": [2, 0, 2],
@@ -90,7 +89,7 @@ def test_scan_wavelength(
     client: TestClient,
 ):
     lab_positions = client.get(
-        "/calculate/test/scan/wavelength",
+        "/hkl/test/scan/wavelength",
         params={
             "start": 1,
             "stop": 2,
@@ -108,7 +107,7 @@ def test_scan_constraint(
     client: TestClient,
 ):
     lab_positions = client.get(
-        "/calculate/test/scan/alpha",
+        "/hkl/test/scan/alpha",
         params={
             "start": 1,
             "stop": 2,
@@ -125,7 +124,7 @@ def test_scan_constraint(
 
 def test_invalid_scans(client: TestClient):
     invalid_miller_indices = client.get(
-        "/calculate/test/scan/hkl",
+        "/hkl/test/scan/hkl",
         params={
             "start": [0, 0, 0],
             "stop": [1, 0, 1],
@@ -137,7 +136,7 @@ def test_invalid_scans(client: TestClient):
     assert invalid_miller_indices.status_code == Codes.CHECK_VALID_MILLER_INDICES
 
     invalid_wavelength_scan = client.get(
-        "/calculate/test/scan/wavelength",
+        "/hkl/test/scan/wavelength",
         params={
             "start": 1,
             "stop": 2,
@@ -151,7 +150,7 @@ def test_invalid_scans(client: TestClient):
 
 def test_calc_ub(client: TestClient):
     response = client.get(
-        "/calculate/test/UB", params={"first_tag": "refl1", "second_tag": "plane"}
+        "/hkl/test/UB", params={"first_tag": "refl1", "second_tag": "plane"}
     )
     expected_ub = (
         "[[ 1.27889  -0.        0.      ],  [-0.        1.278111  0.04057 ],"
@@ -164,7 +163,7 @@ def test_calc_ub(client: TestClient):
 
 def test_calc_ub_fails_when_incorrect_tags(client: TestClient):
     response = client.get(
-        "/calculate/test/UB", params={"first_tag": "one", "second_tag": "two"}
+        "/hkl/test/UB", params={"first_tag": "one", "second_tag": "two"}
     )
 
     assert response.status_code == Codes.CALCULATE_UB_MATRIX
