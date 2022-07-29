@@ -4,7 +4,7 @@ import numpy as np
 from diffcalc.hkl.calc import HklCalculation
 from diffcalc.hkl.constraints import Constraints
 from diffcalc.ub.calc import UBCalculation
-from pymongo.collection import Collection
+from motor.motor_asyncio import AsyncIOMotorCollection as Collection
 from pymongo.results import DeleteResult
 
 from diffcalc_API.database import database
@@ -63,22 +63,22 @@ class MongoHklCalcStore:
         constraints = Constraints()
         hkl = HklCalculation(ubcalc, constraints)
 
-        coll.insert_one(hkl.asdict)
+        await coll.insert_one(hkl.asdict)
 
     async def delete(self, name: str, collection: Optional[str]) -> None:
         coll: Collection = database[collection if collection else "default"]
-        result = coll.delete_one({"ubcalc.name": name})
+        result: DeleteResult = await coll.delete_one({"ubcalc.name": name})
         nothing_to_delete(name, result)
 
     async def save(
         self, name: str, hkl: HklCalculation, collection: Optional[str]
     ) -> None:
         coll: Collection = database[collection if collection else "default"]
-        coll.find_one_and_update({"ubcalc.name": name}, {"$set": hkl.asdict})
+        await coll.find_one_and_update({"ubcalc.name": name}, {"$set": hkl.asdict})
 
     async def load(self, name: str, collection: Optional[str]) -> HklCalculation:
         coll: Collection = database[collection if collection else "default"]
-        hkl_json: Optional[Dict[str, Any]] = coll.find_one({"ubcalc.name": name})
+        hkl_json: Optional[Dict[str, Any]] = await coll.find_one({"ubcalc.name": name})
         document_found(name, hkl_json)
         return HklCalculation.fromdict(hkl_json)
 

@@ -39,8 +39,8 @@ async def add_reflection(
     await service.add_reflection(name, params, store, collection)
     return {
         "message": (
-            f"added reflection for UB Calculation of crystal {name} in ",
-            f"collection {collection}",
+            f"added reflection for UB Calculation of crystal {name} in "
+            + f"collection {collection}"
         )
     }
 
@@ -55,8 +55,8 @@ async def edit_reflection(
     await service.edit_reflection(name, params, store, collection)
     return {
         "message": (
-            f"reflection of crystal {name} in collection {collection} ",
-            f"with tag/index {params.tag_or_idx} edited. ",
+            f"reflection of crystal {name} in collection {collection} "
+            + f"with tag/index {params.tag_or_idx} edited. "
         )
     }
 
@@ -73,8 +73,8 @@ async def delete_reflection(
     )  # TODO Change this!
     return {
         "message": (
-            f"reflection of crystal {name} in collection {collection} ",
-            f"with tag/index {params.tag_or_idx} deleted.",
+            f"reflection of crystal {name} in collection {collection} "
+            + f"with tag/index {params.tag_or_idx} deleted."
         )
     }
 
@@ -89,8 +89,8 @@ async def add_orientation(
     await service.add_orientation(name, params, store, collection)
     return {
         "message": (
-            f"added orientation for UB Calculation of crystal {name} in ",
-            f"collection {collection}",
+            f"added orientation for UB Calculation of crystal {name} in "
+            + f"collection {collection}"
         )
     }
 
@@ -105,8 +105,8 @@ async def edit_orientation(
     await service.edit_orientation(name, params, store, collection)
     return {
         "message": (
-            f"orientation of crystal {name} in collection {collection} ",
-            f"with tag/index {params.tag_or_idx} edited.",
+            f"orientation of crystal {name} in collection {collection} "
+            + f"with tag/index {params.tag_or_idx} edited."
         )
     }
 
@@ -121,8 +121,8 @@ async def delete_orientation(
     await service.delete_orientation(name, params.tag_or_idx, store, collection)
     return {
         "message": (
-            f"reflection of crystal {name} in collection {collection} with ",
-            f"tag or index {params.tag_or_idx} deleted.",
+            f"reflection of crystal {name} in collection {collection} with "
+            + f"tag or index {params.tag_or_idx} deleted."
         )
     }
 
@@ -138,8 +138,8 @@ async def set_lattice(
     await service.set_lattice(name, params, store, collection)
     return {
         "message": (
-            f"lattice has been set for UB calculation of crystal {name} in ",
-            f"collection {collection}",
+            f"lattice has been set for UB calculation of crystal {name} in "
+            + f"collection {collection}"
         )
     }
 
@@ -156,7 +156,7 @@ async def modify_property(
     await service.modify_property(name, property, target_value, store, collection)
     return {
         "message": (
-            f"{property} has been set for UB calculation of crystal {name} in ",
-            f"collection {collection}",
+            f"{property} has been set for UB calculation of crystal {name} in "
+            + f"collection {collection}"
         )
     }

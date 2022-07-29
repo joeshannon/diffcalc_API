@@ -59,10 +59,10 @@ async def server_exceptions_middleware(request: Request, call_next):
 @app.post("/{name}")
 async def create_hkl_object(
     name: str,
-    repo=Depends(get_store),
+    store=Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
-    await repo.create(name, collection)
+    await store.create(name, collection)
 
     return {"message": f"crystal {name} in collection {collection} created"}
 
@@ -70,9 +70,9 @@ async def create_hkl_object(
 @app.delete("/{name}")
 async def delete_hkl_object(
     name: str,
-    repo=Depends(get_store),
+    store=Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
-    await repo.delete(name, collection)
+    await store.delete(name, collection)
 
     return {"message": f"crystal {name} in collection {collection} deleted"}

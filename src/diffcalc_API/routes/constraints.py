@@ -32,8 +32,8 @@ async def set_constraints(
 
     return {
         "message": (
-            f"constraints updated (replaced) for crystal {name} in ",
-            f"collection {collection}",
+            f"constraints updated (replaced) for crystal {name} in "
+            + f"collection {collection}"
         )
     }
 
@@ -50,7 +50,7 @@ async def remove_constraint(
     return {
         "message": (
             f"unconstrained {property} for crystal {name} in "
-            f"collection {collection}. "
+            + f"collection {collection}. "
         )
     }
 
@@ -67,7 +67,7 @@ async def set_constraint(
 
     return {
         "message": (
-            f"constrained {property} for crystal {name} in collection ",
-            f"{collection}. ",
+            f"constrained {property} for crystal {name} in collection "
+            + f"{collection}. "
         )
     }
