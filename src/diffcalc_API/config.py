@@ -1,8 +1,7 @@
-# this file is for defining constants
-
-SAVE_PICKLES_FOLDER = "/dls/tmp/ton99817/diffcalc_pickles"
+SAVE_PICKLES_FOLDER = "/"
 VECTOR_PROPERTIES = ["n_hkl", "n_phi", "surf_nhkl", "surf_nphi"]
 CONSTRAINTS_WITH_NO_VALUE = {"a_eq_b", "bin_eq_bout", "mu_is_gam", "bisect"}
+
 
 ALL_CONSTRAINTS = {
     "delta",

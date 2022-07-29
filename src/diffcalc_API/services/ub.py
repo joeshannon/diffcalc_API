@@ -1,4 +1,4 @@
-from typing import Tuple, Union
+from typing import Optional, Tuple, Union
 
 from diffcalc.hkl.geometry import Position
 
@@ -13,8 +13,8 @@ from diffcalc_API.models.ub import (
 from diffcalc_API.stores.protocol import HklCalcStore
 
 
-async def get_ub(name: str, store: HklCalcStore) -> str:
-    hklcalc = await store.load(name)
+async def get_ub(name: str, store: HklCalcStore, collection: Optional[str]) -> str:
+    hklcalc = await store.load(name, collection)
 
     return str(hklcalc.ubcalc)
 
@@ -23,8 +23,9 @@ async def add_reflection(
     name: str,
     params: AddReflectionParams,
     store: HklCalcStore,
+    collection: Optional[str],
 ) -> None:
-    hklcalc = await store.load(name)
+    hklcalc = await store.load(name, collection)
 
     hklcalc.ubcalc.add_reflection(
         params.hkl,
@@ -33,15 +34,16 @@ async def add_reflection(
         params.tag,
     )
 
-    await store.save(name, hklcalc)
+    await store.save(name, hklcalc, collection)
 
 
 async def edit_reflection(
     name: str,
     params: EditReflectionParams,
     store: HklCalcStore,
+    collection: Optional[str],
 ) -> None:
-    hklcalc = await store.load(name)
+    hklcalc = await store.load(name, collection)
 
     reflection = get_reflection(hklcalc, params.tag_or_idx)
     hklcalc.ubcalc.edit_reflection(
@@ -52,28 +54,30 @@ async def edit_reflection(
         params.tag_or_idx if isinstance(params.tag_or_idx, str) else None,
     )
 
-    await store.save(name, hklcalc)
+    await store.save(name, hklcalc, collection)
 
 
 async def delete_reflection(
     name: str,
     tag_or_idx: Union[str, int],
     store: HklCalcStore,
+    collection: Optional[str],
 ) -> None:
-    hklcalc = await store.load(name)
+    hklcalc = await store.load(name, collection)
 
     _ = get_reflection(hklcalc, tag_or_idx)
     hklcalc.ubcalc.del_reflection(tag_or_idx)
 
-    await store.save(name, hklcalc)
+    await store.save(name, hklcalc, collection)
 
 
 async def add_orientation(
     name: str,
     params: AddOrientationParams,
     store: HklCalcStore,
+    collection: Optional[str],
 ) -> None:
-    hklcalc = await store.load(name)
+    hklcalc = await store.load(name, collection)
 
     position = Position(*params.position) if params.position else None
     hklcalc.ubcalc.add_orientation(
@@ -83,15 +87,16 @@ async def add_orientation(
         params.tag,
     )
 
-    await store.save(name, hklcalc)
+    await store.save(name, hklcalc, collection)
 
 
 async def edit_orientation(
     name: str,
     params: EditOrientationParams,
     store: HklCalcStore,
+    collection: Optional[str],
 ) -> None:
-    hklcalc = await store.load(name)
+    hklcalc = await store.load(name, collection)
 
     orientation = get_orientation(hklcalc, params.tag_or_idx)
     hklcalc.ubcalc.edit_orientation(
@@ -102,28 +107,31 @@ async def edit_orientation(
         params.tag_or_idx if isinstance(params.tag_or_idx, str) else None,
     )
 
-    await store.save(name, hklcalc)
+    await store.save(name, hklcalc, collection)
 
 
 async def delete_orientation(
     name: str,
     tag_or_idx: Union[str, int],
     store: HklCalcStore,
+    collection: Optional[str],
 ) -> None:
-    hklcalc = await store.load(name)
+    hklcalc = await store.load(name, collection)
 
     _ = get_orientation(hklcalc, tag_or_idx)
     hklcalc.ubcalc.del_orientation(tag_or_idx)
 
-    await store.save(name, hklcalc)
+    await store.save(name, hklcalc, collection)
 
 
-async def set_lattice(name: str, params: SetLatticeParams, store: HklCalcStore) -> None:
-    hklcalc = await store.load(name)
+async def set_lattice(
+    name: str, params: SetLatticeParams, store: HklCalcStore, collection: Optional[str]
+) -> None:
+    hklcalc = await store.load(name, collection)
 
     hklcalc.ubcalc.set_lattice(name=name, **params.dict())
 
-    await store.save(name, hklcalc)
+    await store.save(name, hklcalc, collection)
 
 
 async def modify_property(
@@ -131,9 +139,10 @@ async def modify_property(
     property: str,
     target_value: Tuple[float, float, float],
     store: HklCalcStore,
+    collection: Optional[str],
 ) -> None:
-    hklcalc = await store.load(name)
+    hklcalc = await store.load(name, collection)
 
     setattr(hklcalc.ubcalc, property, target_value)
 
-    await store.save(name, hklcalc)
+    await store.save(name, hklcalc, collection)

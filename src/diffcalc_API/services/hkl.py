@@ -19,8 +19,9 @@ async def lab_position_from_miller_indices(
     miller_indices: Tuple[float, float, float],
     wavelength: float,
     store: HklCalcStore,
+    collection: Optional[str],
 ) -> List[Dict[str, float]]:
-    hklcalc = await store.load(name)
+    hklcalc = await store.load(name, collection)
 
     check_valid_miller_indices(miller_indices)
     all_positions = hklcalc.get_position(*miller_indices, wavelength)
@@ -33,8 +34,9 @@ async def miller_indices_from_lab_position(
     pos: Tuple[float, float, float, float, float, float],
     wavelength: float,
     store: HklCalcStore,
+    collection: Optional[str],
 ) -> Tuple[Any, ...]:
-    hklcalc = await store.load(name)
+    hklcalc = await store.load(name, collection)
     position = hklcalc.get_hkl(Position(*pos), wavelength)
     return tuple(np.round(position, 16))
 
@@ -46,8 +48,9 @@ async def scan_hkl(
     inc: PositionType,
     wavelength: float,
     store: HklCalcStore,
+    collection: Optional[str],
 ) -> Dict[str, List[Dict[str, float]]]:
-    hklcalc = await store.load(name)
+    hklcalc = await store.load(name, collection)
     axes_values = [
         generate_axis(start[i], stop[i], inc[i]) if inc[i] != 0 else [0]
         for i in range(3)
@@ -70,8 +73,9 @@ async def scan_wavelength(
     inc: float,
     hkl: PositionType,
     store: HklCalcStore,
+    collection: Optional[str],
 ) -> Dict[str, List[Dict[str, float]]]:
-    hklcalc = await store.load(name)
+    hklcalc = await store.load(name, collection)
     check_valid_scan_bounds(start, stop, inc)
     wavelengths = np.arange(start, stop + inc, inc)
     result = {}
@@ -92,8 +96,9 @@ async def scan_constraint(
     hkl: PositionType,
     wavelength: float,
     store: HklCalcStore,
+    collection: Optional[str],
 ) -> Dict[str, List[Dict[str, float]]]:
-    hklcalc = await store.load(name)
+    hklcalc = await store.load(name, collection)
     check_valid_scan_bounds(start, stop, inc)
     result = {}
     for value in np.arange(start, stop + inc, inc):
@@ -125,10 +130,11 @@ async def calculate_ub(
     first_tag: Optional[Union[int, str]],
     second_tag: Optional[Union[int, str]],
     store: HklCalcStore,
+    collection: Optional[str],
 ) -> str:
-    hklcalc = await store.load(name)
+    hklcalc = await store.load(name, collection)
 
     calculate_ub_matrix(hklcalc, first_tag, second_tag)
 
-    await store.save(name, hklcalc)
+    await store.save(name, hklcalc, collection)
     return str(np.round(hklcalc.ubcalc.UB, 6))

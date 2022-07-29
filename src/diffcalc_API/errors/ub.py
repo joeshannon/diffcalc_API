@@ -20,7 +20,7 @@ class Codes(ErrorCodes):
     CHECK_PROPERTY_IS_VALID = 400
 
 
-responses = {code: ALL_RESPONSES[code] for code in np.unique(Codes().all_codes())}
+responses = {code: ALL_RESPONSES[code] for code in np.unique(Codes.all_codes())}
 
 
 def check_params_not_empty(params: SetLatticeParams) -> None:

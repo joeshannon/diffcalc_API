@@ -1,4 +1,5 @@
-from typing import Any, Dict, Union
+from enum import IntEnum
+from typing import Any, Dict, List, Union
 
 from diffcalc.util import DiffcalcException
 from pydantic import BaseModel
@@ -25,14 +26,10 @@ class DiffcalcExceptionModel(BaseModel):
     detail: str
 
 
-class ErrorCodes:
-    def all_codes(self):
-        attributes = [
-            attr
-            for attr in dir(self)
-            if (not attr.startswith("__")) and (not attr == "all_codes")
-        ]
-        return [getattr(self, attr) for attr in attributes]
+class ErrorCodes(IntEnum):
+    @classmethod
+    def all_codes(cls) -> List[int]:
+        return [val.value for val in cls]
 
 
 #######################################################################################

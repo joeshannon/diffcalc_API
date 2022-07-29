@@ -8,8 +8,7 @@ from fastapi.testclient import TestClient
 
 from diffcalc_API.errors.ub import Codes
 from diffcalc_API.server import app
-from diffcalc_API.stores.pickling import get_store
-from diffcalc_API.stores.protocol import HklCalcStore
+from diffcalc_API.stores.protocol import HklCalcStore, get_store
 from tests.conftest import FakeHklCalcStore
 
 dummy_hkl = HklCalculation(UBCalculation(name="dummy"), Constraints())
@@ -27,7 +26,7 @@ def client() -> TestClient:
 
 
 def test_add_reflection(client: TestClient):
-    response = client.put(
+    response = client.post(
         "/ub/test/reflection",
         json={
             "hkl": [0, 0, 1],
@@ -45,7 +44,7 @@ def test_add_reflection(client: TestClient):
 
 def test_edit_reflection(client: TestClient):
     dummy_hkl.ubcalc.add_reflection([0, 0, 1], Position(7, 0, 10, 0, 0, 0), 12, "foo")
-    response = client.patch(
+    response = client.put(
         "/ub/test/reflection",
         json={
             "energy": 13,
@@ -72,7 +71,7 @@ def test_delete_reflection(client: TestClient):
 def test_edit_or_delete_reflection_fails_for_non_existing_reflection(
     client: TestClient,
 ):
-    edit_response = client.patch(
+    edit_response = client.put(
         "/ub/test/reflection",
         json={
             "energy": 13,
@@ -89,7 +88,7 @@ def test_edit_or_delete_reflection_fails_for_non_existing_reflection(
 
 
 def test_add_orientation(client: TestClient):
-    response = client.put(
+    response = client.post(
         "/ub/test/orientation",
         json={
             "hkl": [0, 1, 0],
@@ -106,7 +105,7 @@ def test_add_orientation(client: TestClient):
 
 def test_edit_orientation(client: TestClient):
     dummy_hkl.ubcalc.add_orientation([0, 0, 1], [0, 0, 1], None, "bar")
-    response = client.patch(
+    response = client.put(
         "/ub/test/orientation",
         json={
             "xyz": [1, 1, 0],
@@ -139,7 +138,7 @@ def test_delete_orientation(client: TestClient):
 def test_edit_or_delete_orientation_fails_for_non_existing_orientation(
     client: TestClient,
 ):
-    edit_response = client.patch(
+    edit_response = client.put(
         "/ub/test/orientation",
         json={
             "xyz": [1, 1, 0],
@@ -181,7 +180,7 @@ def test_set_lattice_fails_for_empty_data(client: TestClient):
 
 
 def test_modify_property(client: TestClient):
-    response = client.patch(
+    response = client.put(
         "/ub/test/n_hkl",
         json=[0, 0, 1],
     )
@@ -191,7 +190,7 @@ def test_modify_property(client: TestClient):
 
 
 def test_modify_non_existent_property(client: TestClient):
-    response = client.patch(
+    response = client.put(
         "/ub/test/silly_property",
         json=[0, 0, 1],
     )
