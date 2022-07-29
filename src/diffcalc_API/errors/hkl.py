@@ -16,7 +16,7 @@ class Codes(ErrorCodes):
     CALCULATE_UB_MATRIX = 400
 
 
-responses = {code: ALL_RESPONSES[code] for code in np.unique(Codes().all_codes())}
+responses = {code: ALL_RESPONSES[code] for code in np.unique(Codes.all_codes())}
 
 
 def check_valid_miller_indices(miller_indices: Tuple[float, float, float]) -> None:

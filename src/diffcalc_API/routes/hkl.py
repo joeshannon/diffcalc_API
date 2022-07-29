@@ -3,8 +3,7 @@ from typing import Optional, Tuple, Union
 from fastapi import APIRouter, Depends, Query, Response
 
 from diffcalc_API.services import hkl as service
-from diffcalc_API.stores.mongo import get_store
-from diffcalc_API.stores.protocol import HklCalcStore
+from diffcalc_API.stores.protocol import HklCalcStore, get_store
 
 router = APIRouter(prefix="/hkl", tags=["hkl"])
 

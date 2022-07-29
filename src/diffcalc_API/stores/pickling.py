@@ -13,49 +13,52 @@ from diffcalc_API.errors.definitions import (
     DiffcalcAPIException,
     ErrorCodes,
 )
-from diffcalc_API.stores.protocol import HklCalcStore
 
 
 class Codes(ErrorCodes):
-    attempting_to_overwrite = 405
-    check_file_exists = 404
+    OVERWRITE_ERROR = 405
+    FILE_NOT_FOUND_ERROR = 404
 
 
-def attempting_to_overwrite(filename: str) -> None:
-    pickled_file = Path(SAVE_PICKLES_FOLDER) / filename
-    if (pickled_file).is_file():
-        message = (
-            f"File already exists for crystal {filename}!"
+class OverwriteError(DiffcalcAPIException):
+    def __init__(self, name):
+        self.detail = (
+            f"File already exists for crystal {name}!"
             f"\nEither delete via DELETE request to this URL "
             f"or change the existing properties. "
         )
-        raise DiffcalcAPIException(
-            status_code=Codes.attempting_to_overwrite, detail=message
-        )
+        self.status_code = Codes.OVERWRITE_ERROR
 
 
-def check_file_exists(pickled_file: Path, name: str) -> None:
-    if not (pickled_file).is_file():
-        message = (
+class FileNotFoundError(DiffcalcAPIException):
+    def __init__(self, name):
+        self.detail = (
             f"File for crystal {name} not found."
             f"\nYou need to post to"
             f" http://localhost:8000/{name}"
             f" first to generate the pickled file.\n"
         )
-        raise DiffcalcAPIException(status_code=Codes.check_file_exists, detail=message)
+        self.status_code = Codes.FILE_NOT_FOUND_ERROR
 
 
 class PicklingHklCalcStore:
-    _root_directory: Path
+    _root_directory: Path = Path(SAVE_PICKLES_FOLDER)
 
-    def __init__(self, root_directory: Path) -> None:
-        self._root_directory = root_directory
+    def __init__(self) -> None:
         self.responses = {
-            code: ALL_RESPONSES[code] for code in np.unique(Codes().all_codes())
+            code: ALL_RESPONSES[code] for code in np.unique(Codes.all_codes())
         }
 
     async def create(self, name: str, collection: Optional[str]) -> None:
-        attempting_to_overwrite(name)
+        pickled_file = (
+            Path(SAVE_PICKLES_FOLDER) / (collection if collection else "default") / name
+        )
+
+        if (pickled_file).is_file():
+            raise OverwriteError(name)
+
+        if not (pickled_file.parent).is_dir():
+            pickled_file.parent.mkdir()
 
         ubcalc = UBCalculation(name=name)
         constraints = Constraints()
@@ -64,11 +67,13 @@ class PicklingHklCalcStore:
         await self.save(name, hkl, collection)
 
     async def delete(self, name: str, collection: Optional[str]) -> None:
-        pickle_file_path = (
+        pickled_file = (
             Path(SAVE_PICKLES_FOLDER) / (collection if collection else "default") / name
         )
-        check_file_exists(pickle_file_path, name)
-        Path(pickle_file_path).unlink()
+        if not pickled_file.is_file():
+            raise FileNotFoundError(name)
+
+        Path(pickled_file).unlink()
 
     async def save(
         self, name: str, calc: HklCalculation, collection: Optional[str]
@@ -83,13 +88,10 @@ class PicklingHklCalcStore:
         file_path = (
             self._root_directory / (collection if collection else "default") / name
         )
-        check_file_exists(file_path, name)
+        if not file_path.is_file():
+            raise FileNotFoundError(name)
 
         with open(file_path, "rb") as stream:
             hkl: HklCalculation = pickle.load(stream)
 
         return hkl
-
-
-def get_store() -> HklCalcStore:
-    return PicklingHklCalcStore(Path(SAVE_PICKLES_FOLDER))

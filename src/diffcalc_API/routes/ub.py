@@ -13,8 +13,7 @@ from diffcalc_API.models.ub import (
     SetLatticeParams,
 )
 from diffcalc_API.services import ub as service
-from diffcalc_API.stores.mongo import get_store
-from diffcalc_API.stores.protocol import HklCalcStore
+from diffcalc_API.stores.protocol import HklCalcStore, get_store
 
 router = APIRouter(prefix="/ub", tags=["ub"])
 

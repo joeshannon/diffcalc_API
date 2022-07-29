@@ -3,8 +3,7 @@ from typing import Dict, Optional, Union
 from fastapi import APIRouter, Body, Depends, Query, Response
 
 from diffcalc_API.services import constraints as service
-from diffcalc_API.stores.mongo import get_store
-from diffcalc_API.stores.protocol import HklCalcStore
+from diffcalc_API.stores.protocol import HklCalcStore, get_store
 
 router = APIRouter(prefix="/constraints", tags=["constraints"])
 

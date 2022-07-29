@@ -7,9 +7,11 @@ from diffcalc_API.errors.constraints import responses as constraints_responses
 from diffcalc_API.errors.definitions import DiffcalcAPIException
 from diffcalc_API.errors.hkl import responses as hkl_responses
 from diffcalc_API.errors.ub import responses as ub_responses
-from diffcalc_API.stores.mongo import get_store
+from diffcalc_API.stores.protocol import get_store, setup_store
 
 from . import routes
+
+setup_store("diffcalc_API.stores.mongo.MongoHklCalcStore")
 
 app = FastAPI(responses=get_store().responses)
 

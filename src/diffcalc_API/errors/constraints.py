@@ -12,7 +12,7 @@ class Codes(ErrorCodes):
     CHECK_CONSTRAINT_EXISTS = 400
 
 
-responses = {code: ALL_RESPONSES[code] for code in np.unique(Codes().all_codes())}
+responses = {code: ALL_RESPONSES[code] for code in np.unique(Codes.all_codes())}
 
 
 def check_constraint_exists(constraint: str) -> None:

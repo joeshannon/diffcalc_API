@@ -8,8 +8,7 @@ from fastapi.testclient import TestClient
 
 from diffcalc_API.errors.constraints import Codes
 from diffcalc_API.server import app
-from diffcalc_API.stores.mongo import get_store
-from diffcalc_API.stores.protocol import HklCalcStore
+from diffcalc_API.stores.protocol import HklCalcStore, get_store
 from tests.conftest import FakeHklCalcStore
 
 dummy_hkl = HklCalculation(UBCalculation(name="dummy"), Constraints())
