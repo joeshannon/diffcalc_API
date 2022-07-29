@@ -16,7 +16,6 @@ async def get_constraints(
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
     content = await service.get_constraints(name, store, collection)
-
     return Response(content=content, media_type="application/text")
 
 

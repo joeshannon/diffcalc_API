@@ -45,7 +45,6 @@ def check_file_exists(pickled_file: Path, name: str) -> None:
         raise DiffcalcAPIException(status_code=Codes.check_file_exists, detail=message)
 
 
-# TODO: update this.
 class PicklingHklCalcStore:
     _root_directory: Path
 
