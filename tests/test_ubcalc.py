@@ -83,8 +83,8 @@ def test_edit_or_delete_reflection_fails_for_non_existing_reflection(
         json={"tag_or_idx": "foo"},
     )
 
-    assert edit_response.status_code == Codes.GET_REFLECTION
-    assert delete_response.status_code == Codes.GET_REFLECTION
+    assert edit_response.status_code == Codes.REFERENCE_RETRIEVAL_ERROR
+    assert delete_response.status_code == Codes.REFERENCE_RETRIEVAL_ERROR
 
 
 def test_add_orientation(client: TestClient):
@@ -150,8 +150,8 @@ def test_edit_or_delete_orientation_fails_for_non_existing_orientation(
         json={"tag_or_idx": "bar"},
     )
 
-    assert edit_response.status_code == Codes.GET_ORIENTATION
-    assert delete_response.status_code == Codes.GET_ORIENTATION
+    assert edit_response.status_code == Codes.REFERENCE_RETRIEVAL_ERROR
+    assert delete_response.status_code == Codes.REFERENCE_RETRIEVAL_ERROR
 
 
 def test_set_lattice(client: TestClient):
@@ -175,8 +175,10 @@ def test_set_lattice_fails_for_empty_data(client: TestClient):
         json={"unknown": "fields"},
     )
 
-    assert response_with_wrong_input.status_code == Codes.CHECK_PARAMS_NOT_EMPTY
-    assert response_with_no_input.status_code == Codes.CHECK_PARAMS_NOT_EMPTY
+    assert (
+        response_with_wrong_input.status_code == Codes.INVALID_SET_LATTICE_PARAMS_ERROR
+    )
+    assert response_with_no_input.status_code == Codes.INVALID_SET_LATTICE_PARAMS_ERROR
 
 
 def test_modify_property(client: TestClient):
@@ -194,4 +196,4 @@ def test_modify_non_existent_property(client: TestClient):
         "/ub/test/silly_property",
         json=[0, 0, 1],
     )
-    assert response.status_code == Codes.CHECK_PROPERTY_IS_VALID
+    assert response.status_code == Codes.INVALID_PROPERTY_ERROR

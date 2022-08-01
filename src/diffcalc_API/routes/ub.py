@@ -2,7 +2,8 @@ from typing import Optional, Tuple
 
 from fastapi import APIRouter, Body, Depends, Query, Response
 
-from diffcalc_API.errors.ub import check_params_not_empty, check_property_is_valid
+from diffcalc_API.config import VECTOR_PROPERTIES
+from diffcalc_API.errors.ub import InvalidPropertyError, InvalidSetLatticeParamsError
 from diffcalc_API.examples import ub as examples
 from diffcalc_API.models.ub import (
     AddOrientationParams,
@@ -131,9 +132,13 @@ async def set_lattice(
     name: str,
     params: SetLatticeParams = Body(example=examples.set_lattice),
     store: HklCalcStore = Depends(get_store),
-    _=Depends(check_params_not_empty),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
+    non_empty_vars = [var for var, value in params if value is not None]
+
+    if len(non_empty_vars) == 0:
+        raise InvalidSetLatticeParamsError()
+
     await service.set_lattice(name, params, store, collection)
     return {
         "message": (
@@ -149,9 +154,11 @@ async def modify_property(
     property: str,
     target_value: Tuple[float, float, float] = Body(..., example=[1, 0, 0]),
     store: HklCalcStore = Depends(get_store),
-    _=Depends(check_property_is_valid),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
+    if property not in VECTOR_PROPERTIES:
+        raise InvalidPropertyError()
+
     await service.modify_property(name, property, target_value, store, collection)
     return {
         "message": (

@@ -2,8 +2,8 @@ from typing import Dict, Optional, Union
 
 from diffcalc.hkl.constraints import Constraints
 
-from diffcalc_API.config import CONSTRAINTS_WITH_NO_VALUE
-from diffcalc_API.errors.constraints import check_constraint_exists
+from diffcalc_API.config import ALL_CONSTRAINTS, CONSTRAINTS_WITH_NO_VALUE
+from diffcalc_API.errors.constraints import InvalidConstraintError
 from diffcalc_API.stores.protocol import HklCalcStore
 
 
@@ -41,7 +41,9 @@ async def remove_constraint(
 ) -> None:
     hklcalc = await store.load(name, collection)
 
-    check_constraint_exists(property)
+    if property not in ALL_CONSTRAINTS:
+        raise InvalidConstraintError(property)
+
     setattr(hklcalc.constraints, property, None)
 
     await store.save(name, hklcalc, collection)
@@ -56,7 +58,9 @@ async def set_constraint(
 ) -> None:
     hklcalc = await store.load(name, collection)
 
-    check_constraint_exists(property)
+    if property not in ALL_CONSTRAINTS:
+        raise InvalidConstraintError(property)
+
     if property in CONSTRAINTS_WITH_NO_VALUE:
         value = bool(value)
 
