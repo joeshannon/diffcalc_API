@@ -27,4 +27,5 @@ jobs:
         uses: redhat-actions/push-to-registry@v2
         with:
           tags: ${{ steps.build-image.outputs.tags }}
-          registry: gcr.io
+          username: ${{ secrets.SDK_USERNAME }}
+          password: ${{ secrets.SDK_PASSWORD }}
