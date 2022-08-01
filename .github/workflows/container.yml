@@ -1,11 +1,6 @@
 name: Container CI
 
-on:
-  push:
-    branches:
-    - master
-  release:
-    types: [published]
+on: [push]
 
 jobs:
   build-and-push-image:
