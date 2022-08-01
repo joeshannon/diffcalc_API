@@ -19,7 +19,7 @@ class DiffcalcExceptionModel(BaseModel):
     detail: str
 
 
-class ErrorCodes(IntEnum):
+class ErrorCodesBase(IntEnum):
     @classmethod
     def all_codes(cls) -> List[int]:
         return [val.value for val in cls]

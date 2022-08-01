@@ -6,7 +6,7 @@ from diffcalc.hkl.constraints import Constraints
 from diffcalc.ub.calc import UBCalculation
 from fastapi.testclient import TestClient
 
-from diffcalc_API.errors.constraints import Codes
+from diffcalc_API.errors.constraints import ErrorCodes
 from diffcalc_API.server import app
 from diffcalc_API.stores.protocol import HklCalcStore, get_store
 from tests.conftest import FakeHklCalcStore
@@ -123,10 +123,10 @@ def test_set_or_remove_nonexisting_constraint(client: TestClient):
         json=1,
     )
 
-    assert set_response.status_code == Codes.INVALID_CONSTRAINT_ERROR
+    assert set_response.status_code == ErrorCodes.INVALID_CONSTRAINT
     assert dummy_hkl.constraints.asdict == {}
 
     remove_response = client.delete("/constraints/test/fake")
 
-    assert remove_response.status_code == Codes.INVALID_CONSTRAINT_ERROR
+    assert remove_response.status_code == ErrorCodes.INVALID_CONSTRAINT
     assert dummy_hkl.constraints.asdict == {}

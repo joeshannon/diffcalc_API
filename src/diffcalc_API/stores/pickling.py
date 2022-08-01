@@ -11,11 +11,11 @@ from diffcalc_API.config import SAVE_PICKLES_FOLDER
 from diffcalc_API.errors.definitions import (
     ALL_RESPONSES,
     DiffcalcAPIException,
-    ErrorCodes,
+    ErrorCodesBase,
 )
 
 
-class Codes(ErrorCodes):
+class ErrorCodes(ErrorCodesBase):
     OVERWRITE_ERROR = 405
     FILE_NOT_FOUND_ERROR = 404
 
@@ -27,7 +27,7 @@ class OverwriteError(DiffcalcAPIException):
             f"\nEither delete via DELETE request to this URL "
             f"or change the existing properties. "
         )
-        self.status_code = Codes.OVERWRITE_ERROR
+        self.status_code = ErrorCodes.OVERWRITE_ERROR
 
 
 class FileNotFoundError(DiffcalcAPIException):
@@ -38,7 +38,7 @@ class FileNotFoundError(DiffcalcAPIException):
             f" http://localhost:8000/{name}"
             f" first to generate the pickled file.\n"
         )
-        self.status_code = Codes.FILE_NOT_FOUND_ERROR
+        self.status_code = ErrorCodes.FILE_NOT_FOUND_ERROR
 
 
 class PicklingHklCalcStore:
@@ -46,7 +46,7 @@ class PicklingHklCalcStore:
 
     def __init__(self) -> None:
         self.responses = {
-            code: ALL_RESPONSES[code] for code in np.unique(Codes.all_codes())
+            code: ALL_RESPONSES[code] for code in np.unique(ErrorCodes.all_codes())
         }
 
     async def create(self, name: str, collection: Optional[str]) -> None:
