@@ -11,11 +11,11 @@ from diffcalc_API.database import database
 from diffcalc_API.errors.definitions import (
     ALL_RESPONSES,
     DiffcalcAPIException,
-    ErrorCodes,
+    ErrorCodesBase,
 )
 
 
-class Codes(ErrorCodes):
+class ErrorCodes(ErrorCodesBase):
     OVERWRITE_ERROR = 405
     DOCUMENT_NOT_FOUND_ERROR = 404
 
@@ -27,13 +27,13 @@ class OverwriteError(DiffcalcAPIException):
             f"\nEither delete via DELETE request to this URL "
             f"or change the existing properties. "
         )
-        self.status_code = Codes.OVERWRITE_ERROR
+        self.status_code = ErrorCodes.OVERWRITE_ERROR
 
 
 class DocumentNotFoundError(DiffcalcAPIException):
     def __init__(self, name: str, action: str) -> None:
         self.detail = f"Document for crystal {name} not found! Cannot {action}."
-        self.error_code = Codes.DOCUMENT_NOT_FOUND_ERROR
+        self.error_code = ErrorCodes.DOCUMENT_NOT_FOUND_ERROR
 
 
 class MongoHklCalcStore:
@@ -41,7 +41,7 @@ class MongoHklCalcStore:
         self,
     ) -> None:
         self.responses = {
-            code: ALL_RESPONSES[code] for code in np.unique(Codes.all_codes())
+            code: ALL_RESPONSES[code] for code in np.unique(ErrorCodes.all_codes())
         }
 
     async def create(self, name: str, collection: Optional[str]) -> None:

@@ -2,7 +2,7 @@ from typing import Optional, Tuple, Union
 
 from diffcalc.hkl.geometry import Position
 
-from diffcalc_API.errors.ub import get_orientation, get_reflection
+from diffcalc_API.errors.ub import ReferenceRetrievalError
 from diffcalc_API.models.ub import (
     AddOrientationParams,
     AddReflectionParams,
@@ -45,7 +45,11 @@ async def edit_reflection(
 ) -> None:
     hklcalc = await store.load(name, collection)
 
-    reflection = get_reflection(hklcalc, params.tag_or_idx)
+    try:
+        reflection = hklcalc.ubcalc.get_reflection(params.tag_or_idx)
+    except (IndexError, ValueError):
+        raise ReferenceRetrievalError(params.tag_or_idx, "reflection")
+
     hklcalc.ubcalc.edit_reflection(
         params.tag_or_idx,
         params.hkl if params.hkl else (reflection.h, reflection.k, reflection.l),
@@ -65,7 +69,11 @@ async def delete_reflection(
 ) -> None:
     hklcalc = await store.load(name, collection)
 
-    _ = get_reflection(hklcalc, tag_or_idx)
+    try:
+        hklcalc.ubcalc.get_reflection(tag_or_idx)
+    except (IndexError, ValueError):
+        raise ReferenceRetrievalError(tag_or_idx, "reflection")
+
     hklcalc.ubcalc.del_reflection(tag_or_idx)
 
     await store.save(name, hklcalc, collection)
@@ -98,7 +106,11 @@ async def edit_orientation(
 ) -> None:
     hklcalc = await store.load(name, collection)
 
-    orientation = get_orientation(hklcalc, params.tag_or_idx)
+    try:
+        orientation = hklcalc.ubcalc.get_orientation(params.tag_or_idx)
+    except (IndexError, ValueError):
+        raise ReferenceRetrievalError(params.tag_or_idx, "orientation")
+
     hklcalc.ubcalc.edit_orientation(
         params.tag_or_idx,
         params.hkl if params.hkl else (orientation.h, orientation.k, orientation.l),
@@ -118,7 +130,11 @@ async def delete_orientation(
 ) -> None:
     hklcalc = await store.load(name, collection)
 
-    _ = get_orientation(hklcalc, tag_or_idx)
+    try:
+        hklcalc.ubcalc.get_orientation(tag_or_idx)
+    except (IndexError, ValueError):
+        raise ReferenceRetrievalError(tag_or_idx, "orientation")
+
     hklcalc.ubcalc.del_orientation(tag_or_idx)
 
     await store.save(name, hklcalc, collection)

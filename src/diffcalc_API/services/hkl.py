@@ -4,11 +4,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import numpy as np
 from diffcalc.hkl.geometry import Position
 
-from diffcalc_API.errors.hkl import (
-    calculate_ub_matrix,
-    check_valid_miller_indices,
-    check_valid_scan_bounds,
-)
+from diffcalc_API.errors.hkl import InvalidMillerIndicesError, InvalidScanBoundsError
 from diffcalc_API.stores.protocol import HklCalcStore
 
 PositionType = Tuple[float, float, float]
@@ -23,7 +19,9 @@ async def lab_position_from_miller_indices(
 ) -> List[Dict[str, float]]:
     hklcalc = await store.load(name, collection)
 
-    check_valid_miller_indices(miller_indices)
+    if all([idx == 0 for idx in miller_indices]):
+        raise InvalidMillerIndicesError()
+
     all_positions = hklcalc.get_position(*miller_indices, wavelength)
 
     return combine_lab_position_results(all_positions)
@@ -59,7 +57,9 @@ async def scan_hkl(
     results = {}
 
     for h, k, l in product(*axes_values):
-        check_valid_miller_indices((h, k, l))
+        if all([idx == 0 for idx in (h, k, l)]):
+            raise InvalidMillerIndicesError()  # what if this goes through 0?
+
         all_positions = hklcalc.get_position(h, k, l, wavelength)
         results[f"({h}, {k}, {l})"] = combine_lab_position_results(all_positions)
 
@@ -76,7 +76,10 @@ async def scan_wavelength(
     collection: Optional[str],
 ) -> Dict[str, List[Dict[str, float]]]:
     hklcalc = await store.load(name, collection)
-    check_valid_scan_bounds(start, stop, inc)
+
+    if len(np.arange(start, stop + inc, inc)) == 0:
+        raise InvalidScanBoundsError(start, stop, inc)
+
     wavelengths = np.arange(start, stop + inc, inc)
     result = {}
 
@@ -99,7 +102,10 @@ async def scan_constraint(
     collection: Optional[str],
 ) -> Dict[str, List[Dict[str, float]]]:
     hklcalc = await store.load(name, collection)
-    check_valid_scan_bounds(start, stop, inc)
+
+    if len(np.arange(start, stop + inc, inc)) == 0:
+        raise InvalidScanBoundsError(start, stop, inc)
+
     result = {}
     for value in np.arange(start, stop + inc, inc):
         setattr(hklcalc, constraint, value)
@@ -110,7 +116,9 @@ async def scan_constraint(
 
 
 def generate_axis(start: float, stop: float, inc: float):
-    check_valid_scan_bounds(start, stop, inc)
+    if len(np.arange(start, stop + inc, inc)) == 0:
+        raise InvalidScanBoundsError(start, stop, inc)
+
     return np.arange(start, stop + inc, inc)
 
 
@@ -134,7 +142,7 @@ async def calculate_ub(
 ) -> str:
     hklcalc = await store.load(name, collection)
 
-    calculate_ub_matrix(hklcalc, first_tag, second_tag)
+    hklcalc.ubcalc.calc_ub(first_tag, second_tag)
 
     await store.save(name, hklcalc, collection)
     return str(np.round(hklcalc.ubcalc.UB, 6))

@@ -6,7 +6,7 @@ from diffcalc.hkl.geometry import Position
 from diffcalc.ub.calc import UBCalculation
 from fastapi.testclient import TestClient
 
-from diffcalc_API.errors.ub import Codes
+from diffcalc_API.errors.ub import ErrorCodes
 from diffcalc_API.server import app
 from diffcalc_API.stores.protocol import HklCalcStore, get_store
 from tests.conftest import FakeHklCalcStore
@@ -23,6 +23,30 @@ def client() -> TestClient:
     app.dependency_overrides[get_store] = dummy_get_store
 
     return TestClient(app)
+
+
+def test_get_ub(client: TestClient):
+    response = client.get("/ub/test")
+
+    assert response.content == (
+        b"UBCALC\n\n"
+        + b"   name:         dummy"
+        + b"\n\nREFERNCE\n\n"
+        + b"   n_hkl:      1.00000   0.00000   0.00000 <- set\n"
+        + b"   n_phi:    None"
+        + b"\n\nSURFACE NORMAL\n\n"
+        + b"   n_hkl:      0.00000   0.00000   1.00000\n"
+        + b"   n_phi:      0.00000   0.00000   1.00000 <- set"
+        + b"\n\nCRYSTAL\n\n"
+        + b"   <<< none specified >>>"
+        + b"\n\nUB MATRIX\n\n"
+        + b"   <<< none calculated >>>"
+        + b"\n\nREFLECTIONS\n\n"
+        + b"   <<< none specified >>>"
+        + b"\n\nCRYSTAL ORIENTATIONS\n\n"
+        + b"   <<< none specified >>>"
+    )
+    assert response.status_code == 200
 
 
 def test_add_reflection(client: TestClient):
@@ -83,8 +107,8 @@ def test_edit_or_delete_reflection_fails_for_non_existing_reflection(
         json={"tag_or_idx": "foo"},
     )
 
-    assert edit_response.status_code == Codes.GET_REFLECTION
-    assert delete_response.status_code == Codes.GET_REFLECTION
+    assert edit_response.status_code == ErrorCodes.REFERENCE_RETRIEVAL_ERROR
+    assert delete_response.status_code == ErrorCodes.REFERENCE_RETRIEVAL_ERROR
 
 
 def test_add_orientation(client: TestClient):
@@ -150,8 +174,8 @@ def test_edit_or_delete_orientation_fails_for_non_existing_orientation(
         json={"tag_or_idx": "bar"},
     )
 
-    assert edit_response.status_code == Codes.GET_ORIENTATION
-    assert delete_response.status_code == Codes.GET_ORIENTATION
+    assert edit_response.status_code == ErrorCodes.REFERENCE_RETRIEVAL_ERROR
+    assert delete_response.status_code == ErrorCodes.REFERENCE_RETRIEVAL_ERROR
 
 
 def test_set_lattice(client: TestClient):
@@ -175,8 +199,10 @@ def test_set_lattice_fails_for_empty_data(client: TestClient):
         json={"unknown": "fields"},
     )
 
-    assert response_with_wrong_input.status_code == Codes.CHECK_PARAMS_NOT_EMPTY
-    assert response_with_no_input.status_code == Codes.CHECK_PARAMS_NOT_EMPTY
+    assert (
+        response_with_wrong_input.status_code == ErrorCodes.INVALID_SET_LATTICE_PARAMS
+    )
+    assert response_with_no_input.status_code == ErrorCodes.INVALID_SET_LATTICE_PARAMS
 
 
 def test_modify_property(client: TestClient):
@@ -194,4 +220,4 @@ def test_modify_non_existent_property(client: TestClient):
         "/ub/test/silly_property",
         json=[0, 0, 1],
     )
-    assert response.status_code == Codes.CHECK_PROPERTY_IS_VALID
+    assert response.status_code == ErrorCodes.INVALID_PROPERTY

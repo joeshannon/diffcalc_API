@@ -6,7 +6,7 @@ from diffcalc.hkl.geometry import Position
 from diffcalc.ub.calc import UBCalculation
 from fastapi.testclient import TestClient
 
-from diffcalc_API.errors.hkl import Codes
+from diffcalc_API.errors.hkl import ErrorCodes
 from diffcalc_API.server import app
 from diffcalc_API.stores.protocol import HklCalcStore, get_store
 from tests.conftest import FakeHklCalcStore
@@ -132,7 +132,7 @@ def test_invalid_scans(client: TestClient):
         },
     )
 
-    assert invalid_miller_indices.status_code == Codes.CHECK_VALID_MILLER_INDICES
+    assert invalid_miller_indices.status_code == ErrorCodes.INVALID_MILLER_INDICES
 
     invalid_wavelength_scan = client.get(
         "/hkl/test/scan/wavelength",
@@ -144,7 +144,7 @@ def test_invalid_scans(client: TestClient):
         },
     )
 
-    assert invalid_wavelength_scan.status_code == Codes.CHECK_VALID_SCAN_BOUNDS
+    assert invalid_wavelength_scan.status_code == ErrorCodes.INVALID_SCAN_BOUNDS
 
 
 def test_calc_ub(client: TestClient):
@@ -165,4 +165,4 @@ def test_calc_ub_fails_when_incorrect_tags(client: TestClient):
         "/hkl/test/UB", params={"first_tag": "one", "second_tag": "two"}
     )
 
-    assert response.status_code == Codes.CALCULATE_UB_MATRIX
+    assert response.status_code == 400

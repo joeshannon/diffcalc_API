@@ -6,7 +6,7 @@ from diffcalc.hkl.constraints import Constraints
 from diffcalc.ub.calc import UBCalculation
 from fastapi.testclient import TestClient
 
-from diffcalc_API.errors.constraints import Codes
+from diffcalc_API.errors.constraints import ErrorCodes
 from diffcalc_API.server import app
 from diffcalc_API.stores.protocol import HklCalcStore, get_store
 from tests.conftest import FakeHklCalcStore
@@ -23,6 +23,26 @@ def client() -> TestClient:
     app.dependency_overrides[get_store] = dummy_get_store
 
     return TestClient(app)
+
+
+def test_get_constraints(client: TestClient):
+    response = client.get(
+        "/constraints/test?collection=B07",
+    )
+
+    assert response.content == (
+        b"    DET             REF             SAMP\n    "
+        + b"-----------     -----------     -----------\n    "
+        + b"delta           a_eq_b          mu\n    "
+        + b"nu              alpha           eta\n    "
+        + b"qaz             beta            chi\n    "
+        + b"naz             psi             phi\n    "
+        + b"                bin_eq_bout     bisect\n    "
+        + b"                betain          omega\n    "
+        + b"                betaout\n\n!   "
+        + b"3 more constraints required\n"
+    )
+    assert response.status_code == 200
 
 
 def test_set_constraints(client: TestClient):
@@ -103,10 +123,10 @@ def test_set_or_remove_nonexisting_constraint(client: TestClient):
         json=1,
     )
 
-    assert set_response.status_code == Codes.CHECK_CONSTRAINT_EXISTS
+    assert set_response.status_code == ErrorCodes.INVALID_CONSTRAINT
     assert dummy_hkl.constraints.asdict == {}
 
     remove_response = client.delete("/constraints/test/fake")
 
-    assert remove_response.status_code == Codes.CHECK_CONSTRAINT_EXISTS
+    assert remove_response.status_code == ErrorCodes.INVALID_CONSTRAINT
     assert dummy_hkl.constraints.asdict == {}

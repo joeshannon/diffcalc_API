@@ -1,71 +1,37 @@
 from typing import Union
 
 import numpy as np
-from diffcalc.hkl.calc import HklCalculation
-from diffcalc.ub.reference import Orientation, Reflection
 
 from diffcalc_API.config import VECTOR_PROPERTIES
 from diffcalc_API.errors.definitions import (
     ALL_RESPONSES,
     DiffcalcAPIException,
-    ErrorCodes,
+    ErrorCodesBase,
 )
-from diffcalc_API.models.ub import SetLatticeParams
 
 
-class Codes(ErrorCodes):
-    CHECK_PARAMS_NOT_EMPTY = 400
-    GET_REFLECTION = 403
-    GET_ORIENTATION = 403
-    CHECK_PROPERTY_IS_VALID = 400
+class ErrorCodes(ErrorCodesBase):
+    INVALID_SET_LATTICE_PARAMS = 400
+    REFERENCE_RETRIEVAL_ERROR = 403
+    INVALID_PROPERTY = 400
 
 
-responses = {code: ALL_RESPONSES[code] for code in np.unique(Codes.all_codes())}
+responses = {code: ALL_RESPONSES[code] for code in np.unique(ErrorCodes.all_codes())}
 
 
-def check_params_not_empty(params: SetLatticeParams) -> None:
-    non_empty_vars = [var for var, value in params if value is not None]
-
-    if len(non_empty_vars) == 0:
-        raise DiffcalcAPIException(
-            status_code=Codes.CHECK_PARAMS_NOT_EMPTY,
-            detail="please provide parameters in request body",
-        )
+class InvalidSetLatticeParamsError(DiffcalcAPIException):
+    def __init__(self):
+        self.detail = ("please provide lattice parameters in request body",)
+        self.status_code = ErrorCodes.INVALID_SET_LATTICE_PARAMS
 
 
-def get_reflection(hkl: HklCalculation, tag_or_idx: Union[str, int]) -> Reflection:
-    try:
-        reflection = hkl.ubcalc.get_reflection(tag_or_idx)
-    except Exception:
-        raise DiffcalcAPIException(
-            status_code=Codes.GET_REFLECTION,
-            detail=(
-                "Cannot edit or delete reflection: "
-                "No reflection with this tag or index"
-            ),
-        )
-
-    return reflection
+class ReferenceRetrievalError(DiffcalcAPIException):
+    def __init__(self, handle: Union[str, int], reference_type: str) -> None:
+        self.detail = f"cannot retrieve {reference_type} with tag or index {handle}"
+        self.status_code = ErrorCodes.REFERENCE_RETRIEVAL_ERROR
 
 
-def get_orientation(hkl: HklCalculation, tag_or_idx: Union[str, int]) -> Orientation:
-    try:
-        orientation = hkl.ubcalc.get_orientation(tag_or_idx)
-    except Exception:
-        raise DiffcalcAPIException(
-            status_code=Codes.GET_ORIENTATION,
-            detail=(
-                "Cannot edit or delete orientation: "
-                "No orientation with this tag or index"
-            ),
-        )
-
-    return orientation
-
-
-def check_property_is_valid(property: str) -> None:
-    if property not in VECTOR_PROPERTIES:
-        raise DiffcalcAPIException(
-            status_code=Codes.CHECK_PROPERTY_IS_VALID,
-            detail=f"invalid property. Choose one of: {VECTOR_PROPERTIES}",
-        )
+class InvalidPropertyError(DiffcalcAPIException):
+    def __init__(self):
+        self.detail = f"invalid property. Choose one of: {VECTOR_PROPERTIES}"
+        self.status_code = ErrorCodes.INVALID_PROPERTY

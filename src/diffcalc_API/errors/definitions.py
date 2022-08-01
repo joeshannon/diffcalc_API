@@ -1,7 +1,6 @@
 from enum import IntEnum
 from typing import Any, Dict, List, Union
 
-from diffcalc.util import DiffcalcException
 from pydantic import BaseModel
 
 #######################################################################################
@@ -15,18 +14,12 @@ class DiffcalcAPIException(Exception):
         self.detail = detail
 
 
-class DiffcalcCoreException(DiffcalcException):
-    def __init__(self, status_code: int, detail: str):
-        self.status_code = status_code
-        self.detail = detail
-
-
 class DiffcalcExceptionModel(BaseModel):
     status_code: int
     detail: str
 
 
-class ErrorCodes(IntEnum):
+class ErrorCodesBase(IntEnum):
     @classmethod
     def all_codes(cls) -> List[int]:
         return [val.value for val in cls]
