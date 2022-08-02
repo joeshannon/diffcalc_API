@@ -1,0 +1,28 @@
+name: Helm CI
+
+on: ['push']
+
+env:
+  GCR_IMAGE: ghcr.io/${{ github.repository_owner }}/diffcalc_api_helm
+
+jobs:
+  build:
+    name: publish gcr
+    runs-on: ubuntu-latest
+    environment: prod
+    steps:
+      - name: checkout repo 
+        uses: actions/checkout@v2
+      
+      - name: install helm
+        uses: Azure/setup-helm@v1
+
+      - name: login to acr using helm
+        run: |
+          echo ${{ secrets.GITHUB_TOKEN }} | helm registry login ${{ env.GCR_IMAGE }} --username ${{ github.repository_owner }} --password-stdin
+
+      - name: package chart and push it
+        run: |
+          helm package helm/diffcalc-api 
+          helm push helm/diffcalc-api-*.tgz oci://ghcr.io/rayemelyanova/charts
+          rm helm/diffcalc-api-*.tgz
