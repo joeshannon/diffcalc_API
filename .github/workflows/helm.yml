@@ -25,5 +25,4 @@ jobs:
       - name: package chart and push it
         run: |
           helm package helm/diffcalc-api 
-          helm push helm/diffcalc-api-${{ env.HELM_VERSION }}.tgz oci://ghcr.io/rayemelyanova/charts
-          rm helm/diffcalc-api-${{ env.HELM_VERSION }}.tgz
+          helm push /home/runner/work/diffcalc_API/diffcalc_API/diffcalc-api-${{ env.HELM_VERSION }}.tgz oci://ghcr.io/rayemelyanova/charts
