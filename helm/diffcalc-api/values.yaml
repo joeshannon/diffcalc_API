@@ -4,6 +4,8 @@
 
 replicaCount: 1
 
+mongoUrl: mongodb:27017
+
 image:
   repository: gcr.io/diamond-pubreg/diffcalc/api
   pullPolicy: IfNotPresent
