@@ -1,19 +1,6 @@
 name: Code CI
 
-on:
-  push:
-    branches:
-      # Restricting to these branches and tags stops duplicate jobs on internal
-      # PRs but stops CI running on internal branches without a PR. Delete the
-      # next 5 lines to restore the original behaviour
-      - master
-      - main
-    tags:
-      - "*"
-  pull_request:
-  schedule:
-    # Run every Monday at 8am to check latest versions of dependencies
-    - cron: "0 8 * * MON"
+on: [push]
 
 jobs:
   lint:
@@ -117,8 +104,3 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Publish to PyPI
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.pypi_token }}
-        run: pipx run twine upload dist/*
