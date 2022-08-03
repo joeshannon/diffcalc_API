@@ -33,7 +33,7 @@ class OverwriteError(DiffcalcAPIException):
 class DocumentNotFoundError(DiffcalcAPIException):
     def __init__(self, name: str, action: str) -> None:
         self.detail = f"Document for crystal {name} not found! Cannot {action}."
-        self.error_code = ErrorCodes.DOCUMENT_NOT_FOUND_ERROR
+        self.status_code = ErrorCodes.DOCUMENT_NOT_FOUND_ERROR
 
 
 class MongoHklCalcStore:
