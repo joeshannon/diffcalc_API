@@ -33,13 +33,10 @@ jobs:
           tags: |
             type=ref,event=branch
             type=ref,event=tag
-            
+
 
       - name: package chart and push it
-        env: 
-          TAG: echo ${{ steps.meta.outputs.tags }} | grep -oP 'v[0-9.]+'
         run: |
-          echo '$TAG'
           helm dependencies update helm/diffcalc-api
-          helm package helm/diffcalc-api --version $TAG -d /tmp/
-          helm push /tmp/diffcalc-api-$TAG.tgz oci://ghcr.io/rayemelyanova/charts
+          helm package helm/diffcalc-api --version ${GITHUB_REF##*/} -d /tmp/
+          helm push /tmp/diffcalc-api-${GITHUB_REF##*/}.tgz oci://ghcr.io/rayemelyanova/charts
