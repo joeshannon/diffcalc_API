@@ -1,0 +1,42 @@
+name: Helm CI
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  GCR_IMAGE: ghcr.io/rayemelyanova/diffcalc-api
+  HELM_VERSION: 0.1.0
+
+jobs:
+  build:
+    name: publish gcr
+    runs-on: ubuntu-latest
+    environment: prod
+    steps:
+      - name: checkout repo 
+        uses: actions/checkout@v2
+      
+      - name: install helm
+        uses: Azure/setup-helm@v1
+
+      - name: login to acr using helm
+        run: |
+          echo ${{ secrets.GITHUB_TOKEN }} | helm registry login ${{ env.GCR_IMAGE }} --username ${{ github.repository_owner }} --password-stdin
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=tag
+
+
+      - name: package chart and push it
+        run: |
+          helm dependencies update helm/diffcalc-api
+          helm package helm/diffcalc-api --version ${GITHUB_REF##*/} -d /tmp/
+          helm push /tmp/diffcalc-api-${GITHUB_REF##*/}.tgz oci://ghcr.io/rayemelyanova/charts
