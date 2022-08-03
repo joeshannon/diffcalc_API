@@ -3,7 +3,7 @@ name: Helm CI
 on: ['push']
 
 env:
-  GCR_IMAGE: ghcr.io/rayemelyanova/diffcalc_api_helm
+  GCR_IMAGE: ghcr.io/rayemelyanova/diffcalc-api
   HELM_VERSION: 0.1.0
 
 jobs:
@@ -22,8 +22,19 @@ jobs:
         run: |
           echo ${{ secrets.GITHUB_TOKEN }} | helm registry login ${{ env.GCR_IMAGE }} --username ${{ github.repository_owner }} --password-stdin
 
-      - name: package chart and push it
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      - name: print stuff
         run: |
-          helm dependencies update helm/diffcalc-api
-          helm package helm/diffcalc-api  -d /tmp/
-          helm push /tmp/diffcalc-api-${{ env.HELM_VERSION }}.tgz oci://ghcr.io/rayemelyanova/charts
+          echo ${{ steps.meta.outputs.labels }}
+          echo ${{ steps.meta.outputs.tags }}
+
+      # - name: package chart and push it
+      #   run: |
+      #     helm dependencies update helm/diffcalc-api
+      #     helm package helm/diffcalc-api  -d /tmp/
+      #     helm push /tmp/diffcalc-api-${{ env.HELM_VERSION }}.tgz oci://ghcr.io/rayemelyanova/charts
