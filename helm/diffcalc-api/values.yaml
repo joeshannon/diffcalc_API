@@ -4,8 +4,6 @@
 
 replicaCount: 1
 
-mongoUrl: mongodb:27017
-
 image:
   repository: gcr.io/diamond-pubreg/diffcalc/api
   pullPolicy: IfNotPresent
@@ -82,3 +80,12 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+mongodb:
+  enabled: true
+  url: mongo-mongodb:27017
+  serviceAccount:
+    create: false
+  # architecture: standalone
+  auth:
+    enabled: false

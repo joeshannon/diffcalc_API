@@ -77,11 +77,11 @@ jobs:
           allow-editable-installs: ${{ matrix.pipenv == 'deploy' }}
           pipenv-run: tests
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v2
-        with:
-          name: ${{ matrix.python }}/${{ matrix.os }}/${{ matrix.pipenv }}
-          files: cov.xml
+      # - name: Upload coverage to Codecov
+      #   uses: codecov/codecov-action@v2
+      #   with:
+      #     name: ${{ matrix.python }}/${{ matrix.os }}/${{ matrix.pipenv }}
+      #     files: cov.xml
 
   release:
     needs: [lint, wheel, test]
