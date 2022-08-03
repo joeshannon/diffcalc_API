@@ -2,6 +2,10 @@
 __pycache__/
 *.py[cod]
 
+# Helm
+helm/*.tgz
+helm/diffcalc-api/index.yaml
+
 # C extensions
 *.so
 
