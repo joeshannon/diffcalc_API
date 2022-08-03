@@ -38,5 +38,5 @@ jobs:
       - name: package chart and push it
         run: |
           helm dependencies update helm/diffcalc-api
-          helm package helm/diffcalc-api --version ${{ steps.meta.outputs.tags. }} -d /tmp/
+          helm package helm/diffcalc-api --version ${{ steps.meta.outputs.tags }} -d /tmp/
           helm push /tmp/diffcalc-api-${{ steps.meta.outputs.tags }}.tgz oci://ghcr.io/rayemelyanova/charts
