@@ -36,7 +36,10 @@ jobs:
             
 
       - name: package chart and push it
+        env: 
+          TAG: echo ${{ steps.meta.outputs.tags }} | grep -oP 'v[0-9.]+'
         run: |
+          echo '$TAG'
           helm dependencies update helm/diffcalc-api
-          helm package helm/diffcalc-api --version ${{ steps.meta.outputs.tags }} -d /tmp/
-          helm push /tmp/diffcalc-api-${{ steps.meta.outputs.tags }}.tgz oci://ghcr.io/rayemelyanova/charts
+          helm package helm/diffcalc-api --version $TAG -d /tmp/
+          helm push /tmp/diffcalc-api-$TAG.tgz oci://ghcr.io/rayemelyanova/charts
