@@ -83,7 +83,7 @@ affinity: {}
 
 mongodb:
   enabled: true
-  url: mongo-mongodb:27017
+  url: diffcalc-api-mongodb:27017
   serviceAccount:
     create: false
   # architecture: standalone
