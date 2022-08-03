@@ -5,6 +5,7 @@ __pycache__/
 # Helm
 helm/*.tgz
 helm/diffcalc-api/index.yaml
+helm/diffcalc-api/Chart.lock
 
 # C extensions
 *.so
