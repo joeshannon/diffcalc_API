@@ -5,7 +5,7 @@
 replicaCount: 1
 
 image:
-  repository: gcr.io/diamond-pubreg/diffcalc/api
+  repository: ghcr.io/rayemelyanova/charts/diffcalc-api
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: latest
@@ -83,7 +83,7 @@ affinity: {}
 
 mongodb:
   enabled: true
-  url: diffcalc-api-mongodb:27017
+  urlOverride: ""
   serviceAccount:
     create: false
   # architecture: standalone

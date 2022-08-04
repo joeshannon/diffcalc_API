@@ -6,6 +6,13 @@ Expand the name of the chart.
 {{- end }}
 
 {{/*
+Set the kubernetes service that diffcalc-api will use to communicate to mongo.
+*/}}
+{{- define "diffcalc-api.mongoUrl" }}
+{{- .Values.mongodb.urlOverride | default (tpl "{{ .Release.Name }}-mongodb:27017" . ) }}
+{{- end }}
+
+{{/*
 Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
