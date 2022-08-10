@@ -89,3 +89,8 @@ mongodb:
   # architecture: standalone
   auth:
     enabled: false
+  resources:
+    limits:
+      cpu: 2
+    requests:
+      cpu: 1
