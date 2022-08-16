@@ -1,3 +1,5 @@
+import ast
+
 import numpy as np
 import pytest
 from diffcalc.hkl.calc import HklCalculation
@@ -151,13 +153,18 @@ def test_calc_ub(client: TestClient):
     response = client.get(
         "/hkl/test/UB", params={"first_tag": "refl1", "second_tag": "plane"}
     )
-    expected_ub = (
-        "[[ 1.27889  -0.        0.      ],  [-0.        1.278111  0.04057 ],"
-        "  [-0.       -0.044633  1.161768]]"
-    )
+    expected_ub = [
+        [
+            1.27889,
+            -0.0,
+            0.0,
+        ],
+        [-0.0, 1.278111, 0.04057],
+        [-0.0, -0.044633, 1.161768],
+    ]
 
     assert response.status_code == 200
-    assert response.text.replace("\n", ", ") == expected_ub
+    assert ast.literal_eval(response.content.decode())["payload"] == expected_ub
 
 
 def test_calc_ub_fails_when_incorrect_tags(client: TestClient):

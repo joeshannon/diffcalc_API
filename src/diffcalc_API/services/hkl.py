@@ -139,10 +139,10 @@ async def calculate_ub(
     second_tag: Optional[Union[int, str]],
     store: HklCalcStore,
     collection: Optional[str],
-) -> str:
+) -> List[List[float]]:
     hklcalc = await store.load(name, collection)
 
     hklcalc.ubcalc.calc_ub(first_tag, second_tag)
 
     await store.save(name, hklcalc, collection)
-    return str(np.round(hklcalc.ubcalc.UB, 6))
+    return np.round(hklcalc.ubcalc.UB, 6).tolist()

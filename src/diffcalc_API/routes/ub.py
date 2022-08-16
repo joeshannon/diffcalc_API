@@ -1,6 +1,6 @@
 from typing import Optional, Tuple
 
-from fastapi import APIRouter, Body, Depends, Query, Response
+from fastapi import APIRouter, Body, Depends, Query
 
 from diffcalc_API.config import VECTOR_PROPERTIES
 from diffcalc_API.errors.ub import InvalidPropertyError, InvalidSetLatticeParamsError
@@ -26,7 +26,7 @@ async def get_ub(
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
     content = await service.get_ub(name, store, collection)
-    return Response(content=content, media_type="application/text")
+    return {"payload": content}
 
 
 @router.post("/{name}/reflection")

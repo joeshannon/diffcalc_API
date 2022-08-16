@@ -1,6 +1,6 @@
 from typing import Optional, Tuple, Union
 
-from fastapi import APIRouter, Depends, Query, Response
+from fastapi import APIRouter, Depends, Query
 
 from diffcalc_API.services import hkl as service
 from diffcalc_API.stores.protocol import HklCalcStore, get_store
@@ -21,7 +21,7 @@ async def calculate_ub(
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
     content = await service.calculate_ub(name, first_tag, second_tag, store, collection)
-    return Response(content=content, media_type="application/text")
+    return {"payload": content}
 
 
 @router.get("/{name}/position/lab")

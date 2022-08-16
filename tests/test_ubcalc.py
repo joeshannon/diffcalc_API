@@ -1,3 +1,5 @@
+import ast
+
 import numpy as np
 import pytest
 from diffcalc.hkl.calc import HklCalculation
@@ -28,23 +30,23 @@ def client() -> TestClient:
 def test_get_ub(client: TestClient):
     response = client.get("/ub/test")
 
-    assert response.content == (
-        b"UBCALC\n\n"
-        + b"   name:         dummy"
-        + b"\n\nREFERNCE\n\n"
-        + b"   n_hkl:      1.00000   0.00000   0.00000 <- set\n"
-        + b"   n_phi:    None"
-        + b"\n\nSURFACE NORMAL\n\n"
-        + b"   n_hkl:      0.00000   0.00000   1.00000\n"
-        + b"   n_phi:      0.00000   0.00000   1.00000 <- set"
-        + b"\n\nCRYSTAL\n\n"
-        + b"   <<< none specified >>>"
-        + b"\n\nUB MATRIX\n\n"
-        + b"   <<< none calculated >>>"
-        + b"\n\nREFLECTIONS\n\n"
-        + b"   <<< none specified >>>"
-        + b"\n\nCRYSTAL ORIENTATIONS\n\n"
-        + b"   <<< none specified >>>"
+    assert ast.literal_eval(response.content.decode())["payload"] == (
+        "UBCALC\n\n"
+        + "   name:         dummy"
+        + "\n\nREFERNCE\n\n"
+        + "   n_hkl:      1.00000   0.00000   0.00000 <- set\n"
+        + "   n_phi:    None"
+        + "\n\nSURFACE NORMAL\n\n"
+        + "   n_hkl:      0.00000   0.00000   1.00000\n"
+        + "   n_phi:      0.00000   0.00000   1.00000 <- set"
+        + "\n\nCRYSTAL\n\n"
+        + "   <<< none specified >>>"
+        + "\n\nUB MATRIX\n\n"
+        + "   <<< none calculated >>>"
+        + "\n\nREFLECTIONS\n\n"
+        + "   <<< none specified >>>"
+        + "\n\nCRYSTAL ORIENTATIONS\n\n"
+        + "   <<< none specified >>>"
     )
     assert response.status_code == 200
 

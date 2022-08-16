@@ -1,6 +1,6 @@
 from typing import Dict, Optional, Union
 
-from fastapi import APIRouter, Body, Depends, Query, Response
+from fastapi import APIRouter, Body, Depends, Query
 
 from diffcalc_API.services import constraints as service
 from diffcalc_API.stores.protocol import HklCalcStore, get_store
@@ -15,7 +15,7 @@ async def get_constraints(
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
     content = await service.get_constraints(name, store, collection)
-    return Response(content=content, media_type="application/text")
+    return {"payload": content}
 
 
 @router.post("/{name}")

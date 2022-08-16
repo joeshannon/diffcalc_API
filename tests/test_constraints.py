@@ -30,17 +30,17 @@ def test_get_constraints(client: TestClient):
         "/constraints/test?collection=B07",
     )
 
-    assert response.content == (
-        b"    DET             REF             SAMP\n    "
-        + b"-----------     -----------     -----------\n    "
-        + b"delta           a_eq_b          mu\n    "
-        + b"nu              alpha           eta\n    "
-        + b"qaz             beta            chi\n    "
-        + b"naz             psi             phi\n    "
-        + b"                bin_eq_bout     bisect\n    "
-        + b"                betain          omega\n    "
-        + b"                betaout\n\n!   "
-        + b"3 more constraints required\n"
+    assert ast.literal_eval(response.content.decode())["payload"] == (
+        "    DET             REF             SAMP\n    "
+        + "-----------     -----------     -----------\n    "
+        + "delta           a_eq_b          mu\n    "
+        + "nu              alpha           eta\n    "
+        + "qaz             beta            chi\n    "
+        + "naz             psi             phi\n    "
+        + "                bin_eq_bout     bisect\n    "
+        + "                betain          omega\n    "
+        + "                betaout\n\n!   "
+        + "3 more constraints required\n"
     )
     assert response.status_code == 200
 
