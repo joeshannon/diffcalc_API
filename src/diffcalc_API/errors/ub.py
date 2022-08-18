@@ -15,6 +15,7 @@ class ErrorCodes(ErrorCodesBase):
     REFERENCE_RETRIEVAL_ERROR = 403
     INVALID_PROPERTY = 400
     NO_TAG_OR_IDX_PROVIDED = 400
+    BOTH_TAG_OR_IDX_PROVIDED = 400
 
 
 responses = {code: ALL_RESPONSES[code] for code in np.unique(ErrorCodes.all_codes())}
@@ -27,6 +28,16 @@ class NoTagOrIdxProvidedError(DiffcalcAPIException):
             + " tag (string), index (integer)"
         )
         self.status_code = ErrorCodes.NO_TAG_OR_IDX_PROVIDED
+
+
+class BothTagAndIdxProvidedError(DiffcalcAPIException):
+    def __init__(self):
+        self.detail = (
+            "both the tag and index have been provided. These are identifiers"
+            + "for a specific orientation or reflection, and so both cannot be"
+            + "used. Retry with just one tag or index query parameter."
+        )
+        self.status_code = ErrorCodes.BOTH_TAG_OR_IDX_PROVIDED
 
 
 class InvalidSetLatticeParamsError(DiffcalcAPIException):

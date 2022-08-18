@@ -46,7 +46,7 @@ async def server_exceptions_middleware(request: Request, call_next):
     try:
         return await call_next(request)
     except Exception as e:
-        # you probably want some kind of logging here
+        # TODO: implement proper logging
         tb = traceback.format_exc()
         print(tb)
 
