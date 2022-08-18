@@ -1,4 +1,4 @@
-from typing import Optional, Tuple, Union
+from typing import Optional, Union
 
 from diffcalc.hkl.geometry import Position
 
@@ -8,6 +8,7 @@ from diffcalc_API.models.ub import (
     AddReflectionParams,
     EditOrientationParams,
     EditReflectionParams,
+    HklModel,
     SetLatticeParams,
 )
 from diffcalc_API.stores.protocol import HklCalcStore
@@ -28,8 +29,8 @@ async def add_reflection(
     hklcalc = await store.load(name, collection)
 
     hklcalc.ubcalc.add_reflection(
-        params.hkl,
-        Position(*params.position),
+        tuple(params.hkl.dict().values()),
+        Position(**params.position.dict()),
         params.energy,
         params.tag,
     )
@@ -50,10 +51,13 @@ async def edit_reflection(
     except (IndexError, ValueError):
         raise ReferenceRetrievalError(params.tag_or_idx, "reflection")
 
+    # TODO: make this more readable...
     hklcalc.ubcalc.edit_reflection(
         params.tag_or_idx,
-        params.hkl if params.hkl else (reflection.h, reflection.k, reflection.l),
-        Position(params.position) if params.position else reflection.pos,
+        tuple(params.hkl.dict().values())
+        if params.hkl
+        else (reflection.h, reflection.k, reflection.l),
+        Position(params.position.dict()) if params.position else reflection.pos,
         params.energy if params.energy else reflection.energy,
         params.tag_or_idx if isinstance(params.tag_or_idx, str) else None,
     )
@@ -87,10 +91,10 @@ async def add_orientation(
 ) -> None:
     hklcalc = await store.load(name, collection)
 
-    position = Position(*params.position) if params.position else None
+    position = Position(*params.position.dict()) if params.position else None
     hklcalc.ubcalc.add_orientation(
-        params.hkl,
-        params.xyz,
+        tuple(params.hkl.dict().values()),
+        tuple(params.xyz.dict().values()),
         position,
         params.tag,
     )
@@ -113,9 +117,13 @@ async def edit_orientation(
 
     hklcalc.ubcalc.edit_orientation(
         params.tag_or_idx,
-        params.hkl if params.hkl else (orientation.h, orientation.k, orientation.l),
-        params.xyz if params.xyz else (orientation.x, orientation.y, orientation.z),
-        Position(params.position) if params.position else orientation.pos,
+        tuple(params.hkl.dict().values())
+        if params.hkl
+        else (orientation.h, orientation.k, orientation.l),
+        tuple(params.xyz.dict().values())
+        if params.xyz
+        else (orientation.x, orientation.y, orientation.z),
+        Position(params.position.dict()) if params.position else orientation.pos,
         params.tag_or_idx if isinstance(params.tag_or_idx, str) else None,
     )
 
@@ -153,12 +161,12 @@ async def set_lattice(
 async def modify_property(
     name: str,
     property: str,
-    target_value: Tuple[float, float, float],
+    target_value: HklModel,
     store: HklCalcStore,
     collection: Optional[str],
 ) -> None:
     hklcalc = await store.load(name, collection)
 
-    setattr(hklcalc.ubcalc, property, target_value)
+    setattr(hklcalc.ubcalc, property, tuple(target_value.dict().values()))
 
     await store.save(name, hklcalc, collection)

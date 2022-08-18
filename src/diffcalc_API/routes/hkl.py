@@ -1,15 +1,12 @@
-from typing import Optional, Tuple, Union
+from typing import List, Optional, Union
 
 from fastapi import APIRouter, Depends, Query
 
+from diffcalc_API.models.ub import HklModel, PositionModel
 from diffcalc_API.services import hkl as service
 from diffcalc_API.stores.protocol import HklCalcStore, get_store
 
 router = APIRouter(prefix="/hkl", tags=["hkl"])
-
-
-SingleConstraint = Union[Tuple[str, float], str]
-PositionType = Tuple[float, float, float]
 
 
 @router.get("/{name}/UB")
@@ -27,7 +24,8 @@ async def calculate_ub(
 @router.get("/{name}/position/lab")
 async def lab_position_from_miller_indices(
     name: str,
-    miller_indices: Tuple[float, float, float] = Query(example=[0, 0, 1]),
+    # miller_indices: List[float] = Query(example=[0, 0, 1]),
+    miller_indices: HklModel = Depends(),
     wavelength: float = Query(..., example=1.0),
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
@@ -42,8 +40,9 @@ async def lab_position_from_miller_indices(
 @router.get("/{name}/position/hkl")
 async def miller_indices_from_lab_position(
     name: str,
-    pos: Tuple[float, float, float, float, float, float] = Query(
-        ..., example=[7.31, 0, 10.62, 0, 0, 0]
+    pos: PositionModel = Depends(
+        # ..., example={"mu": 7.31, "delta": 0, "nu": 10.62,
+        # "eta": 0, "chi": 0, "phi": 0}
     ),
     wavelength: float = Query(..., example=1.0),
     store: HklCalcStore = Depends(get_store),
@@ -58,9 +57,9 @@ async def miller_indices_from_lab_position(
 @router.get("/{name}/scan/hkl")
 async def scan_hkl(
     name: str,
-    start: PositionType = Query(..., example=(1, 0, 1)),
-    stop: PositionType = Query(..., example=(2, 0, 2)),
-    inc: PositionType = Query(..., example=(0.1, 0, 0.1)),
+    start: List[float] = Query(..., example=[1, 0, 1]),
+    stop: List[float] = Query(..., example=[2, 0, 2]),
+    inc: List[float] = Query(..., example=(0.1, 0, 0.1)),
     wavelength: float = Query(..., example=1),
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
@@ -77,7 +76,8 @@ async def scan_wavelength(
     start: float = Query(..., example=1.0),
     stop: float = Query(..., example=2.0),
     inc: float = Query(..., example=0.2),
-    hkl: PositionType = Query(..., example=(1, 0, 1)),
+    #    hkl: PositionType = Query(..., example=(1, 0, 1)),
+    hkl: HklModel = Depends(),
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
@@ -94,7 +94,8 @@ async def scan_constraint(
     start: float = Query(..., example=1),
     stop: float = Query(..., example=4),
     inc: float = Query(..., example=1),
-    hkl: PositionType = Query(..., example=(1, 0, 1)),
+    #    hkl: PositionType = Query(..., example=(1, 0, 1)),
+    hkl: HklModel = Depends(),
     wavelength: float = Query(..., example=1.0),
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),

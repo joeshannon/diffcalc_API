@@ -1,6 +1,27 @@
-from typing import Optional, Tuple, Union
+from typing import Optional, Union
 
 from pydantic import BaseModel
+
+
+class HklModel(BaseModel):
+    h: float
+    k: float
+    l: float
+
+
+class XyzModel(BaseModel):
+    x: float
+    y: float
+    z: float
+
+
+class PositionModel(BaseModel):
+    mu: float
+    delta: float
+    nu: float
+    eta: float
+    chi: float
+    phi: float
 
 
 class SetLatticeParams(BaseModel):
@@ -14,32 +35,30 @@ class SetLatticeParams(BaseModel):
 
 
 class AddReflectionParams(BaseModel):
-    hkl: Tuple[float, float, float]
-    position: Tuple[
-        float, float, float, float, float, float
-    ]  # allows easier user input
+    hkl: HklModel
+    position: PositionModel
     energy: float
     tag: Optional[str] = None
 
 
 class AddOrientationParams(BaseModel):
-    hkl: Tuple[float, float, float]
-    xyz: Tuple[float, float, float]
-    position: Optional[Tuple[float, float, float, float, float, float]] = None
+    hkl: HklModel
+    xyz: XyzModel
+    position: Optional[PositionModel] = None
     tag: Optional[str] = None
 
 
 class EditReflectionParams(BaseModel):
-    hkl: Optional[Tuple[float, float, float]] = None
-    position: Optional[Tuple[float, float, float, float, float, float]] = None
+    hkl: Optional[HklModel] = None
+    position: Optional[PositionModel] = None
     energy: Optional[float] = None
     tag_or_idx: Union[int, str]
 
 
 class EditOrientationParams(BaseModel):
-    hkl: Optional[Tuple[float, float, float]] = None
-    xyz: Optional[Tuple[float, float, float]] = None
-    position: Optional[Tuple[float, float, float, float, float, float]] = None
+    hkl: Optional[HklModel] = None
+    xyz: Optional[XyzModel] = None
+    position: Optional[PositionModel] = None
     tag_or_idx: Union[int, str]
 
 
