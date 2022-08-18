@@ -3,12 +3,15 @@ from typing import Optional
 from fastapi import APIRouter, Body, Depends, Query
 
 from diffcalc_API.config import VECTOR_PROPERTIES
-from diffcalc_API.errors.ub import InvalidPropertyError, InvalidSetLatticeParamsError
+from diffcalc_API.errors.ub import (
+    InvalidPropertyError,
+    InvalidSetLatticeParamsError,
+    NoTagOrIdxProvidedError,
+)
 from diffcalc_API.examples import ub as examples
 from diffcalc_API.models.ub import (
     AddOrientationParams,
     AddReflectionParams,
-    DeleteParams,
     EditOrientationParams,
     EditReflectionParams,
     HklModel,
@@ -53,11 +56,19 @@ async def edit_reflection(
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
+    if (params.retrieve_idx is None) and (params.retrieve_tag is None):
+        raise NoTagOrIdxProvidedError()
+
+    refl: str = (
+        f"index {params.retrieve_idx}"
+        if params.retrieve_idx is not None
+        else f"tag {params.retrieve_tag}"
+    )
     await service.edit_reflection(name, params, store, collection)
     return {
         "message": (
             f"reflection of crystal {name} in collection {collection} "
-            + f"with tag/index {params.tag_or_idx} edited. "
+            + "with %s edited" % refl
         )
     }
 
@@ -65,17 +76,23 @@ async def edit_reflection(
 @router.delete("/{name}/reflection")
 async def delete_reflection(
     name: str,
-    params: DeleteParams = Body(..., example={"tag_or_idx": "refl1"}),
+    tag: str = Query(default=None, example="refl1"),
+    idx: int = Query(default=None),
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
+    if (idx is None) and (tag is None):
+        raise NoTagOrIdxProvidedError()
+
+    refl: str = f"index {idx}" if idx is not None else f"tag {tag}"
+
     await service.delete_reflection(
-        name, params.tag_or_idx, store, collection
-    )  # TODO Change this!
+        name, idx if idx is not None else tag, store, collection
+    )
     return {
         "message": (
             f"reflection of crystal {name} in collection {collection} "
-            + f"with tag/index {params.tag_or_idx} deleted."
+            + "with %s deleted" % refl
         )
     }
 
@@ -103,11 +120,19 @@ async def edit_orientation(
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
+    if (params.retrieve_idx is None) and (params.retrieve_tag is None):
+        raise NoTagOrIdxProvidedError()
+
+    orient: str = (
+        f"index {params.retrieve_idx}"
+        if params.retrieve_idx is not None
+        else f"tag {params.retrieve_tag}"
+    )
     await service.edit_orientation(name, params, store, collection)
     return {
         "message": (
             f"orientation of crystal {name} in collection {collection} "
-            + f"with tag/index {params.tag_or_idx} edited."
+            + "with %s edited" % orient
         )
     }
 
@@ -115,15 +140,23 @@ async def edit_orientation(
 @router.delete("/{name}/orientation")
 async def delete_orientation(
     name: str,
-    params: DeleteParams = Body(..., example={"tag_or_idx": "plane"}),
+    tag: str = Query(default=None, example="plane"),
+    idx: int = Query(default=None),
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
-    await service.delete_orientation(name, params.tag_or_idx, store, collection)
+    if (idx is None) and (tag is None):
+        raise NoTagOrIdxProvidedError()
+
+    orient: str = f"index {idx}" if idx is not None else f"tag {tag}"
+
+    await service.delete_orientation(
+        name, idx if idx is not None else tag, store, collection
+    )
     return {
         "message": (
-            f"reflection of crystal {name} in collection {collection} with "
-            + f"tag or index {params.tag_or_idx} deleted."
+            f"orientation of crystal {name} in collection {collection} "
+            + "with %s deleted" % orient
         )
     }
 

@@ -72,22 +72,31 @@ def test_edit_reflection(client: TestClient):
     dummy_hkl.ubcalc.add_reflection([0, 0, 1], Position(7, 0, 10, 0, 0, 0), 12, "foo")
     response = client.put(
         "/ub/test/reflection",
-        json={
-            "energy": 13,
-            "tag_or_idx": "foo",
-        },
+        json={"energy": 13, "retrieve_tag": "foo", "set_tag": "bar"},
     )
-    reflection = dummy_hkl.ubcalc.get_reflection("foo")
+    reflection = dummy_hkl.ubcalc.get_reflection("bar")
 
     assert response.status_code == 200
     assert reflection.energy == 13
 
-    dummy_hkl.ubcalc.del_reflection("foo")
+    response_idx = client.put(
+        "/ub/test/reflection",
+        json={"hkl": {"h": 0, "k": 3, "l": 1}, "retrieve_idx": 0},
+    )
+
+    assert response_idx.status_code == 200
+    reflection_idx = dummy_hkl.ubcalc.get_reflection(0)
+
+    assert reflection_idx.h == 0
+    assert reflection_idx.k == 3
+    assert reflection_idx.tag is None
+
+    dummy_hkl.ubcalc.del_reflection(0)
 
 
 def test_delete_reflection(client: TestClient):
     dummy_hkl.ubcalc.add_reflection([0, 0, 1], Position(7, 0, 10, 0, 0, 0), 12, "foo")
-    response = client.delete("/ub/test/reflection", json={"tag_or_idx": "foo"})
+    response = client.delete("/ub/test/reflection?tag=foo")
 
     assert response.status_code == 200
     with pytest.raises(Exception):
@@ -101,13 +110,10 @@ def test_edit_or_delete_reflection_fails_for_non_existing_reflection(
         "/ub/test/reflection",
         json={
             "energy": 13,
-            "tag_or_idx": "foo",
+            "retrieve_tag": "foo",
         },
     )
-    delete_response = client.delete(
-        "/ub/test/reflection",
-        json={"tag_or_idx": "foo"},
-    )
+    delete_response = client.delete("/ub/test/reflection?tag=foo")
 
     assert edit_response.status_code == ErrorCodes.REFERENCE_RETRIEVAL_ERROR
     assert delete_response.status_code == ErrorCodes.REFERENCE_RETRIEVAL_ERROR
@@ -133,10 +139,7 @@ def test_edit_orientation(client: TestClient):
     dummy_hkl.ubcalc.add_orientation([0, 0, 1], [0, 0, 1], None, "bar")
     response = client.put(
         "/ub/test/orientation",
-        json={
-            "xyz": {"x": 1, "y": 1, "z": 0},
-            "tag_or_idx": "bar",
-        },
+        json={"xyz": {"x": 1, "y": 1, "z": 0}, "retrieve_tag": "bar", "set_tag": "bar"},
     )
     orientation = dummy_hkl.ubcalc.get_orientation("bar")
 
@@ -151,10 +154,7 @@ def test_edit_orientation(client: TestClient):
 
 def test_delete_orientation(client: TestClient):
     dummy_hkl.ubcalc.add_orientation([0, 0, 1], [0, 0, 1], None, "bar")
-    response = client.delete(
-        "/ub/test/orientation",
-        json={"tag_or_idx": "bar"},
-    )
+    response = client.delete("/ub/test/orientation?idx=0")
 
     assert response.status_code == 200
     with pytest.raises(Exception):
@@ -166,14 +166,10 @@ def test_edit_or_delete_orientation_fails_for_non_existing_orientation(
 ):
     edit_response = client.put(
         "/ub/test/orientation",
-        json={
-            "xyz": {"x": 1, "y": 1, "z": 0},
-            "tag_or_idx": "bar",
-        },
+        json={"xyz": {"x": 1, "y": 1, "z": 0}, "retrieve_tag": "bar", "set_tag": "bar"},
     )
     delete_response = client.delete(
-        "/ub/test/orientation",
-        json={"tag_or_idx": "bar"},
+        "/ub/test/orientation?tag=bar",
     )
 
     assert edit_response.status_code == ErrorCodes.REFERENCE_RETRIEVAL_ERROR

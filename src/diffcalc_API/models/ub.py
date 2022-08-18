@@ -52,15 +52,15 @@ class EditReflectionParams(BaseModel):
     hkl: Optional[HklModel] = None
     position: Optional[PositionModel] = None
     energy: Optional[float] = None
-    tag_or_idx: Union[int, str]
+    retrieve_tag: Optional[str] = None
+    retrieve_idx: Optional[int] = None
+    set_tag: Optional[str] = None
 
 
 class EditOrientationParams(BaseModel):
     hkl: Optional[HklModel] = None
     xyz: Optional[XyzModel] = None
     position: Optional[PositionModel] = None
-    tag_or_idx: Union[int, str]
-
-
-class DeleteParams(BaseModel):
-    tag_or_idx: Union[int, str]
+    retrieve_tag: Optional[str] = None
+    retrieve_idx: Optional[int] = None
+    set_tag: Optional[str] = None

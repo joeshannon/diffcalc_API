@@ -19,7 +19,7 @@ add_reflection: AddReflectionParams = AddReflectionParams(
 )
 
 edit_reflection: EditReflectionParams = EditReflectionParams(
-    **{"energy": 12.45, "tag_or_idx": "refl1"}
+    **{"energy": 12.45, "retrieve_tag": "refl1", "set_tag": "refl2"}
 )
 
 add_orientation: AddOrientationParams = AddOrientationParams(
@@ -33,7 +33,7 @@ add_orientation: AddOrientationParams = AddOrientationParams(
 edit_orientation: EditOrientationParams = EditOrientationParams(
     **{
         "hkl": HklModel(h=0, k=1, l=0),
-        "tag_or_idx": "plane",
+        "retrieve_idx": 0,
     }
 )
 
