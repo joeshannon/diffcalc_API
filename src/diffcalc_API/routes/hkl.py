@@ -1,6 +1,5 @@
 from typing import List, Optional
 
-
 from fastapi import APIRouter, Depends, Query
 
 from diffcalc_API.models.ub import HklModel, PositionModel
