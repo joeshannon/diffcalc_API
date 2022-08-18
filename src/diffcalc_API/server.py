@@ -1,3 +1,4 @@
+import traceback
 from typing import Optional
 
 from diffcalc.util import DiffcalcException
@@ -46,6 +47,8 @@ async def server_exceptions_middleware(request: Request, call_next):
         return await call_next(request)
     except Exception as e:
         # you probably want some kind of logging here
+        tb = traceback.format_exc()
+        print(tb)
 
         return responses.JSONResponse(
             status_code=500,

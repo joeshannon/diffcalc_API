@@ -40,7 +40,7 @@ def client() -> TestClient:
 def test_miller_indices_stay_the_same_after_transformation(client: TestClient):
     lab_positions = client.get(
         "/hkl/test/position/lab",
-        params={"miller_indices": [0, 0, 1], "wavelength": 1},
+        params={"h": 0, "k": 0, "l": 1, "wavelength": 1},
     )
 
     assert lab_positions.status_code == 200
@@ -50,22 +50,21 @@ def test_miller_indices_stay_the_same_after_transformation(client: TestClient):
         miller_positions = client.get(
             "/hkl/test/position/hkl",
             params={
-                "pos": [
-                    pos["mu"],
-                    pos["delta"],
-                    pos["nu"],
-                    pos["eta"],
-                    pos["chi"],
-                    pos["phi"],
-                ],
+                "mu": pos["mu"],
+                "delta": pos["delta"],
+                "nu": pos["nu"],
+                "eta": pos["eta"],
+                "chi": pos["chi"],
+                "phi": pos["phi"],
                 "wavelength": 1,
             },
         )
 
         assert miller_positions.status_code == 200
-        assert np.all(
-            np.round(miller_positions.json()["payload"], 8) == np.array([0, 0, 1])
-        )
+        results = miller_positions.json()["payload"]
+        assert np.round(results["h"], 8) == 0
+        assert np.round(results["k"], 8) == 0
+        assert np.round(results["l"], 8) == 1
 
 
 def test_scan_hkl(
@@ -86,6 +85,25 @@ def test_scan_hkl(
     assert len(scan_results.keys()) == 9
 
 
+def test_scan_hkl_raises_invalid_miller_indices_error_for_wrong_inputs(
+    client: TestClient,
+):
+    lab_positions = client.get(
+        "/hkl/test/scan/hkl",
+        params={
+            "start": [1, 0, 1],
+            "stop": [2, 0, 2],
+            "inc": [0.5, 0],
+            "wavelength": 1,
+        },
+    )
+
+    assert (
+        ast.literal_eval(lab_positions.content.decode())["type"]
+        == "<class 'diffcalc_API.errors.hkl.InvalidMillerIndicesError'>"
+    )
+
+
 def test_scan_wavelength(
     client: TestClient,
 ):
@@ -95,7 +113,9 @@ def test_scan_wavelength(
             "start": 1,
             "stop": 2,
             "inc": 0.5,
-            "hkl": [1, 0, 1],
+            "h": 1,
+            "k": 0,
+            "l": 1,
         },
     )
     scan_results = lab_positions.json()["payload"]
@@ -113,7 +133,9 @@ def test_scan_constraint(
             "start": 1,
             "stop": 2,
             "inc": 0.5,
-            "hkl": [1, 0, 1],
+            "h": 1,
+            "k": 0,
+            "l": 1,
             "wavelength": 1.0,
         },
     )
@@ -142,7 +164,9 @@ def test_invalid_scans(client: TestClient):
             "start": 1,
             "stop": 2,
             "inc": -0.5,
-            "hkl": [1, 0, 1],
+            "h": 1,
+            "k": 0,
+            "l": 1,
         },
     )
 

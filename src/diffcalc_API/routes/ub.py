@@ -1,4 +1,4 @@
-from typing import Optional, Tuple
+from typing import Optional
 
 from fastapi import APIRouter, Body, Depends, Query
 
@@ -11,6 +11,7 @@ from diffcalc_API.models.ub import (
     DeleteParams,
     EditOrientationParams,
     EditReflectionParams,
+    HklModel,
     SetLatticeParams,
 )
 from diffcalc_API.services import ub as service
@@ -152,7 +153,7 @@ async def set_lattice(
 async def modify_property(
     name: str,
     property: str,
-    target_value: Tuple[float, float, float] = Body(..., example=[1, 0, 0]),
+    target_value: HklModel = Body(..., example={"h": 1, "k": 0, "l": 0}),
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):

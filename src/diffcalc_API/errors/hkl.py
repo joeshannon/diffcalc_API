@@ -1,3 +1,5 @@
+from typing import Optional
+
 import numpy as np
 
 from diffcalc_API.errors.definitions import (
@@ -16,8 +18,10 @@ responses = {code: ALL_RESPONSES[code] for code in np.unique(ErrorCodes.all_code
 
 
 class InvalidMillerIndicesError(DiffcalcAPIException):
-    def __init__(self) -> None:
-        self.detail = "At least one of the hkl indices must be non-zero"
+    def __init__(self, detail: Optional[str] = None) -> None:
+        self.detail = (
+            "At least one of the hkl indices must be non-zero" if not detail else detail
+        )
         self.status_code = ErrorCodes.INVALID_MILLER_INDICES
 
 

@@ -1,18 +1,17 @@
 from itertools import product
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 from diffcalc.hkl.geometry import Position
 
 from diffcalc_API.errors.hkl import InvalidMillerIndicesError, InvalidScanBoundsError
+from diffcalc_API.models.ub import HklModel, PositionModel
 from diffcalc_API.stores.protocol import HklCalcStore
-
-PositionType = Tuple[float, float, float]
 
 
 async def lab_position_from_miller_indices(
     name: str,
-    miller_indices: Tuple[float, float, float],
+    miller_indices: HklModel,
     wavelength: float,
     store: HklCalcStore,
     collection: Optional[str],
@@ -22,33 +21,39 @@ async def lab_position_from_miller_indices(
     if all([idx == 0 for idx in miller_indices]):
         raise InvalidMillerIndicesError()
 
-    all_positions = hklcalc.get_position(*miller_indices, wavelength)
+    all_positions = hklcalc.get_position(*miller_indices.dict().values(), wavelength)
 
     return combine_lab_position_results(all_positions)
 
 
 async def miller_indices_from_lab_position(
     name: str,
-    pos: Tuple[float, float, float, float, float, float],
+    pos: PositionModel,
     wavelength: float,
     store: HklCalcStore,
     collection: Optional[str],
-) -> Tuple[Any, ...]:
+) -> HklModel:
     hklcalc = await store.load(name, collection)
-    position = hklcalc.get_hkl(Position(*pos), wavelength)
-    return tuple(np.round(position, 16))
+    hkl = np.round(hklcalc.get_hkl(Position(**pos.dict()), wavelength), 16)
+    return HklModel(h=hkl[0], k=hkl[1], l=hkl[2])
 
 
 async def scan_hkl(
     name: str,
-    start: PositionType,
-    stop: PositionType,
-    inc: PositionType,
+    start: List[float],
+    stop: List[float],
+    inc: List[float],
     wavelength: float,
     store: HklCalcStore,
     collection: Optional[str],
 ) -> Dict[str, List[Dict[str, float]]]:
     hklcalc = await store.load(name, collection)
+
+    if (len(start) != 3) or (len(stop) != 3) or (len(inc) != 3):
+        raise InvalidMillerIndicesError(
+            detail="start, stop and inc must have three floats for each miller index."
+        )
+
     axes_values = [
         generate_axis(start[i], stop[i], inc[i]) if inc[i] != 0 else [0]
         for i in range(3)
@@ -71,7 +76,7 @@ async def scan_wavelength(
     start: float,
     stop: float,
     inc: float,
-    hkl: PositionType,
+    hkl: HklModel,
     store: HklCalcStore,
     collection: Optional[str],
 ) -> Dict[str, List[Dict[str, float]]]:
@@ -84,7 +89,7 @@ async def scan_wavelength(
     result = {}
 
     for wavelength in wavelengths:
-        all_positions = hklcalc.get_position(*hkl, wavelength)
+        all_positions = hklcalc.get_position(*hkl.dict().values(), wavelength)
         result[f"{wavelength}"] = combine_lab_position_results(all_positions)
 
     return result
@@ -96,7 +101,7 @@ async def scan_constraint(
     start: float,
     stop: float,
     inc: float,
-    hkl: PositionType,
+    hkl: HklModel,
     wavelength: float,
     store: HklCalcStore,
     collection: Optional[str],
@@ -109,7 +114,7 @@ async def scan_constraint(
     result = {}
     for value in np.arange(start, stop + inc, inc):
         setattr(hklcalc, constraint, value)
-        all_positions = hklcalc.get_position(*hkl, wavelength)
+        all_positions = hklcalc.get_position(*hkl.dict().values(), wavelength)
         result[f"{value}"] = combine_lab_position_results(all_positions)
 
     return result

@@ -55,8 +55,8 @@ def test_add_reflection(client: TestClient):
     response = client.post(
         "/ub/test/reflection",
         json={
-            "hkl": [0, 0, 1],
-            "position": [7, 0, 10, 0, 0, 0],
+            "hkl": {"h": 0, "k": 0, "l": 1},
+            "position": {"mu": 7, "delta": 0, "nu": 10, "eta": 0, "chi": 0, "phi": 0},
             "energy": 12,
             "tag": "foo",
         },
@@ -117,8 +117,8 @@ def test_add_orientation(client: TestClient):
     response = client.post(
         "/ub/test/orientation",
         json={
-            "hkl": [0, 1, 0],
-            "xyz": [0, 1, 0],
+            "hkl": {"h": 0, "k": 1, "l": 0},
+            "xyz": {"x": 0, "y": 1, "z": 0},
             "tag": "bar",
         },
     )
@@ -134,7 +134,7 @@ def test_edit_orientation(client: TestClient):
     response = client.put(
         "/ub/test/orientation",
         json={
-            "xyz": [1, 1, 0],
+            "xyz": {"x": 1, "y": 1, "z": 0},
             "tag_or_idx": "bar",
         },
     )
@@ -167,7 +167,7 @@ def test_edit_or_delete_orientation_fails_for_non_existing_orientation(
     edit_response = client.put(
         "/ub/test/orientation",
         json={
-            "xyz": [1, 1, 0],
+            "xyz": {"x": 1, "y": 1, "z": 0},
             "tag_or_idx": "bar",
         },
     )
@@ -210,7 +210,7 @@ def test_set_lattice_fails_for_empty_data(client: TestClient):
 def test_modify_property(client: TestClient):
     response = client.put(
         "/ub/test/n_hkl",
-        json=[0, 0, 1],
+        json={"h": 0, "k": 0, "l": 1},
     )
 
     assert response.status_code == 200
@@ -220,6 +220,6 @@ def test_modify_property(client: TestClient):
 def test_modify_non_existent_property(client: TestClient):
     response = client.put(
         "/ub/test/silly_property",
-        json=[0, 0, 1],
+        json={"h": 0, "k": 0, "l": 1},
     )
     assert response.status_code == ErrorCodes.INVALID_PROPERTY
