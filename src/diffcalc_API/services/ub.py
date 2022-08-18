@@ -50,7 +50,7 @@ async def edit_reflection(
     hklcalc = await store.load(name, collection)
 
     retrieve: Union[int, str] = (
-        idx if idx is not None else (tag if tag is not None else 0)
+        tag if tag is not None else (idx if idx is not None else 0)
     )
 
     try:
@@ -132,7 +132,7 @@ async def edit_orientation(
     hklcalc = await store.load(name, collection)
 
     retrieve: Union[int, str] = (
-        idx if idx is not None else (tag if tag is not None else 0)
+        tag if tag is not None else (idx if idx is not None else 0)
     )
 
     try:
@@ -169,7 +169,9 @@ async def delete_orientation(
 ) -> None:
     hklcalc = await store.load(name, collection)
 
-    retrieve: Optional[Union[int, str]] = idx if idx is not None else tag
+    retrieve: Union[int, str] = (
+        tag if tag is not None else (idx if idx is not None else 0)
+    )
 
     try:
         hklcalc.ubcalc.get_orientation(retrieve)

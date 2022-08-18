@@ -1,4 +1,4 @@
-from typing import List, Optional, Union
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, Query
 
@@ -12,12 +12,16 @@ router = APIRouter(prefix="/hkl", tags=["hkl"])
 @router.get("/{name}/UB")
 async def calculate_ub(
     name: str,
-    first_tag: Optional[Union[int, str]] = Query(default=None, example="refl1"),
-    second_tag: Optional[Union[int, str]] = Query(default=None, example="plane"),
+    tag1: Optional[str] = Query(default=None, example="refl1"),
+    idx1: Optional[int] = Query(default=None),
+    tag2: Optional[str] = Query(default=None, example="plane"),
+    idx2: Optional[int] = Query(default=None),
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
-    content = await service.calculate_ub(name, first_tag, second_tag, store, collection)
+    content = await service.calculate_ub(
+        name, store, collection, tag1, idx1, tag2, idx2
+    )
     return {"payload": content}
 
 

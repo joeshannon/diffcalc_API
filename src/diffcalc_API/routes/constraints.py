@@ -1,4 +1,4 @@
-from typing import Dict, Optional, Union
+from typing import Dict, Optional
 
 from fastapi import APIRouter, Body, Depends, Query
 
@@ -21,9 +21,7 @@ async def get_constraints(
 @router.post("/{name}")
 async def set_constraints(
     name: str,
-    constraints: Dict[str, Union[float, bool]] = Body(
-        example={"qaz": 0, "alpha": 0, "eta": 0}
-    ),
+    constraints: Dict[str, float] = Body(example={"qaz": 0, "alpha": 0, "eta": 0}),
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
@@ -58,7 +56,7 @@ async def remove_constraint(
 async def set_constraint(
     name: str,
     property: str,
-    value: Union[float, bool] = Body(...),
+    value: float = Body(...),
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
