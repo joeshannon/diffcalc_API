@@ -192,8 +192,6 @@ def test_calc_ub(client: TestClient):
 
 
 def test_calc_ub_fails_when_incorrect_tags(client: TestClient):
-    response = client.get(
-        "/hkl/test/UB", params={"first_tag": "one", "second_tag": "two"}
-    )
+    response = client.get("/hkl/test/UB", params={"tag1": "one", "idx2": 2})
 
     assert response.status_code == 400

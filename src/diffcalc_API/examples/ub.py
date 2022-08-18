@@ -31,7 +31,6 @@ add_orientation: AddOrientationParams = AddOrientationParams(
 edit_orientation: EditOrientationParams = EditOrientationParams(
     **{
         "hkl": HklModel(h=0, k=1, l=0),
-        "retrieve_idx": 0,
     }
 )
 

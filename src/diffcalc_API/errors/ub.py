@@ -34,8 +34,8 @@ class BothTagAndIdxProvidedError(DiffcalcAPIException):
     def __init__(self):
         self.detail = (
             "both the tag and index have been provided. These are identifiers"
-            + "for a specific orientation or reflection, and so both cannot be"
-            + "used. Retry with just one tag or index query parameter."
+            + " for a specific orientation or reflection, and so both cannot be"
+            + " used. Retry with just one tag or index query parameter."
         )
         self.status_code = ErrorCodes.BOTH_TAG_OR_IDX_PROVIDED
 
