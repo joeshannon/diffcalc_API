@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import Optional
 
 from pydantic import BaseModel
 
@@ -25,7 +25,7 @@ class PositionModel(BaseModel):
 
 
 class SetLatticeParams(BaseModel):
-    system: Optional[Union[str, float]] = None
+    system: Optional[str] = None
     a: Optional[float] = None
     b: Optional[float] = None
     c: Optional[float] = None
@@ -38,29 +38,27 @@ class AddReflectionParams(BaseModel):
     hkl: HklModel
     position: PositionModel
     energy: float
-    tag: Optional[str] = None
 
 
 class AddOrientationParams(BaseModel):
     hkl: HklModel
     xyz: XyzModel
     position: Optional[PositionModel] = None
-    tag: Optional[str] = None
 
 
 class EditReflectionParams(BaseModel):
     hkl: Optional[HklModel] = None
     position: Optional[PositionModel] = None
     energy: Optional[float] = None
-    tag_or_idx: Union[int, str]
+    set_tag: Optional[str] = None
 
 
 class EditOrientationParams(BaseModel):
     hkl: Optional[HklModel] = None
     xyz: Optional[XyzModel] = None
     position: Optional[PositionModel] = None
-    tag_or_idx: Union[int, str]
+    set_tag: Optional[str] = None
 
 
-class DeleteParams(BaseModel):
-    tag_or_idx: Union[int, str]
+def select_idx_or_tag_str(idx: Optional[int], tag: Optional[str]):
+    return f"index {idx}" if idx is not None else f"tag {tag}"

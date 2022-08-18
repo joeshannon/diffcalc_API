@@ -25,6 +25,7 @@ async def add_reflection(
     params: AddReflectionParams,
     store: HklCalcStore,
     collection: Optional[str],
+    tag: Optional[str],
 ) -> None:
     hklcalc = await store.load(name, collection)
 
@@ -32,7 +33,7 @@ async def add_reflection(
         tuple(params.hkl.dict().values()),
         Position(**params.position.dict()),
         params.energy,
-        params.tag,
+        tag,
     )
 
     await store.save(name, hklcalc, collection)
@@ -43,42 +44,59 @@ async def edit_reflection(
     params: EditReflectionParams,
     store: HklCalcStore,
     collection: Optional[str],
+    tag: Optional[str],
+    idx: Optional[int],
 ) -> None:
     hklcalc = await store.load(name, collection)
 
-    try:
-        reflection = hklcalc.ubcalc.get_reflection(params.tag_or_idx)
-    except (IndexError, ValueError):
-        raise ReferenceRetrievalError(params.tag_or_idx, "reflection")
-
-    # TODO: make this more readable...
-    hklcalc.ubcalc.edit_reflection(
-        params.tag_or_idx,
-        tuple(params.hkl.dict().values())
-        if params.hkl
-        else (reflection.h, reflection.k, reflection.l),
-        Position(params.position.dict()) if params.position else reflection.pos,
-        params.energy if params.energy else reflection.energy,
-        params.tag_or_idx if isinstance(params.tag_or_idx, str) else None,
+    retrieve: Union[int, str] = (
+        tag if tag is not None else (idx if idx is not None else 0)
     )
+
+    try:
+        reflection = hklcalc.ubcalc.get_reflection(retrieve)
+    except (IndexError, ValueError):
+        raise ReferenceRetrievalError(retrieve, "reflection")
+
+    inputs = {
+        "idx": retrieve,
+        "hkl": (reflection.h, reflection.k, reflection.l),
+        "position": reflection.pos,
+        "energy": reflection.energy,
+        "tag": params.set_tag if params.set_tag else reflection.tag,
+    }
+
+    if params.hkl:
+        inputs["hkl"] = tuple(params.hkl.dict().values())
+    if params.position:
+        inputs["position"] = Position(**params.position.dict())
+    if params.energy:
+        inputs["energy"] = params.energy
+
+    hklcalc.ubcalc.edit_reflection(**inputs)
 
     await store.save(name, hklcalc, collection)
 
 
 async def delete_reflection(
     name: str,
-    tag_or_idx: Union[str, int],
     store: HklCalcStore,
     collection: Optional[str],
+    tag: Optional[str],
+    idx: Optional[int],
 ) -> None:
     hklcalc = await store.load(name, collection)
 
-    try:
-        hklcalc.ubcalc.get_reflection(tag_or_idx)
-    except (IndexError, ValueError):
-        raise ReferenceRetrievalError(tag_or_idx, "reflection")
+    retrieve: Union[str, int] = (
+        tag if tag is not None else (idx if idx is not None else 0)
+    )
 
-    hklcalc.ubcalc.del_reflection(tag_or_idx)
+    try:
+        hklcalc.ubcalc.get_reflection(retrieve)
+    except (IndexError, ValueError):
+        raise ReferenceRetrievalError(retrieve, "reflection")
+
+    hklcalc.ubcalc.del_reflection(retrieve)
 
     await store.save(name, hklcalc, collection)
 
@@ -88,6 +106,7 @@ async def add_orientation(
     params: AddOrientationParams,
     store: HklCalcStore,
     collection: Optional[str],
+    tag: Optional[str],
 ) -> None:
     hklcalc = await store.load(name, collection)
 
@@ -96,7 +115,7 @@ async def add_orientation(
         tuple(params.hkl.dict().values()),
         tuple(params.xyz.dict().values()),
         position,
-        params.tag,
+        tag,
     )
 
     await store.save(name, hklcalc, collection)
@@ -107,43 +126,59 @@ async def edit_orientation(
     params: EditOrientationParams,
     store: HklCalcStore,
     collection: Optional[str],
+    tag: Optional[str],
+    idx: Optional[int],
 ) -> None:
     hklcalc = await store.load(name, collection)
 
-    try:
-        orientation = hklcalc.ubcalc.get_orientation(params.tag_or_idx)
-    except (IndexError, ValueError):
-        raise ReferenceRetrievalError(params.tag_or_idx, "orientation")
-
-    hklcalc.ubcalc.edit_orientation(
-        params.tag_or_idx,
-        tuple(params.hkl.dict().values())
-        if params.hkl
-        else (orientation.h, orientation.k, orientation.l),
-        tuple(params.xyz.dict().values())
-        if params.xyz
-        else (orientation.x, orientation.y, orientation.z),
-        Position(params.position.dict()) if params.position else orientation.pos,
-        params.tag_or_idx if isinstance(params.tag_or_idx, str) else None,
+    retrieve: Union[int, str] = (
+        tag if tag is not None else (idx if idx is not None else 0)
     )
+
+    try:
+        orientation = hklcalc.ubcalc.get_orientation(retrieve)
+    except (IndexError, ValueError):
+        raise ReferenceRetrievalError(retrieve, "reflection")
+
+    inputs = {
+        "idx": retrieve,
+        "hkl": (orientation.h, orientation.k, orientation.l),
+        "xyz": (orientation.x, orientation.y, orientation.z),
+        "position": orientation.pos,
+        "tag": params.set_tag if params.set_tag else orientation.tag,
+    }
+
+    if params.hkl:
+        inputs["hkl"] = tuple(params.hkl.dict().values())
+    if params.xyz:
+        inputs["xyz"] = tuple(params.xyz.dict().values())
+    if params.position:
+        inputs["position"] = Position(**params.position.dict())
+
+    hklcalc.ubcalc.edit_orientation(**inputs)
 
     await store.save(name, hklcalc, collection)
 
 
 async def delete_orientation(
     name: str,
-    tag_or_idx: Union[str, int],
     store: HklCalcStore,
     collection: Optional[str],
+    tag: Optional[str],
+    idx: Optional[int],
 ) -> None:
     hklcalc = await store.load(name, collection)
 
-    try:
-        hklcalc.ubcalc.get_orientation(tag_or_idx)
-    except (IndexError, ValueError):
-        raise ReferenceRetrievalError(tag_or_idx, "orientation")
+    retrieve: Union[int, str] = (
+        tag if tag is not None else (idx if idx is not None else 0)
+    )
 
-    hklcalc.ubcalc.del_orientation(tag_or_idx)
+    try:
+        hklcalc.ubcalc.get_orientation(retrieve)
+    except (IndexError, ValueError):
+        raise ReferenceRetrievalError(retrieve, "orientation")
+
+    hklcalc.ubcalc.del_orientation(retrieve)
 
     await store.save(name, hklcalc, collection)
 

@@ -1,4 +1,4 @@
-from typing import Dict, Optional, Union
+from typing import Dict, Optional
 
 from diffcalc.hkl.constraints import Constraints
 
@@ -16,7 +16,7 @@ async def get_constraints(
 
 async def set_constraints(
     name: str,
-    constraints: Dict[str, Union[float, bool]],
+    constraints: Dict[str, float],
     store: HklCalcStore,
     collection: Optional[str],
 ) -> None:
@@ -52,7 +52,7 @@ async def remove_constraint(
 async def set_constraint(
     name: str,
     property: str,
-    value: Union[float, bool],
+    value: float,
     store: HklCalcStore,
     collection: Optional[str],
 ) -> None:

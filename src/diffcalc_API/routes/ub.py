@@ -3,16 +3,21 @@ from typing import Optional
 from fastapi import APIRouter, Body, Depends, Query
 
 from diffcalc_API.config import VECTOR_PROPERTIES
-from diffcalc_API.errors.ub import InvalidPropertyError, InvalidSetLatticeParamsError
+from diffcalc_API.errors.ub import (
+    BothTagAndIdxProvidedError,
+    InvalidPropertyError,
+    InvalidSetLatticeParamsError,
+    NoTagOrIdxProvidedError,
+)
 from diffcalc_API.examples import ub as examples
 from diffcalc_API.models.ub import (
     AddOrientationParams,
     AddReflectionParams,
-    DeleteParams,
     EditOrientationParams,
     EditReflectionParams,
     HklModel,
     SetLatticeParams,
+    select_idx_or_tag_str,
 )
 from diffcalc_API.services import ub as service
 from diffcalc_API.stores.protocol import HklCalcStore, get_store
@@ -36,8 +41,9 @@ async def add_reflection(
     params: AddReflectionParams = Body(..., example=examples.add_reflection),
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
+    tag: Optional[str] = Query(default=None, example="refl1"),
 ):
-    await service.add_reflection(name, params, store, collection)
+    await service.add_reflection(name, params, store, collection, tag)
     return {
         "message": (
             f"added reflection for UB Calculation of crystal {name} in "
@@ -52,31 +58,39 @@ async def edit_reflection(
     params: EditReflectionParams = Body(..., example=examples.edit_reflection),
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
+    tag: Optional[str] = Query(default=None, example="refl1"),
+    idx: Optional[int] = Query(default=None),
 ):
-    await service.edit_reflection(name, params, store, collection)
+    if (tag is None) and (idx is None):
+        raise NoTagOrIdxProvidedError()
+
+    if (tag is not None) and (idx is not None):
+        raise BothTagAndIdxProvidedError()
+
+    await service.edit_reflection(name, params, store, collection, tag, idx)
     return {
-        "message": (
-            f"reflection of crystal {name} in collection {collection} "
-            + f"with tag/index {params.tag_or_idx} edited. "
-        )
+        "message": f"reflection of crystal {name} in collection {collection} with "
+        + f"{select_idx_or_tag_str(idx, tag)} edited"
     }
 
 
 @router.delete("/{name}/reflection")
 async def delete_reflection(
     name: str,
-    params: DeleteParams = Body(..., example={"tag_or_idx": "refl1"}),
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
+    tag: Optional[str] = Query(default=None, example="refl1"),
+    idx: Optional[int] = Query(default=None),
 ):
-    await service.delete_reflection(
-        name, params.tag_or_idx, store, collection
-    )  # TODO Change this!
+    if (idx is None) and (tag is None):
+        raise NoTagOrIdxProvidedError()
+    if (idx is not None) and (tag is not None):
+        raise BothTagAndIdxProvidedError()
+
+    await service.delete_reflection(name, store, collection, tag, idx)
     return {
-        "message": (
-            f"reflection of crystal {name} in collection {collection} "
-            + f"with tag/index {params.tag_or_idx} deleted."
-        )
+        "message": f"reflection of crystal {name} in collection {collection} "
+        + f"with {select_idx_or_tag_str(idx, tag)} deleted"
     }
 
 
@@ -86,13 +100,12 @@ async def add_orientation(
     params: AddOrientationParams = Body(..., example=examples.add_orientation),
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
+    tag: Optional[str] = Query(default=None, example="plane"),
 ):
-    await service.add_orientation(name, params, store, collection)
+    await service.add_orientation(name, params, store, collection, tag)
     return {
-        "message": (
-            f"added orientation for UB Calculation of crystal {name} in "
-            + f"collection {collection}"
-        )
+        "message": f"added orientation for UB Calculation of crystal {name} in "
+        + f"collection {collection}"
     }
 
 
@@ -102,29 +115,38 @@ async def edit_orientation(
     params: EditOrientationParams = Body(..., example=examples.edit_orientation),
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
+    tag: Optional[str] = Query(default=None),
+    idx: Optional[int] = Query(default=None, example=0),
 ):
-    await service.edit_orientation(name, params, store, collection)
+    if (idx is None) and (tag is None):
+        raise NoTagOrIdxProvidedError()
+    if (idx is not None) and (tag is not None):
+        raise BothTagAndIdxProvidedError()
+
+    await service.edit_orientation(name, params, store, collection, tag, idx)
     return {
-        "message": (
-            f"orientation of crystal {name} in collection {collection} "
-            + f"with tag/index {params.tag_or_idx} edited."
-        )
+        "message": f"orientation of crystal {name} in collection {collection} with "
+        f"{select_idx_or_tag_str(idx, tag)} edited"
     }
 
 
 @router.delete("/{name}/orientation")
 async def delete_orientation(
     name: str,
-    params: DeleteParams = Body(..., example={"tag_or_idx": "plane"}),
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
+    tag: Optional[str] = Query(default=None, example="plane"),
+    idx: Optional[int] = Query(default=None),
 ):
-    await service.delete_orientation(name, params.tag_or_idx, store, collection)
+    if (idx is None) and (tag is None):
+        raise NoTagOrIdxProvidedError()
+    if (idx is not None) and (tag is not None):
+        raise BothTagAndIdxProvidedError()
+
+    await service.delete_orientation(name, store, collection, tag, idx)
     return {
-        "message": (
-            f"reflection of crystal {name} in collection {collection} with "
-            + f"tag or index {params.tag_or_idx} deleted."
-        )
+        "message": f"orientation of crystal {name} in collection {collection} "
+        + f"with {select_idx_or_tag_str(idx, tag)} deleted"
     }
 
 
@@ -142,10 +164,8 @@ async def set_lattice(
 
     await service.set_lattice(name, params, store, collection)
     return {
-        "message": (
-            f"lattice has been set for UB calculation of crystal {name} in "
-            + f"collection {collection}"
-        )
+        "message": f"lattice has been set for UB calculation of crystal {name} in "
+        + f"collection {collection}"
     }
 
 
@@ -162,8 +182,6 @@ async def modify_property(
 
     await service.modify_property(name, property, target_value, store, collection)
     return {
-        "message": (
-            f"{property} has been set for UB calculation of crystal {name} in "
-            + f"collection {collection}"
-        )
+        "message": f"{property} has been set for UB calculation of crystal {name} in "
+        + f"collection {collection}"
     }

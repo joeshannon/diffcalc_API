@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Optional, Union
 
 import numpy as np
 
@@ -14,9 +14,30 @@ class ErrorCodes(ErrorCodesBase):
     INVALID_SET_LATTICE_PARAMS = 400
     REFERENCE_RETRIEVAL_ERROR = 403
     INVALID_PROPERTY = 400
+    NO_TAG_OR_IDX_PROVIDED = 400
+    BOTH_TAG_OR_IDX_PROVIDED = 400
 
 
 responses = {code: ALL_RESPONSES[code] for code in np.unique(ErrorCodes.all_codes())}
+
+
+class NoTagOrIdxProvidedError(DiffcalcAPIException):
+    def __init__(self):
+        self.detail = (
+            "One of the following must be provided as a query parameter:"
+            + " tag (string), index (integer)"
+        )
+        self.status_code = ErrorCodes.NO_TAG_OR_IDX_PROVIDED
+
+
+class BothTagAndIdxProvidedError(DiffcalcAPIException):
+    def __init__(self):
+        self.detail = (
+            "both the tag and index have been provided. These are identifiers"
+            + " for a specific orientation or reflection, and so both cannot be"
+            + " used. Retry with just one tag or index query parameter."
+        )
+        self.status_code = ErrorCodes.BOTH_TAG_OR_IDX_PROVIDED
 
 
 class InvalidSetLatticeParamsError(DiffcalcAPIException):
@@ -26,7 +47,7 @@ class InvalidSetLatticeParamsError(DiffcalcAPIException):
 
 
 class ReferenceRetrievalError(DiffcalcAPIException):
-    def __init__(self, handle: Union[str, int], reference_type: str) -> None:
+    def __init__(self, handle: Optional[Union[str, int]], reference_type: str) -> None:
         self.detail = f"cannot retrieve {reference_type} with tag or index {handle}"
         self.status_code = ErrorCodes.REFERENCE_RETRIEVAL_ERROR
 

@@ -140,14 +140,19 @@ def combine_lab_position_results(
 
 async def calculate_ub(
     name: str,
-    first_tag: Optional[Union[int, str]],
-    second_tag: Optional[Union[int, str]],
     store: HklCalcStore,
     collection: Optional[str],
+    tag1: Optional[str],
+    idx1: Optional[int],
+    tag2: Optional[str],
+    idx2: Optional[int],
 ) -> List[List[float]]:
     hklcalc = await store.load(name, collection)
 
-    hklcalc.ubcalc.calc_ub(first_tag, second_tag)
+    first_retrieve: Optional[Union[str, int]] = tag1 if tag1 else idx1
+    second_retrieve: Optional[Union[str, int]] = tag2 if tag2 else idx2
+
+    hklcalc.ubcalc.calc_ub(first_retrieve, second_retrieve)
 
     await store.save(name, hklcalc, collection)
     return np.round(hklcalc.ubcalc.UB, 6).tolist()
