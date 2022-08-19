@@ -1,0 +1,18 @@
+image: python:latest
+
+
+before_script:
+  - python -V
+  - pip install pipenv
+  - pipenv install
+
+test:
+  script:
+  - pipenv run python src/diffcalc_API/openapi.py
+  
+upload:
+  runs-on: ubuntu-latest
+  uses: actions/upload-artifact@v2
+  with:
+    name: openapi.json
+    path: openapi/
