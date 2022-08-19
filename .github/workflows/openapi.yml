@@ -1,5 +1,6 @@
 image: python:latest
 
+on: [push]
 
 before_script:
   - python -V
@@ -11,6 +12,7 @@ test:
   - pipenv run python src/diffcalc_API/openapi.py
   
 upload:
+  needs: [test]
   runs-on: ubuntu-latest
   uses: actions/upload-artifact@v2
   with:
