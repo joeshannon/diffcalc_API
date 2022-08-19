@@ -1,4 +1,4 @@
-image: python:latest
+name: openapi
 
 on: [push]
 
