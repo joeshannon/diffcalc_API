@@ -4,7 +4,7 @@ from fastapi.openapi.utils import get_openapi
 
 from diffcalc_API.server import app
 
-with open("../openapi.json", "w") as f:
+with open("openapi.json", "w") as f:
     json.dump(
         get_openapi(
             title=app.title,
