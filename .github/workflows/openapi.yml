@@ -2,19 +2,25 @@ image: python:latest
 
 on: [push]
 
-before_script:
-  - python -V
-  - pip install pipenv
-  - pipenv install
+jobs:
+  install-and-run-script:
+    runs-on: ubuntu-latest
 
-test:
-  script:
-  - pipenv run python src/diffcalc_API/openapi.py
-  
-upload:
-  needs: [test]
-  runs-on: ubuntu-latest
-  uses: actions/upload-artifact@v2
-  with:
-    name: openapi.json
-    path: openapi/
+    steps:
+    - uses: actions/checkout@v2 # Checking out the repo
+
+    - name: Install dependecies
+      uses: VaultVulp/action-pipenv@v2.0.1
+      with:
+        command: install -d # Install all dependencies, including development ones
+    
+    - name: Test
+      uses: VaultVulp/action-pipenv@v2.0.1
+      with:
+        command: run python src/diffcalc_API/openapi.py
+
+    - name: Upload
+      uses: actions/upload-artifact@v2
+      with:
+        name: openapi.json
+        path: openapi/
