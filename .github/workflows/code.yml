@@ -77,17 +77,6 @@ jobs:
           allow-editable-installs: ${{ matrix.pipenv == 'deploy' }}
           pipenv-run: tests
 
-      - name: make openapi json
-        uses: dls-controls/pipenv-run-action@v1
-        with:
-          pipenv-run: src/diffcalc_API/openapi.py
-
-      - name: upload openapi json to artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: openapi.json
-          path: openapi/
-
       # - name: Upload coverage to Codecov
       #   uses: codecov/codecov-action@v2
       #   with:
@@ -115,3 +104,25 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  openapi:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout repo content
+        uses: actions/checkout@v2
+
+      - name: Setup repo and test
+        uses: dls-controls/pipenv-run-action@v1
+        with:
+          python-version: 3.8
+          pipenv-install: --dev
+          
+
+      - name: make openapi json
+        run: python src/diffcalc_API/openapi.py
+
+      - name: upload openapi json to artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: openapi.json
+          path: openapi/
