@@ -1,11 +1,7 @@
 import motor.motor_asyncio
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
-from pydantic import BaseSettings
 
-
-class Settings(BaseSettings):
-    mongo_url: str = "localhost:27017"
-
+from diffcalc_API.config import Settings
 
 settings = Settings()
 
