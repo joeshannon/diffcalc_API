@@ -1,4 +1,4 @@
-name: openapi
+name: Openapi CI
 
 on: [push]
 
@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2 # Checking out the repo
+    - uses: actions/checkout@v2
 
     - name: Setup repo and test
       uses: dls-controls/pipenv-run-action@v1
@@ -16,18 +16,30 @@ jobs:
         pipenv-install: --dev
         pipenv-run: python src/diffcalc_API/openapi.py
 
-    # - name: Install dependecies
-    #   uses: VaultVulp/action-pipenv@v2.0.1
-    #   with:
-    #     command: install -d # Install all dependencies, including development ones
-    
-    # - name: Test
-    #   uses: VaultVulp/action-pipenv@v2.0.1
-    #   with:
-    #     command: run python src/diffcalc_API/openapi.py
-
     - name: Upload
       uses: actions/upload-artifact@v2
       with:
         name: openapi.json
         path: openapi.json
+
+    - name: Delete json after upload
+      run: rm openapi.json
+
+  release:
+    needs: [install-and-run-script]
+    runs-on: ubuntu-latest
+    # upload to PyPI and make a release on every tag
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: openapi.json
+          path: openapi.json
+
+      - name: Github Release
+        uses: softprops/action-gh-release@1e07f4398721186383de40550babbdf2b84acfc5 # v0.1.14
+        with:
+          files: openapi.json
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
