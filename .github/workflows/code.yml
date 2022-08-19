@@ -111,18 +111,14 @@ jobs:
       - name: checkout repo content
         uses: actions/checkout@v2
 
-      - name: Setup repo
+      - name: Setup repo and make openapi json
         uses: dls-controls/pipenv-run-action@v1
         with:
           python-version: 3.8
           pipenv-install: --skip-lock
-          
-
-      - name: make openapi json
         run: |
           pipenv shell
           python src/diffcalc_API/openapi.py
-
 
       - name: upload openapi json to artifacts
         uses: actions/upload-artifact@v2
