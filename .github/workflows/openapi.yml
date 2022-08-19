@@ -39,7 +39,7 @@ jobs:
       - name: Github Release
         uses: softprops/action-gh-release@1e07f4398721186383de40550babbdf2b84acfc5 # v0.1.14
         with:
-          files: openapi.json
+          files: /home/runner/work/diffcalc_API/diffcalc_API/openapi.json
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
