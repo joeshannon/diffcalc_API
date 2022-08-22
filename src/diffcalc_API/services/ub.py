@@ -110,7 +110,7 @@ async def add_orientation(
 ) -> None:
     hklcalc = await store.load(name, collection)
 
-    position = Position(*params.position.dict()) if params.position else None
+    position = Position(**params.position.dict()) if params.position else None
     hklcalc.ubcalc.add_orientation(
         tuple(params.hkl.dict().values()),
         tuple(params.xyz.dict().values()),
