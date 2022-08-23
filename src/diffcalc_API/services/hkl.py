@@ -5,6 +5,7 @@ import numpy as np
 from diffcalc.hkl.geometry import Position
 
 from diffcalc_API.errors.hkl import InvalidMillerIndicesError, InvalidScanBoundsError
+from diffcalc_API.models.hkl import SolutionConstraints
 from diffcalc_API.models.ub import HklModel, PositionModel
 from diffcalc_API.stores.protocol import HklCalcStore
 
@@ -13,6 +14,7 @@ async def lab_position_from_miller_indices(
     name: str,
     miller_indices: HklModel,
     wavelength: float,
+    solution_constraints: SolutionConstraints,
     store: HklCalcStore,
     collection: Optional[str],
 ) -> List[Dict[str, float]]:
@@ -22,8 +24,9 @@ async def lab_position_from_miller_indices(
         raise InvalidMillerIndicesError()
 
     all_positions = hklcalc.get_position(*miller_indices.dict().values(), wavelength)
+    result = combine_lab_position_results(all_positions, solution_constraints)
 
-    return combine_lab_position_results(all_positions)
+    return result
 
 
 async def miller_indices_from_lab_position(
@@ -44,6 +47,7 @@ async def scan_hkl(
     stop: List[float],
     inc: List[float],
     wavelength: float,
+    solution_constraints: SolutionConstraints,
     store: HklCalcStore,
     collection: Optional[str],
 ) -> Dict[str, List[Dict[str, float]]]:
@@ -51,7 +55,7 @@ async def scan_hkl(
 
     if (len(start) != 3) or (len(stop) != 3) or (len(inc) != 3):
         raise InvalidMillerIndicesError(
-            detail="start, stop and inc must have three floats for each miller index."
+            "start, stop and inc must have three floats for each miller index."
         )
 
     axes_values = [
@@ -63,10 +67,14 @@ async def scan_hkl(
 
     for h, k, l in product(*axes_values):
         if all([idx == 0 for idx in (h, k, l)]):
-            raise InvalidMillerIndicesError()  # what if this goes through 0?
+            raise InvalidMillerIndicesError(
+                "choose a hkl range that does not cross through [0, 0, 0]"
+            )  # is this good enough? do people need scans through 0,0,0?
 
         all_positions = hklcalc.get_position(h, k, l, wavelength)
-        results[f"({h}, {k}, {l})"] = combine_lab_position_results(all_positions)
+        results[f"({h}, {k}, {l})"] = combine_lab_position_results(
+            all_positions, solution_constraints
+        )
 
     return results
 
@@ -77,6 +85,7 @@ async def scan_wavelength(
     stop: float,
     inc: float,
     hkl: HklModel,
+    solution_constraints: SolutionConstraints,
     store: HklCalcStore,
     collection: Optional[str],
 ) -> Dict[str, List[Dict[str, float]]]:
@@ -90,7 +99,9 @@ async def scan_wavelength(
 
     for wavelength in wavelengths:
         all_positions = hklcalc.get_position(*hkl.dict().values(), wavelength)
-        result[f"{wavelength}"] = combine_lab_position_results(all_positions)
+        result[f"{wavelength}"] = combine_lab_position_results(
+            all_positions, solution_constraints
+        )
 
     return result
 
@@ -103,6 +114,7 @@ async def scan_constraint(
     inc: float,
     hkl: HklModel,
     wavelength: float,
+    solution_constraints: SolutionConstraints,
     store: HklCalcStore,
     collection: Optional[str],
 ) -> Dict[str, List[Dict[str, float]]]:
@@ -115,7 +127,9 @@ async def scan_constraint(
     for value in np.arange(start, stop + inc, inc):
         setattr(hklcalc, constraint, value)
         all_positions = hklcalc.get_position(*hkl.dict().values(), wavelength)
-        result[f"{value}"] = combine_lab_position_results(all_positions)
+        result[f"{value}"] = combine_lab_position_results(
+            all_positions, solution_constraints
+        )
 
     return result
 
@@ -128,12 +142,27 @@ def generate_axis(start: float, stop: float, inc: float):
 
 
 def combine_lab_position_results(
-    positions: List[Tuple[Position, Dict[str, float]]]
+    positions: List[Tuple[Position, Dict[str, float]]],
+    solution_constraints: SolutionConstraints,
 ) -> List[Dict[str, float]]:
+    axes = solution_constraints.axes
+    low_bound = solution_constraints.low_bound
+    high_bound = solution_constraints.high_bound
+
     result = []
 
     for position in positions:
-        result.append({**position[0].asdict, **position[1]})
+        physical_angles, virtual_angles = position
+        if axes and low_bound and high_bound:
+            if all(
+                [
+                    low_bound[i] < getattr(physical_angles, angle) < high_bound[i]
+                    for i, angle in enumerate(axes)
+                ]
+            ):
+                result.append({**physical_angles.asdict, **virtual_angles})
+        else:
+            result.append({**physical_angles.asdict, **virtual_angles})
 
     return result
 

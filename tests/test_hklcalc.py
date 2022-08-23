@@ -67,6 +67,19 @@ def test_miller_indices_stay_the_same_after_transformation(client: TestClient):
         assert np.round(results["l"], 8) == 1
 
 
+def test_hkl_positions_constrained_by_angle_bounds(client: TestClient):
+    lab_positions = client.get(
+        (
+            "/hkl/test/position/lab?axes=mu&axes=nu&axes=phi&low_bound=0"
+            + "&low_bound=0&low_bound=-90&high_bound=90&high_bound=90&high_bound=90"
+        ),
+        params={"h": 0, "k": 0, "l": 1, "wavelength": 1},
+    )
+
+    assert lab_positions.status_code == 200
+    assert len(ast.literal_eval(lab_positions.content.decode())["payload"]) == 1
+
+
 def test_scan_hkl(
     client: TestClient,
 ):
@@ -83,6 +96,51 @@ def test_scan_hkl(
 
     assert lab_positions.status_code == 200
     assert len(scan_results.keys()) == 9
+
+
+def test_scan_hkl_raises_invalid_solution_bounds_error_for_wrong_inputs(
+    client: TestClient,
+):
+    lab_positions = client.get(
+        "/hkl/test/scan/hkl?axes=mu&axes=nu&axes=phi&low_bound=0&high_bound=90",
+        params={
+            "start": [1, 0, 1],
+            "stop": [2, 0, 2],
+            "inc": [0.5, 0, 0.5],
+            "wavelength": 1,
+        },
+    )
+
+    assert lab_positions.status_code == ErrorCodes.INVALID_SOLUTION_BOUNDS
+    assert (
+        ast.literal_eval(lab_positions.content.decode())["type"]
+        == "<class 'diffcalc_API.errors.hkl.InvalidSolutionBoundsError'>"
+    )
+
+
+def test_scan_hkl_correctly_constrained_by_angle_bounds(
+    client: TestClient,
+):
+    lab_positions = client.get(
+        (
+            "/hkl/test/scan/hkl?axes=mu&axes=nu&axes=phi&low_bound=0&low_bound=0"
+            + "&low_bound=-90&high_bound=90&high_bound=90&high_bound=90"
+        ),
+        params={
+            "start": [1, 0, 1],
+            "stop": [2, 0, 2],
+            "inc": [0.5, 0, 0.5],
+            "wavelength": 1,
+        },
+    )
+    assert all(
+        [
+            len(val) == 1
+            for val in ast.literal_eval(lab_positions.content.decode())[
+                "payload"
+            ].values()
+        ]
+    )
 
 
 def test_scan_hkl_raises_invalid_miller_indices_error_for_wrong_inputs(
