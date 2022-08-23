@@ -1,6 +1,26 @@
+import logging
+
 from pydantic import BaseSettings
 
 from ._version_git import __version__
+
+logging.basicConfig(
+    level=logging.DEBUG, format="[%(asctime)s] %(levelname)s:%(message)s"
+)
+release = __version__
+
+# The short X.Y version.
+if "+" in release:
+    # Not on a tag
+    version = "master"
+else:
+    version = release
+
+
+class Settings(BaseSettings):
+    mongo_url: str = "localhost:27017"
+    api_version = version
+
 
 SAVE_PICKLES_FOLDER = "/"
 VECTOR_PROPERTIES = ["n_hkl", "n_phi", "surf_nhkl", "surf_nphi"]
@@ -26,17 +46,3 @@ ALL_CONSTRAINTS = {
     "bisect",
     "omega",
 }
-
-release = __version__
-
-# The short X.Y version.
-if "+" in release:
-    # Not on a tag
-    version = "master"
-else:
-    version = release
-
-
-class Settings(BaseSettings):
-    mongo_url: str = "localhost:27017"
-    api_version = version

@@ -1,3 +1,4 @@
+import logging
 import traceback
 from typing import Optional
 
@@ -12,8 +13,8 @@ from diffcalc_API.errors.hkl import responses as hkl_responses
 from diffcalc_API.errors.ub import responses as ub_responses
 from diffcalc_API.stores.protocol import get_store, setup_store
 
+logger = logging.getLogger(__name__)
 config = Settings()
-
 setup_store("diffcalc_API.stores.mongo.MongoHklCalcStore")
 
 app = FastAPI(
@@ -31,6 +32,9 @@ app.include_router(routes.hkl.router, responses=hkl_responses)
 
 @app.exception_handler(DiffcalcException)
 async def diffcalc_exception_handler(request: Request, exc: DiffcalcException):
+    tb = traceback.format_exc()
+    logging.warn(f"Diffcalc Exception caught by middleware: {tb}")
+
     return responses.JSONResponse(
         status_code=400,
         content={"message": str(exc), "type": str(type(exc))},
@@ -39,6 +43,9 @@ async def diffcalc_exception_handler(request: Request, exc: DiffcalcException):
 
 @app.exception_handler(DiffcalcAPIException)
 async def http_exception_handler(request: Request, exc: DiffcalcAPIException):
+    tb = traceback.format_exc()
+    logging.error(f"Diffcalc API Exception caught by middleware: {tb}")
+
     return responses.JSONResponse(
         status_code=exc.status_code,
         content={"message": exc.detail, "type": str(type(exc))},
@@ -50,9 +57,8 @@ async def server_exceptions_middleware(request: Request, call_next):
     try:
         return await call_next(request)
     except Exception as e:
-        # TODO: implement proper logging
         tb = traceback.format_exc()
-        print(tb)
+        logging.error(f"General Exception caught by middleware: {tb}")
 
         return responses.JSONResponse(
             status_code=500,
