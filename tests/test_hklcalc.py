@@ -70,7 +70,7 @@ def test_miller_indices_stay_the_same_after_transformation(client: TestClient):
 def test_hkl_positions_constrained_by_angle_bounds(client: TestClient):
     lab_positions = client.get(
         (
-            "/hkl/test/position/lab?angles=mu&angles=nu&angles=phi&low_bound=0"
+            "/hkl/test/position/lab?axes=mu&axes=nu&axes=phi&low_bound=0"
             + "&low_bound=0&low_bound=-90&high_bound=90&high_bound=90&high_bound=90"
         ),
         params={"h": 0, "k": 0, "l": 1, "wavelength": 1},
@@ -98,11 +98,11 @@ def test_scan_hkl(
     assert len(scan_results.keys()) == 9
 
 
-def test_scan_hkl_raises_invalid_angle_bounds_error_for_wrong_inputs(
+def test_scan_hkl_raises_invalid_solution_bounds_error_for_wrong_inputs(
     client: TestClient,
 ):
     lab_positions = client.get(
-        "/hkl/test/scan/hkl?angles=mu&angles=nu&angles=phi&low_bound=0&high_bound=90",
+        "/hkl/test/scan/hkl?axes=mu&axes=nu&axes=phi&low_bound=0&high_bound=90",
         params={
             "start": [1, 0, 1],
             "stop": [2, 0, 2],
@@ -111,10 +111,10 @@ def test_scan_hkl_raises_invalid_angle_bounds_error_for_wrong_inputs(
         },
     )
 
-    assert lab_positions.status_code == ErrorCodes.INVALID_ANGLE_BOUNDS
+    assert lab_positions.status_code == ErrorCodes.INVALID_SOLUTION_BOUNDS
     assert (
         ast.literal_eval(lab_positions.content.decode())["type"]
-        == "<class 'diffcalc_API.errors.hkl.InvalidAngleBoundsError'>"
+        == "<class 'diffcalc_API.errors.hkl.InvalidSolutionBoundsError'>"
     )
 
 
@@ -123,7 +123,7 @@ def test_scan_hkl_correctly_constrained_by_angle_bounds(
 ):
     lab_positions = client.get(
         (
-            "/hkl/test/scan/hkl?angles=mu&angles=nu&angles=phi&low_bound=0&low_bound=0"
+            "/hkl/test/scan/hkl?axes=mu&axes=nu&axes=phi&low_bound=0&low_bound=0"
             + "&low_bound=-90&high_bound=90&high_bound=90&high_bound=90"
         ),
         params={

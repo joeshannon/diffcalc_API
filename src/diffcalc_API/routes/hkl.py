@@ -2,6 +2,8 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Depends, Query
 
+from diffcalc_API.errors.hkl import InvalidSolutionBoundsError
+from diffcalc_API.models.hkl import SolutionConstraints
 from diffcalc_API.models.ub import HklModel, PositionModel
 from diffcalc_API.services import hkl as service
 from diffcalc_API.stores.protocol import HklCalcStore, get_store
@@ -30,19 +32,21 @@ async def lab_position_from_miller_indices(
     name: str,
     miller_indices: HklModel = Depends(),
     wavelength: float = Query(..., example=1.0),
-    angles: Optional[List[str]] = Query(default=None, example=["mu", "nu", "phi"]),
+    axes: Optional[List[str]] = Query(default=None, example=["mu", "nu", "phi"]),
     low_bound: Optional[List[float]] = Query(default=None, example=[0.0, 0.0, -90.0]),
     high_bound: Optional[List[float]] = Query(default=None, example=[90.0, 90.0, 90.0]),
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
+    solutionConstraints = SolutionConstraints(axes, low_bound, high_bound)
+    if not solutionConstraints.valid:
+        raise InvalidSolutionBoundsError(solutionConstraints.msg)
+
     positions = await service.lab_position_from_miller_indices(
         name,
         miller_indices,
         wavelength,
-        angles,
-        low_bound,
-        high_bound,
+        solutionConstraints,
         store,
         collection,
     )
@@ -71,21 +75,23 @@ async def scan_hkl(
     stop: List[float] = Query(..., example=[2, 0, 2]),
     inc: List[float] = Query(..., example=[0.1, 0, 0.1]),
     wavelength: float = Query(..., example=1),
-    angles: Optional[List[str]] = Query(default=None, example=["mu", "nu", "phi"]),
+    axes: Optional[List[str]] = Query(default=None, example=["mu", "nu", "phi"]),
     low_bound: Optional[List[float]] = Query(default=None, example=[0.0, 0.0, -90.0]),
     high_bound: Optional[List[float]] = Query(default=None, example=[90.0, 90.0, 90.0]),
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
+    solutionConstraints = SolutionConstraints(axes, low_bound, high_bound)
+    if not solutionConstraints.valid:
+        raise InvalidSolutionBoundsError(solutionConstraints.msg)
+
     scan_results = await service.scan_hkl(
         name,
         start,
         stop,
         inc,
         wavelength,
-        angles,
-        low_bound,
-        high_bound,
+        solutionConstraints,
         store,
         collection,
     )
@@ -99,14 +105,18 @@ async def scan_wavelength(
     stop: float = Query(..., example=2.0),
     inc: float = Query(..., example=0.2),
     hkl: HklModel = Depends(),
-    angles: Optional[List[str]] = Query(default=None, example=["mu", "nu", "phi"]),
+    axes: Optional[List[str]] = Query(default=None, example=["mu", "nu", "phi"]),
     low_bound: Optional[List[float]] = Query(default=None, example=[0.0, 0.0, -90.0]),
     high_bound: Optional[List[float]] = Query(default=None, example=[90.0, 90.0, 90.0]),
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
+    solutionConstraints = SolutionConstraints(axes, low_bound, high_bound)
+    if not solutionConstraints.valid:
+        raise InvalidSolutionBoundsError(solutionConstraints.msg)
+
     scan_results = await service.scan_wavelength(
-        name, start, stop, inc, hkl, angles, low_bound, high_bound, store, collection
+        name, start, stop, inc, hkl, solutionConstraints, store, collection
     )
     return {"payload": scan_results}
 
@@ -120,12 +130,16 @@ async def scan_constraint(
     inc: float = Query(..., example=1),
     hkl: HklModel = Depends(),
     wavelength: float = Query(..., example=1.0),
-    angles: Optional[List[str]] = Query(default=None, example=["mu", "nu", "phi"]),
+    axes: Optional[List[str]] = Query(default=None, example=["mu", "nu", "phi"]),
     low_bound: Optional[List[float]] = Query(default=None, example=[0.0, 0.0, -90.0]),
     high_bound: Optional[List[float]] = Query(default=None, example=[90.0, 90.0, 90.0]),
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
+    solutionConstraints = SolutionConstraints(axes, low_bound, high_bound)
+    if not solutionConstraints.valid:
+        raise InvalidSolutionBoundsError(solutionConstraints.msg)
+
     scan_results = await service.scan_constraint(
         name,
         constraint,
@@ -134,9 +148,7 @@ async def scan_constraint(
         inc,
         hkl,
         wavelength,
-        angles,
-        low_bound,
-        high_bound,
+        solutionConstraints,
         store,
         collection,
     )
