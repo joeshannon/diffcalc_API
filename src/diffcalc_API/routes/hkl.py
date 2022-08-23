@@ -30,11 +30,21 @@ async def lab_position_from_miller_indices(
     name: str,
     miller_indices: HklModel = Depends(),
     wavelength: float = Query(..., example=1.0),
+    angles: Optional[List[str]] = Query(default=None, example=["mu", "nu", "phi"]),
+    low_bound: Optional[List[float]] = Query(default=None, example=[0.0, 0.0, -90.0]),
+    high_bound: Optional[List[float]] = Query(default=None, example=[90.0, 90.0, 90.0]),
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
     positions = await service.lab_position_from_miller_indices(
-        name, miller_indices, wavelength, store, collection
+        name,
+        miller_indices,
+        wavelength,
+        angles,
+        low_bound,
+        high_bound,
+        store,
+        collection,
     )
 
     return {"payload": positions}
@@ -61,11 +71,23 @@ async def scan_hkl(
     stop: List[float] = Query(..., example=[2, 0, 2]),
     inc: List[float] = Query(..., example=[0.1, 0, 0.1]),
     wavelength: float = Query(..., example=1),
+    angles: Optional[List[str]] = Query(default=None, example=["mu", "nu", "phi"]),
+    low_bound: Optional[List[float]] = Query(default=None, example=[0.0, 0.0, -90.0]),
+    high_bound: Optional[List[float]] = Query(default=None, example=[90.0, 90.0, 90.0]),
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
     scan_results = await service.scan_hkl(
-        name, start, stop, inc, wavelength, store, collection
+        name,
+        start,
+        stop,
+        inc,
+        wavelength,
+        angles,
+        low_bound,
+        high_bound,
+        store,
+        collection,
     )
     return {"payload": scan_results}
 
@@ -77,11 +99,14 @@ async def scan_wavelength(
     stop: float = Query(..., example=2.0),
     inc: float = Query(..., example=0.2),
     hkl: HklModel = Depends(),
+    angles: Optional[List[str]] = Query(default=None, example=["mu", "nu", "phi"]),
+    low_bound: Optional[List[float]] = Query(default=None, example=[0.0, 0.0, -90.0]),
+    high_bound: Optional[List[float]] = Query(default=None, example=[90.0, 90.0, 90.0]),
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
     scan_results = await service.scan_wavelength(
-        name, start, stop, inc, hkl, store, collection
+        name, start, stop, inc, hkl, angles, low_bound, high_bound, store, collection
     )
     return {"payload": scan_results}
 
@@ -95,11 +120,25 @@ async def scan_constraint(
     inc: float = Query(..., example=1),
     hkl: HklModel = Depends(),
     wavelength: float = Query(..., example=1.0),
+    angles: Optional[List[str]] = Query(default=None, example=["mu", "nu", "phi"]),
+    low_bound: Optional[List[float]] = Query(default=None, example=[0.0, 0.0, -90.0]),
+    high_bound: Optional[List[float]] = Query(default=None, example=[90.0, 90.0, 90.0]),
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
     scan_results = await service.scan_constraint(
-        name, constraint, start, stop, inc, hkl, wavelength, store, collection
+        name,
+        constraint,
+        start,
+        stop,
+        inc,
+        hkl,
+        wavelength,
+        angles,
+        low_bound,
+        high_bound,
+        store,
+        collection,
     )
 
     return {"payload": scan_results}

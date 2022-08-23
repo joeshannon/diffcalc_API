@@ -12,6 +12,7 @@ from diffcalc_API.errors.definitions import (
 class ErrorCodes(ErrorCodesBase):
     INVALID_MILLER_INDICES = 400
     INVALID_SCAN_BOUNDS = 400
+    INVALID_ANGLE_BOUNDS = 400
 
 
 responses = {code: ALL_RESPONSES[code] for code in np.unique(ErrorCodes.all_codes())}
@@ -32,3 +33,9 @@ class InvalidScanBoundsError(DiffcalcAPIException):
             f" to stop: {stop} in increments of: {inc}"
         )
         self.status_code = ErrorCodes.INVALID_SCAN_BOUNDS
+
+
+class InvalidAngleBoundsError(DiffcalcAPIException):
+    def __init__(self, detail: str) -> None:
+        self.detail = detail
+        self.status_code = ErrorCodes.INVALID_ANGLE_BOUNDS

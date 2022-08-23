@@ -33,7 +33,7 @@ app.include_router(routes.hkl.router, responses=hkl_responses)
 @app.exception_handler(DiffcalcException)
 async def diffcalc_exception_handler(request: Request, exc: DiffcalcException):
     tb = traceback.format_exc()
-    logger.warn(f"Diffcalc Exception caught by middleware: {tb}")
+    logger.warning(f"Diffcalc Exception caught by middleware: {tb}")
 
     return responses.JSONResponse(
         status_code=400,
