@@ -4,9 +4,6 @@ from pydantic import BaseSettings
 
 from ._version_git import __version__
 
-logging.basicConfig(
-    level=logging.DEBUG, format="[%(asctime)s] %(levelname)s:%(message)s"
-)
 release = __version__
 
 # The short X.Y version.
@@ -20,7 +17,19 @@ else:
 class Settings(BaseSettings):
     mongo_url: str = "localhost:27017"
     api_version = version
+    logging_level: str = "WARN"
+    logging_format: str = "[%(asctime)s] %(levelname)s:%(message)s"
 
+
+settings = Settings()
+try:
+    logging.basicConfig(level=settings.logging_level, format=settings.logging_format)
+except ValueError:
+    logging.basicConfig(level="WARN")
+    logging.warn(
+        f"{settings.logging_level} is not a valid logging level "
+        + "(See logging python library for details). Initializing basic logging."
+    )
 
 SAVE_PICKLES_FOLDER = "/"
 VECTOR_PROPERTIES = ["n_hkl", "n_phi", "surf_nhkl", "surf_nphi"]
