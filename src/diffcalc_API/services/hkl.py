@@ -8,7 +8,6 @@ from diffcalc_API.errors.hkl import InvalidMillerIndicesError, InvalidScanBounds
 from diffcalc_API.models.hkl import SolutionConstraints
 from diffcalc_API.models.ub import HklModel, PositionModel
 from diffcalc_API.stores.protocol import HklCalcStore
-from diffcalc_API.utils import async_wrap
 
 
 async def lab_position_from_miller_indices(
@@ -25,7 +24,7 @@ async def lab_position_from_miller_indices(
         raise InvalidMillerIndicesError()
 
     all_positions = hklcalc.get_position(*miller_indices.dict().values(), wavelength)
-    result = await combine_lab_position_results(all_positions, solution_constraints)
+    result = combine_lab_position_results(all_positions, solution_constraints)
 
     return result
 
@@ -60,7 +59,7 @@ async def scan_hkl(
         )
 
     axes_values = [
-        await generate_axis(start[i], stop[i], inc[i]) if inc[i] != 0 else [0]
+        generate_axis(start[i], stop[i], inc[i]) if inc[i] != 0 else [0]
         for i in range(3)
     ]
 
@@ -73,7 +72,7 @@ async def scan_hkl(
             )  # is this good enough? do people need scans through 0,0,0?
 
         all_positions = hklcalc.get_position(h, k, l, wavelength)
-        results[f"({h}, {k}, {l})"] = await combine_lab_position_results(
+        results[f"({h}, {k}, {l})"] = combine_lab_position_results(
             all_positions, solution_constraints
         )
 
@@ -100,7 +99,7 @@ async def scan_wavelength(
 
     for wavelength in wavelengths:
         all_positions = hklcalc.get_position(*hkl.dict().values(), wavelength)
-        result[f"{wavelength}"] = await combine_lab_position_results(
+        result[f"{wavelength}"] = combine_lab_position_results(
             all_positions, solution_constraints
         )
 
@@ -128,14 +127,13 @@ async def scan_constraint(
     for value in np.arange(start, stop + inc, inc):
         setattr(hklcalc, constraint, value)
         all_positions = hklcalc.get_position(*hkl.dict().values(), wavelength)
-        result[f"{value}"] = await combine_lab_position_results(
+        result[f"{value}"] = combine_lab_position_results(
             all_positions, solution_constraints
         )
 
     return result
 
 
-@async_wrap
 def generate_axis(start: float, stop: float, inc: float):
     if len(np.arange(start, stop + inc, inc)) == 0:
         raise InvalidScanBoundsError(start, stop, inc)
@@ -143,7 +141,6 @@ def generate_axis(start: float, stop: float, inc: float):
     return np.arange(start, stop + inc, inc)
 
 
-@async_wrap
 def combine_lab_position_results(
     positions: List[Tuple[Position, Dict[str, float]]],
     solution_constraints: SolutionConstraints,
