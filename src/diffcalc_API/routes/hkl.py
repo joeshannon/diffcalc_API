@@ -38,15 +38,15 @@ async def lab_position_from_miller_indices(
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
-    solutionConstraints = SolutionConstraints(axes, low_bound, high_bound)
-    if not solutionConstraints.valid:
-        raise InvalidSolutionBoundsError(solutionConstraints.msg)
+    solution_constraints = SolutionConstraints(axes, low_bound, high_bound)
+    if not solution_constraints.valid:
+        raise InvalidSolutionBoundsError(solution_constraints.msg)
 
     positions = await service.lab_position_from_miller_indices(
         name,
         miller_indices,
         wavelength,
-        solutionConstraints,
+        solution_constraints,
         store,
         collection,
     )
@@ -81,9 +81,9 @@ async def scan_hkl(
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
-    solutionConstraints = SolutionConstraints(axes, low_bound, high_bound)
-    if not solutionConstraints.valid:
-        raise InvalidSolutionBoundsError(solutionConstraints.msg)
+    solution_constraints = SolutionConstraints(axes, low_bound, high_bound)
+    if not solution_constraints.valid:
+        raise InvalidSolutionBoundsError(solution_constraints.msg)
 
     scan_results = await service.scan_hkl(
         name,
@@ -91,7 +91,7 @@ async def scan_hkl(
         stop,
         inc,
         wavelength,
-        solutionConstraints,
+        solution_constraints,
         store,
         collection,
     )
@@ -111,12 +111,12 @@ async def scan_wavelength(
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
-    solutionConstraints = SolutionConstraints(axes, low_bound, high_bound)
-    if not solutionConstraints.valid:
-        raise InvalidSolutionBoundsError(solutionConstraints.msg)
+    solution_constraints = SolutionConstraints(axes, low_bound, high_bound)
+    if not solution_constraints.valid:
+        raise InvalidSolutionBoundsError(solution_constraints.msg)
 
     scan_results = await service.scan_wavelength(
-        name, start, stop, inc, hkl, solutionConstraints, store, collection
+        name, start, stop, inc, hkl, solution_constraints, store, collection
     )
     return {"payload": scan_results}
 
@@ -136,9 +136,9 @@ async def scan_constraint(
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
-    solutionConstraints = SolutionConstraints(axes, low_bound, high_bound)
-    if not solutionConstraints.valid:
-        raise InvalidSolutionBoundsError(solutionConstraints.msg)
+    solution_constraints = SolutionConstraints(axes, low_bound, high_bound)
+    if not solution_constraints.valid:
+        raise InvalidSolutionBoundsError(solution_constraints.msg)
 
     scan_results = await service.scan_constraint(
         name,
@@ -148,7 +148,7 @@ async def scan_constraint(
         inc,
         hkl,
         wavelength,
-        solutionConstraints,
+        solution_constraints,
         store,
         collection,
     )

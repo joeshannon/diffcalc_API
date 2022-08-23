@@ -15,7 +15,7 @@ async def lab_position_from_miller_indices(
     name: str,
     miller_indices: HklModel,
     wavelength: float,
-    solutionConstraints: SolutionConstraints,
+    solution_constraints: SolutionConstraints,
     store: HklCalcStore,
     collection: Optional[str],
 ) -> List[Dict[str, float]]:
@@ -25,7 +25,7 @@ async def lab_position_from_miller_indices(
         raise InvalidMillerIndicesError()
 
     all_positions = hklcalc.get_position(*miller_indices.dict().values(), wavelength)
-    result = await combine_lab_position_results(all_positions, solutionConstraints)
+    result = await combine_lab_position_results(all_positions, solution_constraints)
 
     return result
 
@@ -48,7 +48,7 @@ async def scan_hkl(
     stop: List[float],
     inc: List[float],
     wavelength: float,
-    solutionConstraints: SolutionConstraints,
+    solution_constraints: SolutionConstraints,
     store: HklCalcStore,
     collection: Optional[str],
 ) -> Dict[str, List[Dict[str, float]]]:
@@ -74,7 +74,7 @@ async def scan_hkl(
 
         all_positions = hklcalc.get_position(h, k, l, wavelength)
         results[f"({h}, {k}, {l})"] = await combine_lab_position_results(
-            all_positions, solutionConstraints
+            all_positions, solution_constraints
         )
 
     return results
@@ -86,7 +86,7 @@ async def scan_wavelength(
     stop: float,
     inc: float,
     hkl: HklModel,
-    solutionConstraints: SolutionConstraints,
+    solution_constraints: SolutionConstraints,
     store: HklCalcStore,
     collection: Optional[str],
 ) -> Dict[str, List[Dict[str, float]]]:
@@ -101,7 +101,7 @@ async def scan_wavelength(
     for wavelength in wavelengths:
         all_positions = hklcalc.get_position(*hkl.dict().values(), wavelength)
         result[f"{wavelength}"] = await combine_lab_position_results(
-            all_positions, solutionConstraints
+            all_positions, solution_constraints
         )
 
     return result
@@ -115,7 +115,7 @@ async def scan_constraint(
     inc: float,
     hkl: HklModel,
     wavelength: float,
-    solutionConstraints: SolutionConstraints,
+    solution_constraints: SolutionConstraints,
     store: HklCalcStore,
     collection: Optional[str],
 ) -> Dict[str, List[Dict[str, float]]]:
@@ -129,7 +129,7 @@ async def scan_constraint(
         setattr(hklcalc, constraint, value)
         all_positions = hklcalc.get_position(*hkl.dict().values(), wavelength)
         result[f"{value}"] = await combine_lab_position_results(
-            all_positions, solutionConstraints
+            all_positions, solution_constraints
         )
 
     return result
@@ -146,11 +146,11 @@ def generate_axis(start: float, stop: float, inc: float):
 @async_wrap
 def combine_lab_position_results(
     positions: List[Tuple[Position, Dict[str, float]]],
-    solutionConstraints: SolutionConstraints,
+    solution_constraints: SolutionConstraints,
 ) -> List[Dict[str, float]]:
-    axes = solutionConstraints.axes
-    low_bound = solutionConstraints.low_bound
-    high_bound = solutionConstraints.high_bound
+    axes = solution_constraints.axes
+    low_bound = solution_constraints.low_bound
+    high_bound = solution_constraints.high_bound
 
     result = []
 
