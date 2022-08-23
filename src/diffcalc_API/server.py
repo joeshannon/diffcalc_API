@@ -33,7 +33,7 @@ app.include_router(routes.hkl.router, responses=hkl_responses)
 @app.exception_handler(DiffcalcException)
 async def diffcalc_exception_handler(request: Request, exc: DiffcalcException):
     tb = traceback.format_exc()
-    logging.warn(f"Diffcalc Exception caught by middleware: {tb}")
+    logger.warn(f"Diffcalc Exception caught by middleware: {tb}")
 
     return responses.JSONResponse(
         status_code=400,
@@ -44,7 +44,7 @@ async def diffcalc_exception_handler(request: Request, exc: DiffcalcException):
 @app.exception_handler(DiffcalcAPIException)
 async def http_exception_handler(request: Request, exc: DiffcalcAPIException):
     tb = traceback.format_exc()
-    logging.error(f"Diffcalc API Exception caught by middleware: {tb}")
+    logger.error(f"Diffcalc API Exception caught by middleware: {tb}")
 
     return responses.JSONResponse(
         status_code=exc.status_code,
@@ -58,7 +58,7 @@ async def server_exceptions_middleware(request: Request, call_next):
         return await call_next(request)
     except Exception as e:
         tb = traceback.format_exc()
-        logging.error(f"General Exception caught by middleware: {tb}")
+        logger.error(f"General Exception caught by middleware: {tb}")
 
         return responses.JSONResponse(
             status_code=500,
