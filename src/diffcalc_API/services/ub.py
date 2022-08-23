@@ -188,7 +188,11 @@ async def set_lattice(
 ) -> None:
     hklcalc = await store.load(name, collection)
 
-    hklcalc.ubcalc.set_lattice(name=name, **params.dict())
+    input_params = params.dict()
+    crystal_name = name if not params.name else params.name
+    input_params.pop("name")
+
+    hklcalc.ubcalc.set_lattice(name=crystal_name, **input_params)
 
     await store.save(name, hklcalc, collection)
 

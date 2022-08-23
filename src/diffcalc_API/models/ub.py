@@ -25,6 +25,7 @@ class PositionModel(BaseModel):
 
 
 class SetLatticeParams(BaseModel):
+    name: Optional[str] = None
     system: Optional[str] = None
     a: Optional[float] = None
     b: Optional[float] = None
