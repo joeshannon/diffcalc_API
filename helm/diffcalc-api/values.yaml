@@ -94,3 +94,7 @@ mongodb:
       cpu: 2
     requests:
       cpu: 1
+
+logging:
+  level: "WARN"
+  format: "[%(asctime)s] %(levelname)s:%(message)s"
