@@ -37,9 +37,9 @@ spec:
             - name: mongo_url
               value: {{ include "diffcalc-api.mongoUrl" . }}
             - name: logging_level
-              value: {{ .Values.logging.level }}
+              value: "{{ .Values.logging.level }}"
             - name: logging_format
-              value: {{ .Values.logging.format }}
+              value: "{{ .Values.logging.format }}"
           ports:
             - name: http
               containerPort: 8000
