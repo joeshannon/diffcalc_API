@@ -1,6 +1,9 @@
 name: Openapi CI
 
-on: [push]
+on:
+  push:
+    tags:
+      - '*'
 
 jobs:
   install-and-run-script:
