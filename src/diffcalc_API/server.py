@@ -11,6 +11,7 @@ from diffcalc_API.errors.constraints import responses as constraints_responses
 from diffcalc_API.errors.definitions import DiffcalcAPIException
 from diffcalc_API.errors.hkl import responses as hkl_responses
 from diffcalc_API.errors.ub import responses as ub_responses
+from diffcalc_API.models.response import InfoResponse
 from diffcalc_API.stores.protocol import get_store, setup_store
 
 logger = logging.getLogger(__name__)
@@ -71,18 +72,17 @@ async def server_exceptions_middleware(request: Request, call_next):
 #######################################################################################
 
 
-@app.post("/{name}")
+@app.post("/{name}", response_model=InfoResponse)
 async def create_hkl_object(
     name: str,
     store=Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
     await store.create(name, collection)
+    return InfoResponse(message=f"crystal {name} in collection {collection} created")
 
-    return {"message": f"crystal {name} in collection {collection} created"}
 
-
-@app.delete("/{name}")
+@app.delete("/{name}", response_model=InfoResponse)
 async def delete_hkl_object(
     name: str,
     store=Depends(get_store),
@@ -90,4 +90,4 @@ async def delete_hkl_object(
 ):
     await store.delete(name, collection)
 
-    return {"message": f"crystal {name} in collection {collection} deleted"}
+    return InfoResponse(message=f"crystal {name} in collection {collection} deleted")

@@ -4,6 +4,12 @@ from fastapi import APIRouter, Depends, Query
 
 from diffcalc_API.errors.hkl import InvalidSolutionBoundsError
 from diffcalc_API.models.hkl import SolutionConstraints
+from diffcalc_API.models.response import (
+    ArrayResponse,
+    DiffractorAnglesResponse,
+    MillerIndicesResponse,
+    ScanResponse,
+)
 from diffcalc_API.models.ub import HklModel, PositionModel
 from diffcalc_API.services import hkl as service
 from diffcalc_API.stores.protocol import HklCalcStore, get_store
@@ -11,7 +17,7 @@ from diffcalc_API.stores.protocol import HklCalcStore, get_store
 router = APIRouter(prefix="/hkl", tags=["hkl"])
 
 
-@router.get("/{name}/UB")
+@router.get("/{name}/UB", response_model=ArrayResponse)
 async def calculate_ub(
     name: str,
     tag1: Optional[str] = Query(default=None, example="refl1"),
@@ -24,10 +30,10 @@ async def calculate_ub(
     content = await service.calculate_ub(
         name, store, collection, tag1, idx1, tag2, idx2
     )
-    return {"payload": content}
+    return ArrayResponse(payload=content)
 
 
-@router.get("/{name}/position/lab")
+@router.get("/{name}/position/lab", response_model=DiffractorAnglesResponse)
 async def lab_position_from_miller_indices(
     name: str,
     miller_indices: HklModel = Depends(),
@@ -50,11 +56,10 @@ async def lab_position_from_miller_indices(
         store,
         collection,
     )
+    return DiffractorAnglesResponse(payload=positions)
 
-    return {"payload": positions}
 
-
-@router.get("/{name}/position/hkl")
+@router.get("/{name}/position/hkl", response_model=MillerIndicesResponse)
 async def miller_indices_from_lab_position(
     name: str,
     pos: PositionModel = Depends(),
@@ -65,10 +70,10 @@ async def miller_indices_from_lab_position(
     hkl = await service.miller_indices_from_lab_position(
         name, pos, wavelength, store, collection
     )
-    return {"payload": hkl}
+    return MillerIndicesResponse(payload=hkl)
 
 
-@router.get("/{name}/scan/hkl")
+@router.get("/{name}/scan/hkl", response_model=ScanResponse)
 async def scan_hkl(
     name: str,
     start: List[float] = Query(..., example=[1, 0, 1]),
@@ -95,10 +100,10 @@ async def scan_hkl(
         store,
         collection,
     )
-    return {"payload": scan_results}
+    return ScanResponse(payload=scan_results)
 
 
-@router.get("/{name}/scan/wavelength")
+@router.get("/{name}/scan/wavelength", response_model=ScanResponse)
 async def scan_wavelength(
     name: str,
     start: float = Query(..., example=1.0),
@@ -118,10 +123,10 @@ async def scan_wavelength(
     scan_results = await service.scan_wavelength(
         name, start, stop, inc, hkl, solution_constraints, store, collection
     )
-    return {"payload": scan_results}
+    return ScanResponse(payload=scan_results)
 
 
-@router.get("/{name}/scan/{constraint}")
+@router.get("/{name}/scan/{constraint}", response_model=ScanResponse)
 async def scan_constraint(
     name: str,
     constraint: str,
@@ -153,4 +158,4 @@ async def scan_constraint(
         collection,
     )
 
-    return {"payload": scan_results}
+    return ScanResponse(payload=scan_results)
