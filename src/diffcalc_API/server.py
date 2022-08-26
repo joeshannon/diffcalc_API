@@ -45,7 +45,7 @@ async def diffcalc_exception_handler(request: Request, exc: DiffcalcException):
 @app.exception_handler(DiffcalcAPIException)
 async def http_exception_handler(request: Request, exc: DiffcalcAPIException):
     tb = traceback.format_exc()
-    logger.error(f"Diffcalc API Exception caught by middleware: {tb}")
+    logger.warning(f"Diffcalc API Exception caught by middleware: {tb}")
 
     return responses.JSONResponse(
         status_code=exc.status_code,

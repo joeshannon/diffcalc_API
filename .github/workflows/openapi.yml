@@ -10,14 +10,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout Source
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
 
-    - name: Setup repo and test
-      uses: dls-controls/pipenv-run-action@v1
+    - name: Setup python
+      uses: actions/setup-python@v4
       with:
         python-version: 3.8
-        pipenv-install: --dev
-        pipenv-run: python src/diffcalc_API/openapi.py
+
+    - name: Install dependencies
+      if: ${{ !matrix.deploy }}
+      run: |
+        python -m pip install --upgrade pip
+        pip install .[dev] -r requirements.txt
+
+    - name: Make openapi.json
+      run: |
+        python src/diffcalc_API/openapi.py
 
     - name: Upload
       uses: actions/upload-artifact@v2

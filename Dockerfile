@@ -7,10 +7,7 @@ WORKDIR ${ENV_DIR}
 COPY . ${ENV_DIR}
 
 #Install dependencies
-RUN pip install pipenv; \
-    pipenv install --system --python 3.8; \
-    pip uninstall diffcalc-core -y; \
-    pip install git+https://github.com/DiamondLightSource/diffcalc-core.git
+RUN pip install . -c requirements.txt
 
 
 #Run the API
