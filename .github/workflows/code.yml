@@ -108,12 +108,6 @@ jobs:
         run: |
           pytest
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          name: ${{ matrix.python }}/${{ matrix.os }}/${{ matrix.deploy }}
-          files: cov.xml
-
   release:
     needs: [lint, sdist_wheel, test]
     runs-on: ubuntu-latest
