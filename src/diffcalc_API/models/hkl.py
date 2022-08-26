@@ -1,3 +1,5 @@
+"""Defines pydantic models relating to hkl endpoints."""
+
 from dataclasses import dataclass
 from typing import Iterator, List, Optional, Union
 
@@ -6,6 +8,17 @@ from diffcalc.hkl.geometry import Position
 
 @dataclass
 class SolutionConstraints:
+    """Class to store solution constraints.
+
+    The diffraction angle calculator often provides multiple diffractometer
+    angles as equivalent to a set of miller indices. Solution bounds can be provided
+    to constrain these, however they must pass some checks before use.
+
+    Solutions are constrained by diffractometer angles, or axes. A high bound and low
+    bound must be given for each provided. All three of these conditions must contain
+    the same number of elements to be valid.
+    """
+
     axes: Optional[List[str]] = None
     low_bound: Optional[List[float]] = None
     high_bound: Optional[List[float]] = None
@@ -13,9 +26,14 @@ class SolutionConstraints:
     msg: str = ""
 
     def __post_init__(self):
+        """Immediately upon initialisation, evaluate validity of bounds."""
         self.invalid_bounds()
 
     def invalid_bounds(self) -> None:
+        """Compute if the inputes are valid.
+
+        If not, sets self.valid to False.
+        """
         axes, low_bound, high_bound = self.axes, self.low_bound, self.high_bound
         msg = self.msg
 

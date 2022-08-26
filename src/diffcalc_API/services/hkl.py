@@ -1,3 +1,5 @@
+"""Defines business logic for handling requests from hkl endpoints."""
+
 from itertools import product
 from typing import Dict, List, Optional, Tuple, Union
 
@@ -18,6 +20,19 @@ async def lab_position_from_miller_indices(
     store: HklCalcStore,
     collection: Optional[str],
 ) -> List[Dict[str, float]]:
+    """Convert miller indices to a list of diffractometer positions.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        miller_indices: miller indices to be converted
+        wavelength: wavelength of light used in the experiment
+        solution_constraints: object containings angles to constrain solutions by
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+
+    Returns:
+        A list of all possible diffractometer positions
+    """
     hklcalc = await store.load(name, collection)
 
     if all([idx == 0 for idx in miller_indices]):
@@ -36,6 +51,18 @@ async def miller_indices_from_lab_position(
     store: HklCalcStore,
     collection: Optional[str],
 ) -> HklModel:
+    """Convert a diffractometer position to a set of miller indices.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        pos: object containing diffractometer position to be converted.
+        wavelength: wavelength of light used in the experiment
+        store: accessor to the hkl object.
+        collection: collection within which the hkl object resides.
+
+    Returns:
+        Object containing converted lab position
+    """
     hklcalc = await store.load(name, collection)
     hkl = np.round(hklcalc.get_hkl(Position(**pos.dict()), wavelength), 16)
     return HklModel(h=hkl[0], k=hkl[1], l=hkl[2])
@@ -51,6 +78,22 @@ async def scan_hkl(
     store: HklCalcStore,
     collection: Optional[str],
 ) -> Dict[str, List[Dict[str, float]]]:
+    """Retrieve possible diffractometer positions for a range of miller indices.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        start: miller indices to start at
+        stop: miller indices to stop at
+        inc: miller indices to increment by
+        wavelength: wavelength of light used in the experiment
+        solution_constraints: object containings angles to constrain solutions by
+        store: accessor to the hkl object.
+        collection: collection within which the hkl object resides.
+
+    Returns:
+        Dictionary of each set of miller indices and their possible diffractometer
+        positions.
+    """
     hklcalc = await store.load(name, collection)
 
     if (len(start) != 3) or (len(stop) != 3) or (len(inc) != 3):
@@ -89,6 +132,22 @@ async def scan_wavelength(
     store: HklCalcStore,
     collection: Optional[str],
 ) -> Dict[str, List[Dict[str, float]]]:
+    """Retrieve possible diffractometer positions for a range of wavelengths.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        start: wavelength to start at
+        stop: wavelength to stop at
+        inc: wavelength to increment by
+        hkl: desired miller indices to use for the experiment
+        solution_constraints: object containings angles to constrain solutions by
+        store: accessor to the hkl object.
+        collection: collection within which the hkl object resides.
+
+    Returns:
+        Dictionary of each wavelength and the corresponding possible diffractometer
+        positions.
+    """
     hklcalc = await store.load(name, collection)
 
     if len(np.arange(start, stop + inc, inc)) == 0:
@@ -118,6 +177,24 @@ async def scan_constraint(
     store: HklCalcStore,
     collection: Optional[str],
 ) -> Dict[str, List[Dict[str, float]]]:
+    """Retrieve possible diffractometer positions while scanning across a constraint.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        constraint: the name of the constraint to use.
+        start: constraint to start at
+        stop: constraint to stop at
+        inc: constraint to increment by
+        hkl: desired miller indices to use for the experiment
+        wavelength: wavelength of light used in the experiment
+        solution_constraints: object containings angles to constrain solutions by
+        store: accessor to the hkl object.
+        collection: collection within which the hkl object resides.
+
+    Returns:
+        Dictionary of each constraint value and the corresponding possible
+        diffractometer positions.
+    """
     hklcalc = await store.load(name, collection)
 
     if len(np.arange(start, stop + inc, inc)) == 0:
@@ -135,6 +212,19 @@ async def scan_constraint(
 
 
 def generate_axis(start: float, stop: float, inc: float):
+    """Attempt to generate a numpy range between values.
+
+    Args:
+        start: value to start at
+        stop: value to stop at
+        inc: value to increment by
+
+    Returns:
+        a numpy range.
+
+    Throws an error if the numpy range is null, most likely due to non-logical
+    range like 0->1 in increments of a negative number.
+    """
     if len(np.arange(start, stop + inc, inc)) == 0:
         raise InvalidScanBoundsError(start, stop, inc)
 
@@ -145,6 +235,16 @@ def combine_lab_position_results(
     positions: List[Tuple[Position, Dict[str, float]]],
     solution_constraints: SolutionConstraints,
 ) -> List[Dict[str, float]]:
+    """Combine physical and virtual angles.
+
+    Args:
+        positions: list of each set of physical and virtual angles.
+        solution_constraints: object containings angles to constrain solutions by
+
+    Returns:
+        a list of angles, combined together into one dictionary.
+
+    """
     axes = solution_constraints.axes
     low_bound = solution_constraints.low_bound
     high_bound = solution_constraints.high_bound
@@ -176,6 +276,25 @@ async def calculate_ub(
     tag2: Optional[str],
     idx2: Optional[int],
 ) -> List[List[float]]:
+    """Calculate the UB matrix.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        store: accessor to the hkl object.
+        collection: collection within which the hkl object resides.
+        tag1: the tag of the first reference object.
+        idx1: the index of the first reference object.
+        tag2: the tag of the second reference object.
+        idx2: the index of the second reference object.
+
+    For each reference object, only a tag or index needs to be given. If none are
+    provided, diffcalc-core tries to work it out from the available reference
+    objects.
+
+    Returns:
+        a list of angles, combined together into one dictionary.
+
+    """
     hklcalc = await store.load(name, collection)
 
     first_retrieve: Optional[Union[str, int]] = tag1 if tag1 else idx1

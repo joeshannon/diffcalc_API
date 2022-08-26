@@ -1,3 +1,5 @@
+"""Endpoints relating to the management of constraints."""
+
 from typing import Dict, Optional
 
 from fastapi import APIRouter, Body, Depends, Query
@@ -15,6 +17,16 @@ async def get_constraints(
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
+    """Get the status of the constraints object in the given hkl object.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+
+    Returns:
+        StringResponse with the state of the contsraints object.
+    """
     content = await service.get_constraints(name, store, collection)
     return StringResponse(payload=content)
 
@@ -26,6 +38,15 @@ async def set_constraints(
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
+    """Set the constraints in the constraints object in the given hkl object.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        constraints: dictionary with the constraints to set
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+
+    """
     await service.set_constraints(name, constraints, store, collection)
     return InfoResponse(
         message=(
@@ -42,6 +63,15 @@ async def remove_constraint(
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
+    """Remove a constraint in the constraints object in the given hkl object.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        property: the constraint to remove
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+
+    """
     await service.remove_constraint(name, property, store, collection)
 
     return InfoResponse(
@@ -60,6 +90,16 @@ async def set_constraint(
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
+    """Set a constraint in the constraints object in the given hkl object.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        property: the constraint to set
+        value: the value of the constraint to set to
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+
+    """
     await service.set_constraint(name, property, value, store, collection)
 
     return InfoResponse(

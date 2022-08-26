@@ -1,3 +1,5 @@
+"""API configuration options."""
+
 import logging
 
 from pydantic import BaseSettings
@@ -15,6 +17,12 @@ else:
 
 
 class Settings(BaseSettings):
+    """Class which gets environment variables.
+
+    Environment variables set to the attributes of this class are automatically
+    set to the values of these attributes, and used in the application.
+    """
+
     mongo_url: str = "localhost:27017"
     api_version = version
     logging_level: str = "WARN"

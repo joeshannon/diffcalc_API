@@ -1,3 +1,5 @@
+"""Mongo database configuration options."""
+
 import motor.motor_asyncio
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 

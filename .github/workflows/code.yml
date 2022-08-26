@@ -4,64 +4,78 @@ on: [push]
 
 jobs:
   lint:
-    runs-on: "ubuntu-latest"
-    steps:
-      - name: Run black, flake8, mypy
-        uses: dls-controls/pipenv-run-action@v1
-        with:
-          pipenv-run: lint
-
-  wheel:
     strategy:
       fail-fast: false
       matrix:
         os: ["ubuntu-latest"]
-        python: ["3.8"]
+        python: ["3.9"]
 
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout Source
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - name: Create Sdist and Wheel
+      - name: Setup python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python }}
+      
+      - name: Install dependancies
+        run: |
+          python -m pip install --upgrade pip
+          pip install .[dev] -r requirements.txt
+      - name: Run black, flake8, mypy
+        run: |
+          pre-commit run --all-files --show-diff-on-failure --color=always -v
+
+  sdist_wheel:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ["ubuntu-latest"]
+        python: ["3.9"]
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Build Sdist
         # Set SOURCE_DATE_EPOCH from git commit for reproducible build
         # https://reproducible-builds.org/
         # Set group writable and umask to do the same to match inside DLS
         run: |
           chmod -R g+w .
           umask 0002
-          SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct) pipx run build --sdist --wheel
-
-      - name: Upload Wheel and Sdist as artifacts
-        uses: actions/upload-artifact@v2
+          SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct) pipx run --python $(which python${{ matrix.python }}) build --sdist --wheel
+      - name: Upload Sdist as artifact
+        uses: actions/upload-artifact@v3
         with:
           name: dist
           path: dist/*
-
-      - name: Install minimum python version
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python }}
-
-      - name: Install wheel in a venv and check cli works
-        # ${GITHUB_REPOSITORY##*/} is the repo name without org
-        # Replace this with the cli command if different to the repo name
-        run: pipx run --python $(which python${{ matrix.python }}) --spec dist/*.whl uvicorn --version
 
   test:
     strategy:
       fail-fast: false
       matrix:
         os: ["ubuntu-latest"] # can add windows-latest, macos-latest
-        python: ["3.8", "3.9"] # maybe add 3.10 in future
-        pipenv: ["skip-lock"]
+        python: ["3.8", "3.9", "3.10"]
+        deploy: [false]
 
         include:
           # Add an extra Python3.8 runner to use the lockfile
           - os: "ubuntu-latest"
             python: "3.8"
-            pipenv: "deploy"
+            deploy: true
 
     runs-on: ${{ matrix.os }}
     env:
@@ -69,22 +83,33 @@ jobs:
       PY_IGNORE_IMPORTMISMATCH: "1"
 
     steps:
-      - name: Setup repo and test
-        uses: dls-controls/pipenv-run-action@v1
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup python
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
-          pipenv-install: --dev --${{ matrix.pipenv }}
-          allow-editable-installs: ${{ matrix.pipenv == 'deploy' }}
-          pipenv-run: tests
+      
+      - name: Install dependencies
+        if: ${{ !matrix.deploy }}
+        run: |
+          python -m pip install --upgrade pip
+          pip install .[dev]
 
-      # - name: Upload coverage to Codecov
-      #   uses: codecov/codecov-action@v2
-      #   with:
-      #     name: ${{ matrix.python }}/${{ matrix.os }}/${{ matrix.pipenv }}
-      #     files: cov.xml
+      - name: Install dependencies (deploy)
+        if: ${{ matrix.deploy }}
+        run: |
+          python -m pip install --upgrade pip
+          pip install .[dev] -r requirements.txt
+
+      - name: Run tests with pytest
+        run: |
+          pytest
 
   release:
-    needs: [lint, wheel, test]
+    needs: [lint, sdist_wheel, test]
     runs-on: ubuntu-latest
     # upload to PyPI and make a release on every tag
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
@@ -103,3 +128,9 @@ jobs:
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        run: pipx run twine upload dist/*

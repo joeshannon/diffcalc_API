@@ -1,3 +1,5 @@
+"""Generate openapi.json."""
+
 import json
 
 from fastapi.openapi.utils import get_openapi

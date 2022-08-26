@@ -1,3 +1,5 @@
+"""Defines all errors that can be raised when accessing ub endpoints."""
+
 from typing import Optional, Union
 
 import numpy as np
@@ -11,6 +13,8 @@ from diffcalc_API.errors.definitions import (
 
 
 class ErrorCodes(ErrorCodesBase):
+    """All error codes which ub routes can raise."""
+
     INVALID_SET_LATTICE_PARAMS = 400
     REFERENCE_RETRIEVAL_ERROR = 403
     INVALID_PROPERTY = 400
@@ -22,7 +26,14 @@ responses = {code: ALL_RESPONSES[code] for code in np.unique(ErrorCodes.all_code
 
 
 class NoTagOrIdxProvidedError(DiffcalcAPIException):
+    """Error that gets thrown when neither a tag or index are provided.
+
+    Some ub routes require editing existing objects handled by a tag or index. If
+    neither of these are provided, the API doesn't know which object to modify.
+    """
+
     def __init__(self):
+        """Set detail and status code."""
         self.detail = (
             "One of the following must be provided as a query parameter:"
             + " tag (string), index (integer)"
@@ -31,7 +42,14 @@ class NoTagOrIdxProvidedError(DiffcalcAPIException):
 
 
 class BothTagAndIdxProvidedError(DiffcalcAPIException):
+    """Error that gets thrown when both a tag and index are provided.
+
+    Some ub routes require editing existing objects handled by a tag or index. If
+    both of these are provided, the API doesn't know which to choose to modify.
+    """
+
     def __init__(self):
+        """Set detail and status code."""
         self.detail = (
             "both the tag and index have been provided. These are identifiers"
             + " for a specific orientation or reflection, and so both cannot be"
@@ -41,18 +59,35 @@ class BothTagAndIdxProvidedError(DiffcalcAPIException):
 
 
 class InvalidSetLatticeParamsError(DiffcalcAPIException):
+    """Error that gets thrown if the request body is empty.
+
+    All parameters in the request body to the endpoint which sets the lattice are
+    completely optional by definition. However in practise at least some parameters
+    should be provided.
+    """
+
     def __init__(self):
+        """Set detail and status code."""
         self.detail = ("please provide lattice parameters in request body",)
         self.status_code = ErrorCodes.INVALID_SET_LATTICE_PARAMS
 
 
 class ReferenceRetrievalError(DiffcalcAPIException):
+    """Error that gets thrown if a reflection or orientation cannot be retrieved.
+
+    Commonly caused by an issue with the tag or index provided.
+    """
+
     def __init__(self, handle: Optional[Union[str, int]], reference_type: str) -> None:
+        """Set detail and status code."""
         self.detail = f"cannot retrieve {reference_type} with tag or index {handle}"
         self.status_code = ErrorCodes.REFERENCE_RETRIEVAL_ERROR
 
 
 class InvalidPropertyError(DiffcalcAPIException):
+    """Error that gets thrown if attempting to modify a non-existing property."""
+
     def __init__(self):
+        """Set detail and status code."""
         self.detail = f"invalid property. Choose one of: {VECTOR_PROPERTIES}"
         self.status_code = ErrorCodes.INVALID_PROPERTY

@@ -1,3 +1,5 @@
+"""Defines interactions with a file system persistence layer."""
+
 import pickle
 from pathlib import Path
 from typing import Optional
@@ -16,12 +18,17 @@ from diffcalc_API.errors.definitions import (
 
 
 class ErrorCodes(ErrorCodesBase):
+    """Codes which can be raised in the retrieval/storage of HklCalculation objects."""
+
     OVERWRITE_ERROR = 405
     FILE_NOT_FOUND_ERROR = 404
 
 
 class OverwriteError(DiffcalcAPIException):
+    """Thrown if a HklCalculation object is created with a non-unique name."""
+
     def __init__(self, name):
+        """Set detail and status code."""
         self.detail = (
             f"File already exists for crystal {name}!"
             f"\nEither delete via DELETE request to this URL "
@@ -31,7 +38,10 @@ class OverwriteError(DiffcalcAPIException):
 
 
 class FileNotFoundError(DiffcalcAPIException):
+    """Thrown if the store cannot retrieve a HklCalculation object."""
+
     def __init__(self, name):
+        """Set detail and status code."""
         self.detail = (
             f"File for crystal {name} not found."
             f"\nYou need to post to"
@@ -42,14 +52,26 @@ class FileNotFoundError(DiffcalcAPIException):
 
 
 class PicklingHklCalcStore:
+    """Class to use the file system as a persistence layer for the API."""
+
     _root_directory: Path = Path(SAVE_PICKLES_FOLDER)
 
     def __init__(self) -> None:
+        """Set error codes that could be thrown during method excecution.
+
+        Purely for documentation purposes.
+        """
         self.responses = {
             code: ALL_RESPONSES[code] for code in np.unique(ErrorCodes.all_codes())
         }
 
     async def create(self, name: str, collection: Optional[str]) -> None:
+        """Create a HklCalculation object.
+
+        Args:
+            name: the unique name to attribute to the object
+            collection: the collection to store it inside.
+        """
         pickled_file = (
             Path(SAVE_PICKLES_FOLDER) / (collection if collection else "default") / name
         )
@@ -67,6 +89,12 @@ class PicklingHklCalcStore:
         await self.save(name, hkl, collection)
 
     async def delete(self, name: str, collection: Optional[str]) -> None:
+        """Delete a HklCalculation object.
+
+        Args:
+            name: the name by which to retrieve the object
+            collection: the collection inside which it is stored.
+        """
         pickled_file = (
             Path(SAVE_PICKLES_FOLDER) / (collection if collection else "default") / name
         )
@@ -78,6 +106,12 @@ class PicklingHklCalcStore:
     async def save(
         self, name: str, calc: HklCalculation, collection: Optional[str]
     ) -> None:
+        """Update a HklCalculation object.
+
+        Args:
+            name: the name by which to retrieve the object
+            collection: the collection inside which it is stored.
+        """
         file_path = (
             self._root_directory / (collection if collection else "default") / name
         )
@@ -85,6 +119,15 @@ class PicklingHklCalcStore:
             pickle.dump(obj=calc, file=stream)
 
     async def load(self, name: str, collection: Optional[str]) -> HklCalculation:
+        """Load a HklCalculation object.
+
+        Args:
+            name: the name by which to retrieve the object
+            collection: the collection inside which it is stored.
+
+        Returns:
+            The HklCalculation object.
+        """
         file_path = (
             self._root_directory / (collection if collection else "default") / name
         )
