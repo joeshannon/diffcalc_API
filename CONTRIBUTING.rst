@@ -16,8 +16,8 @@ To get the source source code and run the unit tests, run::
 
     $ git clone git://github.com/dls-controls/diffcalc_API.git
     $ cd diffcalc_API
-    $ pipenv install --dev
-    $ pipenv run tests
+    $ pip install -e .[dev]
+    $ pytest
 
 While 100% code coverage does not make a library bug-free, it significantly
 reduces the number of easily caught bugs! Please make sure coverage remains the
@@ -36,12 +36,12 @@ The code in this repository conforms to standards set by the following tools:
 These checks will be run by pre-commit_. You can either choose to run these
 tests on all files tracked by git::
 
-    $ pipenv run lint
+    $ pre-commit run --all-files --show-diff-on-failure --color=always -v
 
 Or you can install a pre-commit hook that will run each time you do a ``git
 commit`` on just the files that have changed::
 
-    $ pipenv run pre-commit install
+    $ pre-commit install
 
 .. _black: https://github.com/psf/black
 .. _flake8: https://flake8.pycqa.org/en/latest/
@@ -88,7 +88,7 @@ Docs follow the underlining convention::
 
 You can build the docs from the project directory by running::
 
-    $ pipenv run docs
+    $ sphinx-build -EWT --keep-going docs build/html
     $ firefox build/html/index.html
 
 Release Process

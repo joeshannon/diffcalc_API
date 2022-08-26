@@ -1,3 +1,5 @@
+"""Endpoints relating to the management of setting up the UB calculation."""
+
 from typing import Optional
 
 from fastapi import APIRouter, Body, Depends, Query
@@ -32,6 +34,16 @@ async def get_ub(
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
+    """Get the status of the UB object in the hkl object.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+
+    Returns:
+        a string with the current state of the UB object
+    """
     content = await service.get_ub(name, store, collection)
     return StringResponse(payload=content)
 
@@ -44,6 +56,16 @@ async def add_reflection(
     collection: Optional[str] = Query(default=None, example="B07"),
     tag: Optional[str] = Query(default=None, example="refl1"),
 ):
+    """Add reflection to the UB object in the hkl object.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        params: detail about the reflection object to be added
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+        tag: optional tag to attribute to the new reflection
+
+    """
     await service.add_reflection(name, params, store, collection, tag)
     return InfoResponse(
         message=(
@@ -62,6 +84,18 @@ async def edit_reflection(
     tag: Optional[str] = Query(default=None, example="refl1"),
     idx: Optional[int] = Query(default=None),
 ):
+    """Modify reflection in the UB object in the hkl object.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        params: detail describing what the reflection should be edited to
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+        tag: optional tag to retrieve the reflection by
+        idx: optional index to retrieve the reflection by
+
+    Exactly one tag or index must be provided.
+    """
     if (tag is None) and (idx is None):
         raise NoTagOrIdxProvidedError()
 
@@ -85,6 +119,17 @@ async def delete_reflection(
     tag: Optional[str] = Query(default=None, example="refl1"),
     idx: Optional[int] = Query(default=None),
 ):
+    """Delete reflection in the UB object in the hkl object.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+        tag: optional tag to retrieve the reflection by
+        idx: optional index to retrieve the reflection by
+
+    Exactly one tag or index must be provided.
+    """
     if (idx is None) and (tag is None):
         raise NoTagOrIdxProvidedError()
     if (idx is not None) and (tag is not None):
@@ -107,6 +152,16 @@ async def add_orientation(
     collection: Optional[str] = Query(default=None, example="B07"),
     tag: Optional[str] = Query(default=None, example="plane"),
 ):
+    """Add orientation to the UB object in the hkl object.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        params: detail about the orientation object to be added
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+        tag: optional tag to attribute to the new orientation
+
+    """
     await service.add_orientation(name, params, store, collection, tag)
     return InfoResponse(
         message=(
@@ -125,6 +180,18 @@ async def edit_orientation(
     tag: Optional[str] = Query(default=None),
     idx: Optional[int] = Query(default=None, example=0),
 ):
+    """Modify orientation in the UB object in the hkl object.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        params: detail describing what the orientation should be edited to
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+        tag: optional tag to retrieve the orientation by
+        idx: optional index to retrieve the orientation by
+
+    Exactly one tag or index must be provided.
+    """
     if (idx is None) and (tag is None):
         raise NoTagOrIdxProvidedError()
     if (idx is not None) and (tag is not None):
@@ -147,6 +214,17 @@ async def delete_orientation(
     tag: Optional[str] = Query(default=None, example="plane"),
     idx: Optional[int] = Query(default=None),
 ):
+    """Delete orientation in the UB object in a given hkl object.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+        tag: optional tag to retrieve the orientation by
+        idx: optional index to retrieve the orientation by
+
+    Exactly one tag or index must be provided.
+    """
     if (idx is None) and (tag is None):
         raise NoTagOrIdxProvidedError()
     if (idx is not None) and (tag is not None):
@@ -168,6 +246,15 @@ async def set_lattice(
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
+    """Set the Crystal parameters in the UB object in a given hkl object.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        params: the parameters to use to set the lattice
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+
+    """
     non_empty_vars = [var for var, value in params if value is not None]
 
     if len(non_empty_vars) == 0:
@@ -190,6 +277,17 @@ async def modify_property(
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
+    """Set a property of the UB object in a given hkl object.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        property: the property of the UB object to set
+        target_value: the miller indices to set them to
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+
+    The property to be set must be a valid vector property.
+    """
     if property not in VECTOR_PROPERTIES:
         raise InvalidPropertyError()
 

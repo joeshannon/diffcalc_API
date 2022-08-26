@@ -1,3 +1,5 @@
+"""Business logic for handling requests from ub endpoints."""
+
 from typing import Optional, Union
 
 from diffcalc.hkl.geometry import Position
@@ -15,6 +17,16 @@ from diffcalc_API.stores.protocol import HklCalcStore
 
 
 async def get_ub(name: str, store: HklCalcStore, collection: Optional[str]) -> str:
+    """Get the status of the UB object in the hkl object.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+
+    Returns:
+        a string with the current state of the UB object
+    """
     hklcalc = await store.load(name, collection)
 
     return str(hklcalc.ubcalc)
@@ -27,6 +39,16 @@ async def add_reflection(
     collection: Optional[str],
     tag: Optional[str],
 ) -> None:
+    """Add reflection to the UB object in the hkl object.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        params: detail about the reflection object to be added
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+        tag: optional tag to attribute to the new reflection
+
+    """
     hklcalc = await store.load(name, collection)
 
     hklcalc.ubcalc.add_reflection(
@@ -47,6 +69,18 @@ async def edit_reflection(
     tag: Optional[str],
     idx: Optional[int],
 ) -> None:
+    """Modify reflection in the UB object in the hkl object.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        params: detail describing what the reflection should be edited to
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+        tag: optional tag to retrieve the reflection by
+        idx: optional index to retrieve the reflection by
+
+    Exactly one tag or index must be provided.
+    """
     hklcalc = await store.load(name, collection)
 
     retrieve: Union[int, str] = (
@@ -85,6 +119,17 @@ async def delete_reflection(
     tag: Optional[str],
     idx: Optional[int],
 ) -> None:
+    """Delete reflection in the UB object in the hkl object.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+        tag: optional tag to retrieve the reflection by
+        idx: optional index to retrieve the reflection by
+
+    Exactly one tag or index must be provided.
+    """
     hklcalc = await store.load(name, collection)
 
     retrieve: Union[str, int] = (
@@ -108,6 +153,16 @@ async def add_orientation(
     collection: Optional[str],
     tag: Optional[str],
 ) -> None:
+    """Add orientation to the UB object in the hkl object.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        params: detail about the orientation object to be added
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+        tag: optional tag to attribute to the new orientation
+
+    """
     hklcalc = await store.load(name, collection)
 
     position = Position(**params.position.dict()) if params.position else None
@@ -129,6 +184,18 @@ async def edit_orientation(
     tag: Optional[str],
     idx: Optional[int],
 ) -> None:
+    """Modify orientation in the UB object in the hkl object.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        params: detail describing what the orientation should be edited to
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+        tag: optional tag to retrieve the orientation by
+        idx: optional index to retrieve the orientation by
+
+    Exactly one tag or index must be provided.
+    """
     hklcalc = await store.load(name, collection)
 
     retrieve: Union[int, str] = (
@@ -167,6 +234,17 @@ async def delete_orientation(
     tag: Optional[str],
     idx: Optional[int],
 ) -> None:
+    """Delete orientation in the UB object in a given hkl object.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+        tag: optional tag to retrieve the orientation by
+        idx: optional index to retrieve the orientation by
+
+    Exactly one tag or index must be provided.
+    """
     hklcalc = await store.load(name, collection)
 
     retrieve: Union[int, str] = (
@@ -186,6 +264,15 @@ async def delete_orientation(
 async def set_lattice(
     name: str, params: SetLatticeParams, store: HklCalcStore, collection: Optional[str]
 ) -> None:
+    """Set the Crystal parameters in the UB object in a given hkl object.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        params: the parameters to use to set the lattice
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+
+    """
     hklcalc = await store.load(name, collection)
 
     input_params = params.dict()
@@ -204,6 +291,17 @@ async def modify_property(
     store: HklCalcStore,
     collection: Optional[str],
 ) -> None:
+    """Set a property of the UB object in a given hkl object.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        property: the property of the UB object to set
+        target_value: the miller indices to set them to
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+
+    The property to be set must be a valid vector property.
+    """
     hklcalc = await store.load(name, collection)
 
     setattr(hklcalc.ubcalc, property, tuple(target_value.dict().values()))

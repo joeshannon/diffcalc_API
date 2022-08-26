@@ -4,7 +4,7 @@ Installation
 .. note::
 
     For installation inside DLS, please see the internal documentation on
-    ``dls-python3`` and ``pipenv``. Although these instructions will work
+    ``dls-python3`` and ``pip``. Although these instructions will work
     inside DLS, they are intended for external use.
 
     If you want to contribute to the library itself, please follow
@@ -43,6 +43,8 @@ from github::
     python3 -m pip install git+git://github.com/dls-controls/diffcalc_API.git
 
 The library should now be installed and the commandline interface on your path.
-You can check the version that has been installed by typing::
+You can check diffcalc_API has been correctly installed by typing::
 
-    diffcalc_API --version
+    python -c "import diffcalc_API"
+
+If you observe any output, repeat the steps above and observe the outputs.

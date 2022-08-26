@@ -1,3 +1,4 @@
+"""Startup script for the API server."""
 import logging
 import traceback
 from typing import Optional
@@ -33,6 +34,7 @@ app.include_router(routes.hkl.router, responses=hkl_responses)
 
 @app.exception_handler(DiffcalcException)
 async def diffcalc_exception_handler(request: Request, exc: DiffcalcException):
+    """Handle diffcalc-core exceptions, which mostly happen on bad requests."""
     tb = traceback.format_exc()
     logger.warning(f"Diffcalc Exception caught by middleware: {tb}")
 
@@ -44,6 +46,7 @@ async def diffcalc_exception_handler(request: Request, exc: DiffcalcException):
 
 @app.exception_handler(DiffcalcAPIException)
 async def http_exception_handler(request: Request, exc: DiffcalcAPIException):
+    """Handle exceptions raised due to bad request parameters/queries and bodies."""
     tb = traceback.format_exc()
     logger.warning(f"Diffcalc API Exception caught by middleware: {tb}")
 
@@ -55,6 +58,10 @@ async def http_exception_handler(request: Request, exc: DiffcalcAPIException):
 
 @app.middleware("http")
 async def server_exceptions_middleware(request: Request, call_next):
+    """Handle all other exceptions.
+
+    These are undocumented, and if raised should be investigated immediately.
+    """
     try:
         return await call_next(request)
     except Exception as e:
@@ -78,6 +85,7 @@ async def create_hkl_object(
     store=Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
+    """Create the hkl object which will be persisted."""
     await store.create(name, collection)
     return InfoResponse(message=f"crystal {name} in collection {collection} created")
 
@@ -88,6 +96,7 @@ async def delete_hkl_object(
     store=Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
+    """Delete the hkl object from the store i.e. persistence layer."""
     await store.delete(name, collection)
 
     return InfoResponse(message=f"crystal {name} in collection {collection} deleted")

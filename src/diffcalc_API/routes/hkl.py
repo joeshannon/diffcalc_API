@@ -1,3 +1,5 @@
+"""Endpoints relating to calculating positions using constraints and the UB matrix."""
+
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, Query
@@ -27,6 +29,26 @@ async def calculate_ub(
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
+    """Calculate the UB matrix.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        store: accessor to the hkl object.
+        collection: collection within which the hkl object resides.
+        tag1: the tag of the first reference object.
+        idx1: the index of the first reference object.
+        tag2: the tag of the second reference object.
+        idx2: the index of the second reference object.
+
+    For each reference object, only a tag or index needs to be given. If none are
+    provided, diffcalc-core tries to work it out from the available reference
+    objects.
+
+    Returns:
+        ArrayResponse object containing a list of angles, combined together into one
+        dictionary.
+
+    """
     content = await service.calculate_ub(
         name, store, collection, tag1, idx1, tag2, idx2
     )
@@ -44,6 +66,22 @@ async def lab_position_from_miller_indices(
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
+    """Convert miller indices to a list of diffractometer positions.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        miller_indices: miller indices to be converted
+        wavelength: wavelength of light used in the experiment
+        axes: angles to constrain the solutions by
+        low_bounds: minimum values of constrained axes
+        high_bound: maximum values of constrained axes
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+
+    Returns:
+        DiffractorAnglesResponse containing a list of all possible diffractometer
+        positions.
+    """
     solution_constraints = SolutionConstraints(axes, low_bound, high_bound)
     if not solution_constraints.valid:
         raise InvalidSolutionBoundsError(solution_constraints.msg)
@@ -67,6 +105,18 @@ async def miller_indices_from_lab_position(
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
+    """Convert a diffractometer position to a set of miller indices.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        pos: object containing diffractometer position to be converted.
+        wavelength: wavelength of light used in the experiment
+        store: accessor to the hkl object.
+        collection: collection within which the hkl object resides.
+
+    Returns:
+        MillerIndicesResponse containing the miller indices.
+    """
     hkl = await service.miller_indices_from_lab_position(
         name, pos, wavelength, store, collection
     )
@@ -86,6 +136,24 @@ async def scan_hkl(
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
+    """Retrieve possible diffractometer positions for a range of miller indices.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        start: miller indices to start at
+        stop: miller indices to stop at
+        inc: miller indices to increment by
+        wavelength: wavelength of light used in the experiment
+        axes: angles to constrain the solutions by
+        low_bounds: minimum values of constrained axes
+        high_bound: maximum values of constrained axes
+        store: accessor to the hkl object.
+        collection: collection within which the hkl object resides.
+
+    Returns:
+        ScanResponse containing a dictionary of each set of miller indices and their
+        possible diffractometer positions.
+    """
     solution_constraints = SolutionConstraints(axes, low_bound, high_bound)
     if not solution_constraints.valid:
         raise InvalidSolutionBoundsError(solution_constraints.msg)
@@ -116,6 +184,24 @@ async def scan_wavelength(
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
+    """Retrieve possible diffractometer positions for a range of wavelengths.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        start: wavelength to start at
+        stop: wavelength to stop at
+        inc: wavelength to increment by
+        hkl: desired miller indices to use for the experiment
+        axes: angles to constrain the solutions by
+        low_bounds: minimum values of constrained axes
+        high_bound: maximum values of constrained axes
+        store: accessor to the hkl object.
+        collection: collection within which the hkl object resides.
+
+    Returns:
+        ScanResponse containing a dictionary of each wavelength and the corresponding
+        possible diffractometer positions.
+    """
     solution_constraints = SolutionConstraints(axes, low_bound, high_bound)
     if not solution_constraints.valid:
         raise InvalidSolutionBoundsError(solution_constraints.msg)
@@ -141,6 +227,26 @@ async def scan_constraint(
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
+    """Retrieve possible diffractometer positions while scanning across a constraint.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        constraint: the name of the constraint to use.
+        start: constraint to start at
+        stop: constraint to stop at
+        inc: constraint to increment by
+        hkl: desired miller indices to use for the experiment
+        wavelength: wavelength of light used in the experiment
+        axes: angles to constrain the solutions by
+        low_bounds: minimum values of constrained axes
+        high_bound: maximum values of constrained axes
+        store: accessor to the hkl object.
+        collection: collection within which the hkl object resides.
+
+    Returns:
+        ScanResponse containing a dictionary of each constraint value and the
+        corresponding possible diffractometer positions.
+    """
     solution_constraints = SolutionConstraints(axes, low_bound, high_bound)
     if not solution_constraints.valid:
         raise InvalidSolutionBoundsError(solution_constraints.msg)
