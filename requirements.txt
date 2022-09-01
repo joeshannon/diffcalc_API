@@ -33,7 +33,7 @@ mypy-extensions==0.4.3
 nodeenv==1.7.0
 numpy==1.23.2
 packaging==21.3
-pathspec==0.9.0
+pathspec==0.10.0
 pep8-naming==0.13.2
 platformdirs==2.5.2
 pluggy==1.0.0
