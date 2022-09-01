@@ -20,6 +20,9 @@ jobs:
       
       - name: install helm
         uses: Azure/setup-helm@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+        id: install
 
       - name: login to acr using helm
         run: |
