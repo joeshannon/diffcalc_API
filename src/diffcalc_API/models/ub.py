@@ -13,7 +13,9 @@ class HklModel(BaseModel):
     l: float
 
     def __eq__(self, other):
-        return self.h == other.h and self.k == other.k and self.l == other.l
+        return (
+            self.h == other.h and self.k == other.k and self.l == other.l
+        )  # noqa: E741
 
     def __hash__(self):
         return hash((self.h, self.k, self.l))

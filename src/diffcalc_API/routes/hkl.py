@@ -200,8 +200,8 @@ async def scan_wavelength(
         collection: collection within which the hkl object resides.
 
     Returns:
-        SimpleScanResponse containing a dictionary of each wavelength and the corresponding
-        possible diffractometer positions.
+        SimpleScanResponse containing a dictionary of each wavelength and the
+        corresponding possible diffractometer positions.
     """
     solution_constraints = SolutionConstraints(axes, low_bound, high_bound)
     if not solution_constraints.valid:
