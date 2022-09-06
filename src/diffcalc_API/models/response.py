@@ -30,10 +30,16 @@ class ArrayResponse(BaseModel):
     payload: List[List[float]]
 
 
-class ScanResponse(BaseModel):
-    """Used for all scans in hkl endpoints."""
+class SimpleScanResponse(BaseModel):
+    """Used for scans in hkl endpoints across one float parameter, e.g. wavelength."""
 
-    payload: Dict[str, List[Dict[str, float]]]
+    payload: Dict[float, List[Dict[str, float]]]
+
+
+class HklScanResponse(BaseModel):
+    """Used for scans in hkl endpoints across miller indices."""
+
+    payload: Dict[HklModel, List[Dict[str, float]]]
 
 
 class DiffractorAnglesResponse(BaseModel):

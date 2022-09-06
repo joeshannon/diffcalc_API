@@ -12,6 +12,12 @@ class HklModel(BaseModel):
     k: float
     l: float
 
+    def __eq__(self, other):
+        return self.h == other.h and self.k == other.k and self.l == other.l
+
+    def __hash__(self):
+        return hash((self.h, self.k, self.l))
+
 
 class XyzModel(BaseModel):
     """Model containing real space positions."""

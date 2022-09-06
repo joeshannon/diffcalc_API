@@ -1,6 +1,6 @@
 """Endpoints relating to calculating positions using constraints and the UB matrix."""
 
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from fastapi import APIRouter, Depends, Query
 
@@ -9,8 +9,9 @@ from diffcalc_API.models.hkl import SolutionConstraints
 from diffcalc_API.models.response import (
     ArrayResponse,
     DiffractorAnglesResponse,
+    HklScanResponse,
     MillerIndicesResponse,
-    ScanResponse,
+    SimpleScanResponse,
 )
 from diffcalc_API.models.ub import HklModel, PositionModel
 from diffcalc_API.services import hkl as service
@@ -123,7 +124,7 @@ async def miller_indices_from_lab_position(
     return MillerIndicesResponse(payload=hkl)
 
 
-@router.get("/{name}/scan/hkl", response_model=ScanResponse)
+@router.get("/{name}/scan/hkl", response_model=HklScanResponse)
 async def scan_hkl(
     name: str,
     start: List[float] = Query(..., example=[1, 0, 1]),
@@ -151,14 +152,14 @@ async def scan_hkl(
         collection: collection within which the hkl object resides.
 
     Returns:
-        ScanResponse containing a dictionary of each set of miller indices and their
+        HklScanResponse containing a dictionary of each set of miller indices and their
         possible diffractometer positions.
     """
     solution_constraints = SolutionConstraints(axes, low_bound, high_bound)
     if not solution_constraints.valid:
         raise InvalidSolutionBoundsError(solution_constraints.msg)
 
-    scan_results = await service.scan_hkl(
+    scan_results: Dict[HklModel, List[Dict[str, float]]] = await service.scan_hkl(
         name,
         start,
         stop,
@@ -168,10 +169,10 @@ async def scan_hkl(
         store,
         collection,
     )
-    return ScanResponse(payload=scan_results)
+    return HklScanResponse(payload=scan_results)
 
 
-@router.get("/{name}/scan/wavelength", response_model=ScanResponse)
+@router.get("/{name}/scan/wavelength", response_model=SimpleScanResponse)
 async def scan_wavelength(
     name: str,
     start: float = Query(..., example=1.0),
@@ -199,20 +200,20 @@ async def scan_wavelength(
         collection: collection within which the hkl object resides.
 
     Returns:
-        ScanResponse containing a dictionary of each wavelength and the corresponding
+        SimpleScanResponse containing a dictionary of each wavelength and the corresponding
         possible diffractometer positions.
     """
     solution_constraints = SolutionConstraints(axes, low_bound, high_bound)
     if not solution_constraints.valid:
         raise InvalidSolutionBoundsError(solution_constraints.msg)
 
-    scan_results = await service.scan_wavelength(
+    scan_results: Dict[float, List[Dict[str, float]]] = await service.scan_wavelength(
         name, start, stop, inc, hkl, solution_constraints, store, collection
     )
-    return ScanResponse(payload=scan_results)
+    return SimpleScanResponse(payload=scan_results)
 
 
-@router.get("/{name}/scan/{constraint}", response_model=ScanResponse)
+@router.get("/{name}/scan/{constraint}", response_model=SimpleScanResponse)
 async def scan_constraint(
     name: str,
     constraint: str,
@@ -244,14 +245,14 @@ async def scan_constraint(
         collection: collection within which the hkl object resides.
 
     Returns:
-        ScanResponse containing a dictionary of each constraint value and the
+        SimpleScanResponse containing a dictionary of each constraint value and the
         corresponding possible diffractometer positions.
     """
     solution_constraints = SolutionConstraints(axes, low_bound, high_bound)
     if not solution_constraints.valid:
         raise InvalidSolutionBoundsError(solution_constraints.msg)
 
-    scan_results = await service.scan_constraint(
+    scan_results: Dict[float, List[Dict[str, float]]] = await service.scan_constraint(
         name,
         constraint,
         start,
@@ -264,4 +265,4 @@ async def scan_constraint(
         collection,
     )
 
-    return ScanResponse(payload=scan_results)
+    return SimpleScanResponse(payload=scan_results)

@@ -77,7 +77,7 @@ async def scan_hkl(
     solution_constraints: SolutionConstraints,
     store: HklCalcStore,
     collection: Optional[str],
-) -> Dict[str, List[Dict[str, float]]]:
+) -> Dict[HklModel, List[Dict[str, float]]]:
     """Retrieve possible diffractometer positions for a range of miller indices.
 
     Args:
@@ -114,10 +114,9 @@ async def scan_hkl(
                 "choose a hkl range that does not cross through [0, 0, 0]"
             )  # is this good enough? do people need scans through 0,0,0?
 
+        hkl = HklModel(h=h, k=k, l=l)
         all_positions = hklcalc.get_position(h, k, l, wavelength)
-        results[f"({h}, {k}, {l})"] = combine_lab_position_results(
-            all_positions, solution_constraints
-        )
+        results[hkl] = combine_lab_position_results(all_positions, solution_constraints)
 
     return results
 
@@ -131,7 +130,7 @@ async def scan_wavelength(
     solution_constraints: SolutionConstraints,
     store: HklCalcStore,
     collection: Optional[str],
-) -> Dict[str, List[Dict[str, float]]]:
+) -> Dict[float, List[Dict[str, float]]]:
     """Retrieve possible diffractometer positions for a range of wavelengths.
 
     Args:
@@ -158,7 +157,7 @@ async def scan_wavelength(
 
     for wavelength in wavelengths:
         all_positions = hklcalc.get_position(*hkl.dict().values(), wavelength)
-        result[f"{wavelength}"] = combine_lab_position_results(
+        result[wavelength] = combine_lab_position_results(
             all_positions, solution_constraints
         )
 
@@ -176,7 +175,7 @@ async def scan_constraint(
     solution_constraints: SolutionConstraints,
     store: HklCalcStore,
     collection: Optional[str],
-) -> Dict[str, List[Dict[str, float]]]:
+) -> Dict[float, List[Dict[str, float]]]:
     """Retrieve possible diffractometer positions while scanning across a constraint.
 
     Args:
@@ -204,7 +203,7 @@ async def scan_constraint(
     for value in np.arange(start, stop + inc, inc):
         setattr(hklcalc, constraint, value)
         all_positions = hklcalc.get_position(*hkl.dict().values(), wavelength)
-        result[f"{value}"] = combine_lab_position_results(
+        result[value] = combine_lab_position_results(
             all_positions, solution_constraints
         )
 
