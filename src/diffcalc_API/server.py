@@ -79,6 +79,17 @@ async def server_exceptions_middleware(request: Request, call_next):
 #######################################################################################
 
 
+@app.get("/")
+async def get_all(
+    name: str,
+    store=Depends(get_store),
+    collection: Optional[str] = Query(default=None, example="B07"),
+):
+    """Retrieves all HklCalculation objects in the store."""
+    await store.get_all()
+    return
+
+
 @app.post("/{name}", response_model=InfoResponse)
 async def create_hkl_object(
     name: str,

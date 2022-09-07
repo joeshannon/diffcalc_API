@@ -64,6 +64,10 @@ class MongoHklCalcStore:
             code: ALL_RESPONSES[code] for code in np.unique(ErrorCodes.all_codes())
         }
 
+    async def get_all(self, name: str, collection: Optional[str]):
+        """Get all HklCalculation objects that are persisted."""
+        coll: Collection = database[collection if collection else "default"]
+
     async def create(self, name: str, collection: Optional[str]) -> None:
         """Create a HklCalculation object.
 

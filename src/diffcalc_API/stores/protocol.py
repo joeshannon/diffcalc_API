@@ -15,6 +15,10 @@ class HklCalcStore(Protocol):
 
     responses: Dict[Union[int, str], Dict[str, Any]]
 
+    async def get_all(self, name: str, collection: Optional[str]):
+        """Get all HklCalculation objects that are persisted."""
+        ...
+
     async def create(self, name: str, collection: Optional[str]) -> None:
         """Create a HklCalculation object."""
         ...
