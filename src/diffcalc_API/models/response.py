@@ -4,6 +4,7 @@ from typing import Dict, List
 from pydantic import BaseModel
 
 from diffcalc_API.models.ub import HklModel
+from diffcalc_API.useful_types import HklType
 
 
 class InfoResponse(BaseModel):
@@ -54,3 +55,29 @@ class MillerIndicesResponse(BaseModel):
     """
 
     payload: HklModel
+
+
+class DatabaseResponse(BaseModel):
+    """Response to querying existing HklCalculations from the store."""
+
+    payload: Dict[str, List[HklType]]
+
+    class Config:
+        """Configuration options for FastAPI and openapi."""
+
+        arbitrary_types_allowed = True
+
+
+class CollectionResponse(BaseModel):
+    """Response to querying existing HklCalculations from the store.
+
+    This will only return existing HklCalculations within a given collection. i.e. it
+    has a narrower scope than DatabaseResponse.
+    """
+
+    payload: List[HklType]
+
+    class Config:
+        """Configuration options for FastAPI and openapi."""
+
+        arbitrary_types_allowed = True

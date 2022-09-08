@@ -1,6 +1,6 @@
 """Defines interactions with mongo persistence layer."""
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 from diffcalc.hkl.calc import HklCalculation
@@ -15,6 +15,7 @@ from diffcalc_API.errors.definitions import (
     DiffcalcAPIException,
     ErrorCodesBase,
 )
+from diffcalc_API.useful_types import HklType
 
 
 class ErrorCodes(ErrorCodesBase):
@@ -64,9 +65,33 @@ class MongoHklCalcStore:
             code: ALL_RESPONSES[code] for code in np.unique(ErrorCodes.all_codes())
         }
 
-    async def get_all(self, name: str, collection: Optional[str]):
+    async def get_all(self) -> Dict[str, List[HklType]]:
         """Get all HklCalculation objects that are persisted."""
-        coll: Collection = database[collection if collection else "default"]
+        all_collections = await database.list_collection_names()
+        result: Dict[str, List[HklType]] = {}
+        for collection_name in all_collections:
+            documents = await self.get_all_within_collection(collection_name)
+
+            result[collection_name] = documents
+
+        return result
+
+    async def get_all_within_collection(self, collection: str) -> List[HklType]:
+        """Get all HklCalculation objects persisted within a given collection."""
+        coll = database[collection]
+        documents = await coll.find({}).to_list(1000)
+
+        modified_documents: List[HklType] = []
+
+        for idx in range(len(documents)):
+            modified_documents.append(
+                HklType(
+                    id=str(documents[idx]["_id"]),
+                    **{k: documents[idx][k] for k in documents[idx].keys() - {"_id"}},
+                )
+            )
+
+        return modified_documents
 
     async def create(self, name: str, collection: Optional[str]) -> None:
         """Create a HklCalculation object.

@@ -2,7 +2,7 @@
 
 import pickle
 from pathlib import Path
-from typing import Optional
+from typing import Dict, List, Optional
 
 import numpy as np
 from diffcalc.hkl.calc import HklCalculation
@@ -15,6 +15,7 @@ from diffcalc_API.errors.definitions import (
     DiffcalcAPIException,
     ErrorCodesBase,
 )
+from diffcalc_API.stores.protocol import HklType
 
 
 class ErrorCodes(ErrorCodesBase):
@@ -65,8 +66,12 @@ class PicklingHklCalcStore:
             code: ALL_RESPONSES[code] for code in np.unique(ErrorCodes.all_codes())
         }
 
-    async def get_all(self, name: str, collection: Optional[str]):
+    async def get_all(self, name: str) -> Dict[str, List[HklType]]:
         """Get all HklCalculation objects that are persisted."""
+        ...
+
+    async def get_all_within_collection(self, collection: str) -> List[HklType]:
+        """Get all HklCalculation objects that are persisted within a collection."""
         ...
 
     async def create(self, name: str, collection: Optional[str]) -> None:

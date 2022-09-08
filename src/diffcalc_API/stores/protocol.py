@@ -5,9 +5,11 @@ must be provided by persistence methods for API services to access them.
 """
 
 from importlib import import_module
-from typing import Any, Dict, Optional, Protocol, Union
+from typing import Any, Dict, List, Optional, Protocol, Union
 
 from diffcalc.hkl.calc import HklCalculation
+
+from diffcalc_API.useful_types import HklType
 
 
 class HklCalcStore(Protocol):
@@ -15,8 +17,12 @@ class HklCalcStore(Protocol):
 
     responses: Dict[Union[int, str], Dict[str, Any]]
 
-    async def get_all(self, name: str, collection: Optional[str]):
+    async def get_all(self, name: str) -> Dict[str, List[HklType]]:
         """Get all HklCalculation objects that are persisted."""
+        ...
+
+    async def get_all_within_collection(self, collection: str) -> List[HklType]:
+        """Get all HklCalculation objects that are persisted within a collection."""
         ...
 
     async def create(self, name: str, collection: Optional[str]) -> None:

@@ -35,7 +35,7 @@ async def lab_position_from_miller_indices(
     """
     hklcalc = await store.load(name, collection)
 
-    if all([idx == 0 for idx in miller_indices]):
+    if all([idx == 0 for idx in miller_indices.dict().values()]):
         raise InvalidMillerIndicesError()
 
     all_positions = hklcalc.get_position(*miller_indices.dict().values(), wavelength)

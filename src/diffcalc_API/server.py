@@ -1,7 +1,7 @@
 """Startup script for the API server."""
 import logging
 import traceback
-from typing import Optional
+from typing import Dict, List, Optional
 
 from diffcalc.util import DiffcalcException
 from fastapi import Depends, FastAPI, Query, Request, responses
@@ -12,8 +12,13 @@ from diffcalc_API.errors.constraints import responses as constraints_responses
 from diffcalc_API.errors.definitions import DiffcalcAPIException
 from diffcalc_API.errors.hkl import responses as hkl_responses
 from diffcalc_API.errors.ub import responses as ub_responses
-from diffcalc_API.models.response import InfoResponse
+from diffcalc_API.models.response import (
+    CollectionResponse,
+    DatabaseResponse,
+    InfoResponse,
+)
 from diffcalc_API.stores.protocol import get_store, setup_store
+from diffcalc_API.useful_types import HklType
 
 logger = logging.getLogger(__name__)
 config = Settings()
@@ -79,15 +84,20 @@ async def server_exceptions_middleware(request: Request, call_next):
 #######################################################################################
 
 
-@app.get("/")
-async def get_all(
-    name: str,
-    store=Depends(get_store),
-    collection: Optional[str] = Query(default=None, example="B07"),
+@app.get("/", response_model=DatabaseResponse)
+async def get_all(store=Depends(get_store)):
+    """Retrieve all HklCalculation objects in the store."""
+    results: Dict[str, List[HklType]] = await store.get_all()
+    return DatabaseResponse(payload=results)
+
+
+@app.get("/{collection}", response_model=CollectionResponse)
+async def get_all_within_collection(
+    store=Depends(get_store), collection: str = Query(default="default", example="B07")
 ):
-    """Retrieves all HklCalculation objects in the store."""
-    await store.get_all()
-    return
+    """Retrieve all HklCalculation objects in a collection of the store."""
+    results: List[HklType] = await store.get_all_within_collection(collection)
+    return CollectionResponse(payload=results)
 
 
 @app.post("/{name}", response_model=InfoResponse)
