@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Dict, List, Optional
 
 from diffcalc.ub.calc import ReferenceVector
@@ -5,7 +6,8 @@ from pydantic import BaseModel
 from typing_extensions import TypedDict
 
 
-class PositionType(TypedDict):
+@dataclass
+class PositionType:
     mu: float
     delta: float
     nu: float
@@ -34,7 +36,8 @@ class OrientationType(TypedDict):
     tag: Optional[str]
 
 
-class CrystalType(TypedDict):
+@dataclass
+class CrystalType:
     name: str
     system: str
     a: float  # pylint: disable=invalid-name
