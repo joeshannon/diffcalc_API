@@ -3,7 +3,7 @@
 import motor.motor_asyncio
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 
-from diffcalc_API.config import Settings
+from diffcalc_api.config import Settings
 
 settings = Settings()
 

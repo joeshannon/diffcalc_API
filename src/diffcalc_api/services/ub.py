@@ -4,8 +4,8 @@ from typing import Optional, Union
 
 from diffcalc.hkl.geometry import Position
 
-from diffcalc_API.errors.ub import ReferenceRetrievalError
-from diffcalc_API.models.ub import (
+from diffcalc_api.errors.ub import ReferenceRetrievalError
+from diffcalc_api.models.ub import (
     AddOrientationParams,
     AddReflectionParams,
     EditOrientationParams,
@@ -13,7 +13,7 @@ from diffcalc_API.models.ub import (
     HklModel,
     SetLatticeParams,
 )
-from diffcalc_API.stores.protocol import HklCalcStore
+from diffcalc_api.stores.protocol import HklCalcStore
 
 
 async def get_ub(name: str, store: HklCalcStore, collection: Optional[str]) -> str:

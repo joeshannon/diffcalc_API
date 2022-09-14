@@ -6,10 +6,10 @@ from typing import Dict, List, Optional, Tuple, Union
 import numpy as np
 from diffcalc.hkl.geometry import Position
 
-from diffcalc_API.errors.hkl import InvalidMillerIndicesError, InvalidScanBoundsError
-from diffcalc_API.models.hkl import SolutionConstraints
-from diffcalc_API.models.ub import HklModel, PositionModel
-from diffcalc_API.stores.protocol import HklCalcStore
+from diffcalc_api.errors.hkl import InvalidMillerIndicesError, InvalidScanBoundsError
+from diffcalc_api.models.hkl import SolutionConstraints
+from diffcalc_api.models.ub import HklModel, PositionModel
+from diffcalc_api.stores.protocol import HklCalcStore
 
 
 async def lab_position_from_miller_indices(

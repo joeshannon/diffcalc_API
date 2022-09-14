@@ -10,7 +10,7 @@ Practical step-by-step guides for the more experienced user.
 
     reference/api
     reference/contributing
-    Releases <https://github.com/dls-controls/diffcalc_API/releases>
+    Releases <https://github.com/dls-controls/diffcalc_api/releases>
     Index <genindex.html#http://>
 
 ..

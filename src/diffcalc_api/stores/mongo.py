@@ -1,16 +1,16 @@
-"""Defines interactions with a file system persistence layer."""
+"""Defines interactions with mongo persistence layer."""
 
-import pickle
-from pathlib import Path
-from typing import Optional
+from typing import Any, Dict, Optional
 
 import numpy as np
 from diffcalc.hkl.calc import HklCalculation
 from diffcalc.hkl.constraints import Constraints
 from diffcalc.ub.calc import UBCalculation
+from motor.motor_asyncio import AsyncIOMotorCollection as Collection
+from pymongo.results import DeleteResult
 
-from diffcalc_API.config import SAVE_PICKLES_FOLDER
-from diffcalc_API.errors.definitions import (
+from diffcalc_api.database import database
+from diffcalc_api.errors.definitions import (
     ALL_RESPONSES,
     DiffcalcAPIException,
     ErrorCodesBase,
@@ -18,45 +18,44 @@ from diffcalc_API.errors.definitions import (
 
 
 class ErrorCodes(ErrorCodesBase):
-    """Codes which can be raised in the retrieval/storage of HklCalculation objects."""
+    """Persistence error codes.
+
+    This class defines all error codes which can be raised in the retrieval or storage
+    of HklCalculation objects.
+    """
 
     OVERWRITE_ERROR = 405
-    FILE_NOT_FOUND_ERROR = 404
+    DOCUMENT_NOT_FOUND_ERROR = 404
 
 
 class OverwriteError(DiffcalcAPIException):
     """Thrown if a HklCalculation object is created with a non-unique name."""
 
-    def __init__(self, name):
-        """Set detail and status code."""
+    def __init__(self, name: str) -> None:
+        """Set detail and status code of the error."""
         self.detail = (
-            f"File already exists for crystal {name}!"
+            f"Document already exists for crystal {name}!"
             f"\nEither delete via DELETE request to this URL "
             f"or change the existing properties. "
         )
         self.status_code = ErrorCodes.OVERWRITE_ERROR
 
 
-class FileNotFoundError(DiffcalcAPIException):
+class DocumentNotFoundError(DiffcalcAPIException):
     """Thrown if the store cannot retrieve a HklCalculation object."""
 
-    def __init__(self, name):
-        """Set detail and status code."""
-        self.detail = (
-            f"File for crystal {name} not found."
-            f"\nYou need to post to"
-            f" http://localhost:8000/{name}"
-            f" first to generate the pickled file.\n"
-        )
-        self.status_code = ErrorCodes.FILE_NOT_FOUND_ERROR
+    def __init__(self, name: str, action: str) -> None:
+        """Set detail and status code of the error."""
+        self.detail = f"Document for crystal {name} not found! Cannot {action}."
+        self.status_code = ErrorCodes.DOCUMENT_NOT_FOUND_ERROR
 
 
-class PicklingHklCalcStore:
-    """Class to use the file system as a persistence layer for the API."""
+class MongoHklCalcStore:
+    """Class to use mongo db as a persistence layer for the API."""
 
-    _root_directory: Path = Path(SAVE_PICKLES_FOLDER)
-
-    def __init__(self) -> None:
+    def __init__(
+        self,
+    ) -> None:
         """Set error codes that could be thrown during method excecution.
 
         Purely for documentation purposes.
@@ -72,21 +71,16 @@ class PicklingHklCalcStore:
             name: the unique name to attribute to the object
             collection: the collection to store it inside.
         """
-        pickled_file = (
-            Path(SAVE_PICKLES_FOLDER) / (collection if collection else "default") / name
-        )
+        coll: Collection = database[collection if collection else "default"]
 
-        if (pickled_file).is_file():
+        if await coll.find_one({"ubcalc.name": name}):
             raise OverwriteError(name)
-
-        if not (pickled_file.parent).is_dir():
-            pickled_file.parent.mkdir()
 
         ubcalc = UBCalculation(name=name)
         constraints = Constraints()
         hkl = HklCalculation(ubcalc, constraints)
 
-        await self.save(name, hkl, collection)
+        await coll.insert_one(hkl.asdict)
 
     async def delete(self, name: str, collection: Optional[str]) -> None:
         """Delete a HklCalculation object.
@@ -95,16 +89,13 @@ class PicklingHklCalcStore:
             name: the name by which to retrieve the object
             collection: the collection inside which it is stored.
         """
-        pickled_file = (
-            Path(SAVE_PICKLES_FOLDER) / (collection if collection else "default") / name
-        )
-        if not pickled_file.is_file():
-            raise FileNotFoundError(name)
-
-        Path(pickled_file).unlink()
+        coll: Collection = database[collection if collection else "default"]
+        result: DeleteResult = await coll.delete_one({"ubcalc.name": name})
+        if result.deleted_count == 0:
+            raise DocumentNotFoundError(name, "delete")
 
     async def save(
-        self, name: str, calc: HklCalculation, collection: Optional[str]
+        self, name: str, hkl: HklCalculation, collection: Optional[str]
     ) -> None:
         """Update a HklCalculation object.
 
@@ -112,11 +103,8 @@ class PicklingHklCalcStore:
             name: the name by which to retrieve the object
             collection: the collection inside which it is stored.
         """
-        file_path = (
-            self._root_directory / (collection if collection else "default") / name
-        )
-        with open(file_path, "wb") as stream:
-            pickle.dump(obj=calc, file=stream)
+        coll: Collection = database[collection if collection else "default"]
+        await coll.find_one_and_update({"ubcalc.name": name}, {"$set": hkl.asdict})
 
     async def load(self, name: str, collection: Optional[str]) -> HklCalculation:
         """Load a HklCalculation object.
@@ -128,13 +116,9 @@ class PicklingHklCalcStore:
         Returns:
             The HklCalculation object.
         """
-        file_path = (
-            self._root_directory / (collection if collection else "default") / name
-        )
-        if not file_path.is_file():
-            raise FileNotFoundError(name)
+        coll: Collection = database[collection if collection else "default"]
+        hkl_json: Optional[Dict[str, Any]] = await coll.find_one({"ubcalc.name": name})
+        if not hkl_json:
+            raise DocumentNotFoundError(name, "load")
 
-        with open(file_path, "rb") as stream:
-            hkl: HklCalculation = pickle.load(stream)
-
-        return hkl
+        return HklCalculation.fromdict(hkl_json)

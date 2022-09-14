@@ -1,7 +1,7 @@
-"""API examples used in diffcalc_API.routes.ub."""
+"""API examples used in diffcalc_api.routes.ub."""
 
 
-from diffcalc_API.models.ub import (
+from diffcalc_api.models.ub import (
     AddOrientationParams,
     AddReflectionParams,
     EditOrientationParams,

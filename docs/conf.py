@@ -4,15 +4,15 @@
 # list see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
-import diffcalc_API
+import diffcalc_api
 
 # -- General configuration ------------------------------------------------
 
 # General information about the project.
-project = "diffcalc_API"
+project = "diffcalc_api"
 
 # The full version, including alpha/beta/rc tags.
-release = diffcalc_API.__version__
+release = diffcalc_api.__version__
 
 # The short X.Y version.
 if "+" in release:

@@ -6,18 +6,18 @@ from typing import Optional
 from diffcalc.util import DiffcalcException
 from fastapi import Depends, FastAPI, Query, Request, responses
 
-from diffcalc_API import routes
-from diffcalc_API.config import Settings
-from diffcalc_API.errors.constraints import responses as constraints_responses
-from diffcalc_API.errors.definitions import DiffcalcAPIException
-from diffcalc_API.errors.hkl import responses as hkl_responses
-from diffcalc_API.errors.ub import responses as ub_responses
-from diffcalc_API.models.response import InfoResponse
-from diffcalc_API.stores.protocol import get_store, setup_store
+from diffcalc_api import routes
+from diffcalc_api.config import Settings
+from diffcalc_api.errors.constraints import responses as constraints_responses
+from diffcalc_api.errors.definitions import DiffcalcAPIException
+from diffcalc_api.errors.hkl import responses as hkl_responses
+from diffcalc_api.errors.ub import responses as ub_responses
+from diffcalc_api.models.response import InfoResponse
+from diffcalc_api.stores.protocol import get_store, setup_store
 
 logger = logging.getLogger(__name__)
 config = Settings()
-setup_store("diffcalc_API.stores.mongo.MongoHklCalcStore")
+setup_store("diffcalc_api.stores.mongo.MongoHklCalcStore")
 
 app = FastAPI(
     responses=get_store().responses, title="diffcalc", version=config.api_version

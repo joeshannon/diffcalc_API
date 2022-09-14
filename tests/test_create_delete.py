@@ -4,8 +4,8 @@ from diffcalc.hkl.constraints import Constraints
 from diffcalc.ub.calc import UBCalculation
 from fastapi.testclient import TestClient
 
-from diffcalc_API.server import app
-from diffcalc_API.stores.protocol import HklCalcStore, get_store
+from diffcalc_api.server import app
+from diffcalc_api.stores.protocol import HklCalcStore, get_store
 from tests.conftest import FakeHklCalcStore
 
 dummy_hkl = HklCalculation(UBCalculation(name="dummy"), Constraints())

@@ -4,9 +4,9 @@ from typing import Dict, Optional
 
 from diffcalc.hkl.constraints import Constraints
 
-from diffcalc_API.config import ALL_CONSTRAINTS, CONSTRAINTS_WITH_NO_VALUE
-from diffcalc_API.errors.constraints import InvalidConstraintError
-from diffcalc_API.stores.protocol import HklCalcStore
+from diffcalc_api.config import ALL_CONSTRAINTS, CONSTRAINTS_WITH_NO_VALUE
+from diffcalc_api.errors.constraints import InvalidConstraintError
+from diffcalc_api.stores.protocol import HklCalcStore
 
 
 async def get_constraints(

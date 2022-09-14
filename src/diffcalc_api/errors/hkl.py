@@ -3,7 +3,7 @@ from typing import Optional
 
 import numpy as np
 
-from diffcalc_API.errors.definitions import (
+from diffcalc_api.errors.definitions import (
     ALL_RESPONSES,
     DiffcalcAPIException,
     ErrorCodesBase,

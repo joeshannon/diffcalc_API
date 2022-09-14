@@ -4,16 +4,16 @@ from typing import Optional
 
 from fastapi import APIRouter, Body, Depends, Query
 
-from diffcalc_API.config import VECTOR_PROPERTIES
-from diffcalc_API.errors.ub import (
+from diffcalc_api.config import VECTOR_PROPERTIES
+from diffcalc_api.errors.ub import (
     BothTagAndIdxProvidedError,
     InvalidPropertyError,
     InvalidSetLatticeParamsError,
     NoTagOrIdxProvidedError,
 )
-from diffcalc_API.examples import ub as examples
-from diffcalc_API.models.response import InfoResponse, StringResponse
-from diffcalc_API.models.ub import (
+from diffcalc_api.examples import ub as examples
+from diffcalc_api.models.response import InfoResponse, StringResponse
+from diffcalc_api.models.ub import (
     AddOrientationParams,
     AddReflectionParams,
     EditOrientationParams,
@@ -22,8 +22,8 @@ from diffcalc_API.models.ub import (
     SetLatticeParams,
     select_idx_or_tag_str,
 )
-from diffcalc_API.services import ub as service
-from diffcalc_API.stores.protocol import HklCalcStore, get_store
+from diffcalc_api.services import ub as service
+from diffcalc_api.stores.protocol import HklCalcStore, get_store
 
 router = APIRouter(prefix="/ub", tags=["ub"])
 

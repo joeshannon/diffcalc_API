@@ -4,17 +4,17 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Depends, Query
 
-from diffcalc_API.errors.hkl import InvalidSolutionBoundsError
-from diffcalc_API.models.hkl import SolutionConstraints
-from diffcalc_API.models.response import (
+from diffcalc_api.errors.hkl import InvalidSolutionBoundsError
+from diffcalc_api.models.hkl import SolutionConstraints
+from diffcalc_api.models.response import (
     ArrayResponse,
     DiffractorAnglesResponse,
     MillerIndicesResponse,
     ScanResponse,
 )
-from diffcalc_API.models.ub import HklModel, PositionModel
-from diffcalc_API.services import hkl as service
-from diffcalc_API.stores.protocol import HklCalcStore, get_store
+from diffcalc_api.models.ub import HklModel, PositionModel
+from diffcalc_api.services import hkl as service
+from diffcalc_api.stores.protocol import HklCalcStore, get_store
 
 router = APIRouter(prefix="/hkl", tags=["hkl"])
 

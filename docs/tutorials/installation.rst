@@ -35,16 +35,16 @@ Installing the library
 
 You can now use ``pip`` to install the library::
 
-    python3 -m pip install diffcalc_API
+    python3 -m pip install diffcalc_api
 
 If you require a feature that is not currently released you can also install
 from github::
 
-    python3 -m pip install git+git://github.com/dls-controls/diffcalc_API.git
+    python3 -m pip install git+git://github.com/dls-controls/diffcalc_api.git
 
 The library should now be installed and the commandline interface on your path.
-You can check diffcalc_API has been correctly installed by typing::
+You can check diffcalc_api has been correctly installed by typing::
 
-    python -c "import diffcalc_API"
+    python -c "import diffcalc_api"
 
 If you observe any output, repeat the steps above and observe the outputs.

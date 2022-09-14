@@ -3,7 +3,7 @@ from typing import Dict, List
 
 from pydantic import BaseModel
 
-from diffcalc_API.models.ub import HklModel
+from diffcalc_api.models.ub import HklModel
 
 
 class InfoResponse(BaseModel):
