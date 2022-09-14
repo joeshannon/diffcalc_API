@@ -6,7 +6,7 @@ on:
       - '*'
 
 env:
-  GCR_IMAGE: ghcr.io/rayemelyanova/diffcalc-api
+  GCR_IMAGE: ghcr.io/diamondlightsource/diffcalc-api
   HELM_VERSION: 0.1.0
 
 jobs:

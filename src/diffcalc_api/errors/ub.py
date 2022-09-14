@@ -4,8 +4,8 @@ from typing import Optional, Union
 
 import numpy as np
 
-from diffcalc_API.config import VECTOR_PROPERTIES
-from diffcalc_API.errors.definitions import (
+from diffcalc_api.config import VECTOR_PROPERTIES
+from diffcalc_api.errors.definitions import (
     ALL_RESPONSES,
     DiffcalcAPIException,
     ErrorCodesBase,

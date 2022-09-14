@@ -28,7 +28,7 @@ jobs:
 
     - name: Make openapi.json
       run: |
-        python src/diffcalc_API/openapi.py
+        python src/diffcalc_api/openapi.py
 
     - name: Upload
       uses: actions/upload-artifact@v2

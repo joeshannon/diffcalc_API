@@ -82,6 +82,6 @@ class EditOrientationParams(BaseModel):
 def select_idx_or_tag_str(idx: Optional[int], tag: Optional[str]) -> str:
     """Select an index or tag, and generate a string from it.
 
-    Return a string for diffcalc_API.models.response.InfoResponse endpoint responses.
+    Return a string for diffcalc_api.models.response.InfoResponse endpoint responses.
     """
     return f"index {idx}" if idx is not None else f"tag {tag}"

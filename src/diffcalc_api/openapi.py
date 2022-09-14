@@ -4,7 +4,7 @@ import json
 
 from fastapi.openapi.utils import get_openapi
 
-from diffcalc_API.server import app
+from diffcalc_api.server import app
 
 if __name__ == "__main__":
     with open("openapi.json", "w") as f:

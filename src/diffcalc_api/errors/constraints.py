@@ -1,8 +1,8 @@
 """Errors that can be raised when accessing constraints endpoints."""
 import numpy as np
 
-from diffcalc_API.config import ALL_CONSTRAINTS
-from diffcalc_API.errors.definitions import (
+from diffcalc_api.config import ALL_CONSTRAINTS
+from diffcalc_api.errors.definitions import (
     ALL_RESPONSES,
     DiffcalcAPIException,
     ErrorCodesBase,

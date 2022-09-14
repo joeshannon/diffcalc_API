@@ -4,9 +4,9 @@ from typing import Dict, Optional
 
 from fastapi import APIRouter, Body, Depends, Query
 
-from diffcalc_API.models.response import InfoResponse, StringResponse
-from diffcalc_API.services import constraints as service
-from diffcalc_API.stores.protocol import HklCalcStore, get_store
+from diffcalc_api.models.response import InfoResponse, StringResponse
+from diffcalc_api.services import constraints as service
+from diffcalc_api.stores.protocol import HklCalcStore, get_store
 
 router = APIRouter(prefix="/constraints", tags=["constraints"])
 

@@ -8,9 +8,9 @@ from diffcalc.hkl.geometry import Position
 from diffcalc.ub.calc import UBCalculation
 from fastapi.testclient import TestClient
 
-from diffcalc_API.errors.hkl import ErrorCodes
-from diffcalc_API.server import app
-from diffcalc_API.stores.protocol import HklCalcStore, get_store
+from diffcalc_api.errors.hkl import ErrorCodes
+from diffcalc_api.server import app
+from diffcalc_api.stores.protocol import HklCalcStore, get_store
 from tests.conftest import FakeHklCalcStore
 
 dummy_hkl = HklCalculation(UBCalculation(name="dummy"), Constraints())
@@ -114,7 +114,7 @@ def test_scan_hkl_raises_invalid_solution_bounds_error_for_wrong_inputs(
     assert lab_positions.status_code == ErrorCodes.INVALID_SOLUTION_BOUNDS
     assert (
         ast.literal_eval(lab_positions.content.decode())["type"]
-        == "<class 'diffcalc_API.errors.hkl.InvalidSolutionBoundsError'>"
+        == "<class 'diffcalc_api.errors.hkl.InvalidSolutionBoundsError'>"
     )
 
 
@@ -158,7 +158,7 @@ def test_scan_hkl_raises_invalid_miller_indices_error_for_wrong_inputs(
 
     assert (
         ast.literal_eval(lab_positions.content.decode())["type"]
-        == "<class 'diffcalc_API.errors.hkl.InvalidMillerIndicesError'>"
+        == "<class 'diffcalc_api.errors.hkl.InvalidMillerIndicesError'>"
     )
 
 
