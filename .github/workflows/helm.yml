@@ -42,4 +42,4 @@ jobs:
         run: |
           helm dependencies update helm/diffcalc-api
           helm package helm/diffcalc-api --version ${GITHUB_REF##*/} -d /tmp/
-          helm push /tmp/diffcalc-api-${GITHUB_REF##*/}.tgz oci://ghcr.io/rayemelyanova/charts
+          helm push /tmp/diffcalc-api-${GITHUB_REF##*/}.tgz oci://ghcr.io/diamondlightsource/charts
