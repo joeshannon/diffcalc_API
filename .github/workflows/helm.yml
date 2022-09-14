@@ -1,11 +1,9 @@
 name: Helm CI
 
-on: [push]
-
-# on:
-#   push:
-#     tags:
-#       - '*'
+on:
+  push:
+    tags:
+      - '*'
 
 env:
   GCR_IMAGE: ghcr.io/diamondlightsource/diffcalc-api
@@ -43,9 +41,5 @@ jobs:
       - name: package chart and push it
         run: |
           helm dependencies update helm/diffcalc-api
-          helm package helm/diffcalc-api --version 0.1.0 -d /tmp/
-          helm push /tmp/diffcalc-api-0.1.0.tgz oci://ghcr.io/diamondlightsource/charts
-
-
-# helm package helm/diffcalc-api --version ${GITHUB_REF##*/} -d /tmp/
-# helm push /tmp/diffcalc-api-${GITHUB_REF##*/}.tgz oci://ghcr.io/diamondlightsource/charts
+          helm package helm/diffcalc-api --version ${GITHUB_REF##*/} -d /tmp/
+          helm push /tmp/diffcalc-api-${GITHUB_REF##*/}.tgz oci://ghcr.io/diamondlightsource/charts
