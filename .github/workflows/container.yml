@@ -1,11 +1,9 @@
 name: Container CI
 
-on: [push]
-
-# on:
-#   push:
-#     tags:
-#       - '*'
+on:
+  push:
+    tags:
+      - '*'
 
 env:
   REGISTRY: ghcr.io
