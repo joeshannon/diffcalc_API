@@ -59,6 +59,6 @@ typed-ast==1.5.4
 typing-extensions==4.3.0
 urllib3==1.26.12
 uvicorn==0.18.3
-virtualenv==20.16.4
+virtualenv==20.16.5
 virtualenv-clone==0.5.7
 zipp==3.8.1
