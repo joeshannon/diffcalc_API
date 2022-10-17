@@ -103,6 +103,10 @@ mongodb:
   persistence:
     existingClaim: diffcalc-mongo-volume
     createNew: false
+  livenessProbe:
+    enabled: false
+  readinessProbe:
+    enabled: false
   customLivenessProbe:
     exec:
       command:
