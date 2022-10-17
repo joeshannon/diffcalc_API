@@ -15,7 +15,7 @@ fastapi==0.85.1
 filelock==3.8.0
 flake8==5.0.4
 flake8-isort==4.2.0
-h11==0.13.0
+h11==0.14.0
 identify==2.5.5
 idna==3.4
 imagesize==1.4.1
