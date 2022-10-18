@@ -14,7 +14,7 @@ docutils==0.19
 fastapi==0.85.1
 filelock==3.8.0
 flake8==5.0.4
-flake8-isort==4.2.0
+flake8-isort==5.0.0
 h11==0.14.0
 identify==2.5.6
 idna==3.4
