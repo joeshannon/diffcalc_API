@@ -1,5 +1,5 @@
 alabaster==0.7.12
-anyio==3.6.1
+anyio==3.6.2
 attrs==22.1.0
 babel==2.10.3
 black==22.10.0
