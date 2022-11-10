@@ -327,10 +327,9 @@ async def set_miscut(
         name: the name of the hkl object to access within the store
         rot_axis: the rotational axis of the miscut
         angle: the miscut angle
-        add_miscut: if True, apply provided miscu
+        add_miscut: boolean determining extra processing on U matrix before it is set
         store: accessor to the hkl object
         collection: collection within which the hkl object resides
-
     """
     hklcalc = await store.load(name, collection)
 
@@ -345,6 +344,16 @@ async def get_miscut(
     store: HklCalcStore,
     collection: Optional[str],
 ) -> Tuple[float, List[float]]:
+    """Get the rotation axis and angle of the miscut, using current UB matrix.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+
+    Returns:
+        miscut angle and miscut axis as a list.
+    """
     hklcalc = await store.load(name, collection)
 
     ubcalc: UBCalculation = hklcalc.ubcalc
@@ -363,6 +372,18 @@ async def get_miscut_from_hkl(
     store: HklCalcStore,
     collection: Optional[str],
 ) -> Tuple[float, Tuple[float, float, float]]:
+    """Get the rotation axis and angle of the miscut using a single reflection.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        hkl: hkl of the reflection
+        pos: position of the reflection
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+
+    Returns:
+        miscut angle and miscut axis as a tuple.
+    """
     hklcalc = await store.load(name, collection)
 
     ubcalc: UBCalculation = hklcalc.ubcalc
@@ -401,7 +422,7 @@ async def calculate_ub(
     objects.
 
     Returns:
-        a list of angles, combined together into one dictionary.
+        3x3 UB matrix in list form
 
     """
     hklcalc = await store.load(name, collection)
@@ -421,6 +442,14 @@ async def set_u(
     store: HklCalcStore,
     collection: Optional[str],
 ):
+    """Manually set the U matrix.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        u_matrix: 3d array containing the U matrix
+        store: accessor to the hkl object.
+        collection: collection within which the hkl object resides.
+    """
     hklcalc = await store.load(name, collection)
 
     ubcalc: UBCalculation = hklcalc.ubcalc
@@ -435,6 +464,14 @@ async def set_ub(
     store: HklCalcStore,
     collection: Optional[str],
 ):
+    """Manually set the UB matrix.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        ub_matrix: 3d array containing the UB matrix
+        store: accessor to the hkl object.
+        collection: collection within which the hkl object resides.
+    """
     hklcalc = await store.load(name, collection)
 
     ubcalc: UBCalculation = hklcalc.ubcalc

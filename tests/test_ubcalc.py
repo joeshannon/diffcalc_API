@@ -11,7 +11,7 @@ from fastapi.testclient import TestClient
 
 from diffcalc_api.errors.ub import ErrorCodes, NoUbMatrixError
 from diffcalc_api.server import app
-from diffcalc_api.stores.protocol import HklCalcStore, get_store
+from diffcalc_api.stores.protocol import get_store
 from tests.conftest import FakeHklCalcStore
 
 
