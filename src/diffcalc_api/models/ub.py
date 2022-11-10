@@ -85,3 +85,13 @@ def select_idx_or_tag_str(idx: Optional[int], tag: Optional[str]) -> str:
     Return a string for diffcalc_api.models.response.InfoResponse endpoint responses.
     """
     return f"index {idx}" if idx is not None else f"tag {tag}"
+
+
+class MiscutModel(BaseModel):
+    """Describe a miscut.
+
+    Miscut requires a rotation axis definition, and an angle from this rotation axis.
+    """
+
+    angle: float
+    rotation_axis: XyzModel

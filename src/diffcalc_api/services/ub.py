@@ -1,17 +1,21 @@
 """Business logic for handling requests from ub endpoints."""
 
-from typing import Optional, Union
+from typing import List, Optional, Tuple, Union
 
+import numpy as np
 from diffcalc.hkl.geometry import Position
+from diffcalc.ub.calc import UBCalculation
 
-from diffcalc_api.errors.ub import ReferenceRetrievalError
+from diffcalc_api.errors.ub import NoUbMatrixError, ReferenceRetrievalError
 from diffcalc_api.models.ub import (
     AddOrientationParams,
     AddReflectionParams,
     EditOrientationParams,
     EditReflectionParams,
     HklModel,
+    PositionModel,
     SetLatticeParams,
+    XyzModel,
 )
 from diffcalc_api.stores.protocol import HklCalcStore
 
@@ -305,5 +309,135 @@ async def modify_property(
     hklcalc = await store.load(name, collection)
 
     setattr(hklcalc.ubcalc, property, tuple(target_value.dict().values()))
+
+    await store.save(name, hklcalc, collection)
+
+
+async def set_miscut(
+    name: str,
+    rot_axis: XyzModel,
+    angle: float,
+    add_miscut: bool,
+    store: HklCalcStore,
+    collection: Optional[str],
+) -> None:
+    """Find the U matrix using a miscut axis/angle, and set this as the new U matrix.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        rot_axis: the rotational axis of the miscut
+        angle: the miscut angle
+        add_miscut: if True, apply provided miscu
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+
+    """
+    hklcalc = await store.load(name, collection)
+
+    ubcalc: UBCalculation = hklcalc.ubcalc
+    ubcalc.set_miscut((rot_axis.x, rot_axis.y, rot_axis.z), angle, add_miscut)
+
+    await store.save(name, hklcalc, collection)
+
+
+async def get_miscut(
+    name: str,
+    store: HklCalcStore,
+    collection: Optional[str],
+) -> Tuple[float, List[float]]:
+    hklcalc = await store.load(name, collection)
+
+    ubcalc: UBCalculation = hklcalc.ubcalc
+    try:
+        angle, axis = ubcalc.get_miscut()
+    except ValueError:
+        raise NoUbMatrixError()
+
+    return angle, axis.T.tolist()[0]
+
+
+async def get_miscut_from_hkl(
+    name: str,
+    hkl: HklModel,
+    pos: PositionModel,
+    store: HklCalcStore,
+    collection: Optional[str],
+) -> Tuple[float, Tuple[float, float, float]]:
+    hklcalc = await store.load(name, collection)
+
+    ubcalc: UBCalculation = hklcalc.ubcalc
+    try:
+        angle, axis = ubcalc.get_miscut_from_hkl(
+            (hkl.h, hkl.k, hkl.l), Position(**pos.dict())
+        )
+    except ValueError:
+        raise NoUbMatrixError()
+
+    return angle, axis
+
+
+async def calculate_ub(
+    name: str,
+    store: HklCalcStore,
+    collection: Optional[str],
+    tag1: Optional[str],
+    idx1: Optional[int],
+    tag2: Optional[str],
+    idx2: Optional[int],
+) -> List[List[float]]:
+    """Calculate the UB matrix.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        store: accessor to the hkl object.
+        collection: collection within which the hkl object resides.
+        tag1: the tag of the first reference object.
+        idx1: the index of the first reference object.
+        tag2: the tag of the second reference object.
+        idx2: the index of the second reference object.
+
+    For each reference object, only a tag or index needs to be given. If none are
+    provided, diffcalc-core tries to work it out from the available reference
+    objects.
+
+    Returns:
+        a list of angles, combined together into one dictionary.
+
+    """
+    hklcalc = await store.load(name, collection)
+
+    first_retrieve: Optional[Union[str, int]] = tag1 if tag1 else idx1
+    second_retrieve: Optional[Union[str, int]] = tag2 if tag2 else idx2
+
+    hklcalc.ubcalc.calc_ub(first_retrieve, second_retrieve)
+
+    await store.save(name, hklcalc, collection)
+    return np.round(hklcalc.ubcalc.UB, 6).tolist()
+
+
+async def set_u(
+    name: str,
+    u_matrix: List[List[float]],
+    store: HklCalcStore,
+    collection: Optional[str],
+):
+    hklcalc = await store.load(name, collection)
+
+    ubcalc: UBCalculation = hklcalc.ubcalc
+    ubcalc.set_u(u_matrix)
+
+    await store.save(name, hklcalc, collection)
+
+
+async def set_ub(
+    name: str,
+    ub_matrix: List[List[float]],
+    store: HklCalcStore,
+    collection: Optional[str],
+):
+    hklcalc = await store.load(name, collection)
+
+    ubcalc: UBCalculation = hklcalc.ubcalc
+    ubcalc.set_ub(ub_matrix)
 
     await store.save(name, hklcalc, collection)

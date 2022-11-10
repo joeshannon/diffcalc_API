@@ -20,6 +20,7 @@ class ErrorCodes(ErrorCodesBase):
     INVALID_PROPERTY = 400
     NO_TAG_OR_IDX_PROVIDED = 400
     BOTH_TAG_OR_IDX_PROVIDED = 400
+    NO_UB_MATRIX_ERROR = 400
 
 
 responses = {code: ALL_RESPONSES[code] for code in np.unique(ErrorCodes.all_codes())}
@@ -91,3 +92,16 @@ class InvalidPropertyError(DiffcalcAPIException):
         """Set detail and status code."""
         self.detail = f"invalid property. Choose one of: {VECTOR_PROPERTIES}"
         self.status_code = ErrorCodes.INVALID_PROPERTY
+
+
+class NoUbMatrixError(DiffcalcAPIException):
+    """When there is no U/UB matrix, some commands in diffcalc-core fail."""
+
+    def __init__(self):
+        """Set detail and status code."""
+        self.detail = (
+            "It seems like there is no UB matrix for this record. Please "
+            + "try again after setting the UB matrix, either by calculating the UB from"
+            + " existing reflections/orientations or setting it explicitly."
+        )
+        self.status_code = ErrorCodes.NO_UB_MATRIX_ERROR
