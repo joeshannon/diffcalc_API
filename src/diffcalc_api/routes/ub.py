@@ -410,9 +410,9 @@ async def set_ub(
         store: accessor to the hkl object.
         collection: collection within which the hkl object resides.
     """
-    await service.set_u(name, ub_matrix, store, collection)
+    await service.set_ub(name, ub_matrix, store, collection)
     return InfoResponse(
-        payload=f"UB matrix set for crystal {name} of collection {collection}"
+        message=f"UB matrix set for crystal {name} of collection {collection}"
     )
 
 
@@ -435,7 +435,7 @@ async def set_u(
     """
     await service.set_u(name, u_matrix, store, collection)
     return InfoResponse(
-        payload=f"U matrix set for crystal {name} of collection {collection}"
+        message=f"U matrix set for crystal {name} of collection {collection}"
     )
 
 
