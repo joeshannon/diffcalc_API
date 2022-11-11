@@ -412,7 +412,7 @@ async def set_ub(
     """
     await service.set_u(name, ub_matrix, store, collection)
     return InfoResponse(
-        payload=f"UB matrix set for crystal {name} of collection {collection}"
+        message=f"UB matrix set for crystal {name} of collection {collection}"
     )
 
 
@@ -435,7 +435,7 @@ async def set_u(
     """
     await service.set_u(name, u_matrix, store, collection)
     return InfoResponse(
-        payload=f"U matrix set for crystal {name} of collection {collection}"
+        message=f"U matrix set for crystal {name} of collection {collection}"
     )
 
 
