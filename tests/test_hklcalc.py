@@ -229,27 +229,3 @@ def test_invalid_scans(client: TestClient):
     )
 
     assert invalid_wavelength_scan.status_code == ErrorCodes.INVALID_SCAN_BOUNDS
-
-
-def test_calc_ub(client: TestClient):
-    response = client.get(
-        "/hkl/test/UB", params={"first_tag": "refl1", "second_tag": "plane"}
-    )
-    expected_ub = [
-        [
-            1.27889,
-            -0.0,
-            0.0,
-        ],
-        [-0.0, 1.278111, 0.04057],
-        [-0.0, -0.044633, 1.161768],
-    ]
-
-    assert response.status_code == 200
-    assert ast.literal_eval(response.content.decode())["payload"] == expected_ub
-
-
-def test_calc_ub_fails_when_incorrect_tags(client: TestClient):
-    response = client.get("/hkl/test/UB", params={"tag1": "one", "idx2": 2})
-
-    assert response.status_code == 400

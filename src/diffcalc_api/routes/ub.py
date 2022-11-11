@@ -1,6 +1,6 @@
 """Endpoints relating to the management of setting up the UB calculation."""
 
-from typing import Optional
+from typing import List, Optional
 
 from fastapi import APIRouter, Body, Depends, Query
 
@@ -12,14 +12,22 @@ from diffcalc_api.errors.ub import (
     NoTagOrIdxProvidedError,
 )
 from diffcalc_api.examples import ub as examples
-from diffcalc_api.models.response import InfoResponse, StringResponse
+from diffcalc_api.models.response import (
+    ArrayResponse,
+    InfoResponse,
+    MiscutResponse,
+    StringResponse,
+)
 from diffcalc_api.models.ub import (
     AddOrientationParams,
     AddReflectionParams,
     EditOrientationParams,
     EditReflectionParams,
     HklModel,
+    MiscutModel,
+    PositionModel,
     SetLatticeParams,
+    XyzModel,
     select_idx_or_tag_str,
 )
 from diffcalc_api.services import ub as service
@@ -266,6 +274,168 @@ async def set_lattice(
             f"lattice has been set for UB calculation of crystal {name} in "
             + f"collection {collection}"
         )
+    )
+
+
+@router.put("/{name}/miscut", response_model=InfoResponse)
+async def set_miscut(
+    name: str,
+    rot_axis: XyzModel = Body(...),
+    angle: float = Query(...),
+    add_miscut: bool = Query(default=False),
+    store: HklCalcStore = Depends(get_store),
+    collection: Optional[str] = Query(default=None, example="B07"),
+):
+    """Find the U matrix using a miscut axis/angle, and set this as the new U matrix.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        rot_axis: the rotational axis of the miscut
+        angle: the miscut angle
+        add_miscut: boolean determining extra processing on U matrix before it is set
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+    """
+    await service.set_miscut(name, rot_axis, angle, add_miscut, store, collection)
+    return InfoResponse(
+        message=(
+            "Miscut has been set using the provided rotation axis and angle of the "
+            + f"miscut for crystal {name} of collection {collection}."
+        )
+    )
+
+
+@router.get("/{name}/miscut", response_model=MiscutResponse)
+async def get_miscut(
+    name: str,
+    store: HklCalcStore = Depends(get_store),
+    collection: Optional[str] = Query(default=None, example="B07"),
+):
+    """Get the rotation axis and angle of the miscut, using current UB matrix.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+
+    Returns:
+        miscut angle and miscut axis as a list.
+    """
+    angle, axis = await service.get_miscut(name, store, collection)
+    return MiscutResponse(
+        payload=MiscutModel(
+            angle=angle, rotation_axis=XyzModel(x=axis[0], y=axis[1], z=axis[2])
+        )
+    )
+
+
+@router.get("/{name}/miscut/hkl", response_model=MiscutResponse)
+async def get_miscut_from_hkl(
+    name: str,
+    hkl: HklModel = Depends(),
+    pos: PositionModel = Depends(),
+    store: HklCalcStore = Depends(get_store),
+    collection: Optional[str] = Query(default=None, example="B07"),
+):
+    """Get the rotation axis and angle of the miscut using a single reflection.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        hkl: hkl of the reflection
+        pos: position of the reflection
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+
+    Returns:
+        miscut angle and miscut axis as a tuple.
+    """
+    angle, axis = await service.get_miscut_from_hkl(name, hkl, pos, store, collection)
+    return MiscutResponse(
+        payload=MiscutModel(
+            angle=angle, rotation_axis=XyzModel(x=axis[0], y=axis[1], z=axis[2])
+        )
+    )
+
+
+@router.get("/{name}/ub", response_model=ArrayResponse)
+async def calculate_ub(
+    name: str,
+    tag1: Optional[str] = Query(default=None, example="refl1"),
+    idx1: Optional[int] = Query(default=None),
+    tag2: Optional[str] = Query(default=None, example="plane"),
+    idx2: Optional[int] = Query(default=None),
+    store: HklCalcStore = Depends(get_store),
+    collection: Optional[str] = Query(default=None, example="B07"),
+):
+    """Calculate the UB matrix.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        store: accessor to the hkl object.
+        collection: collection within which the hkl object resides.
+        tag1: the tag of the first reference object.
+        idx1: the index of the first reference object.
+        tag2: the tag of the second reference object.
+        idx2: the index of the second reference object.
+
+    For each reference object, only a tag or index needs to be given. If none are
+    provided, diffcalc-core tries to work it out from the available reference
+    objects.
+
+    Returns:
+        ArrayResponse object containing a list of angles, combined together into one
+        dictionary.
+
+    """
+    content = await service.calculate_ub(
+        name, store, collection, tag1, idx1, tag2, idx2
+    )
+    return ArrayResponse(payload=content)
+
+
+@router.put("/{name}/ub", response_model=InfoResponse)
+async def set_ub(
+    name: str,
+    ub_matrix: List[List[float]] = Body(
+        ..., example=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
+    ),
+    store: HklCalcStore = Depends(get_store),
+    collection: Optional[str] = Query(default=None, example="B07"),
+):
+    """Manually set the UB matrix.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        u_matrix: 3d array containing the UB matrix
+        store: accessor to the hkl object.
+        collection: collection within which the hkl object resides.
+    """
+    await service.set_u(name, ub_matrix, store, collection)
+    return InfoResponse(
+        payload=f"UB matrix set for crystal {name} of collection {collection}"
+    )
+
+
+@router.put("/{name}/u", response_model=InfoResponse)
+async def set_u(
+    name: str,
+    u_matrix: List[List[float]] = Body(
+        ..., example=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
+    ),
+    store: HklCalcStore = Depends(get_store),
+    collection: Optional[str] = Query(default=None, example="B07"),
+):
+    """Manually set the U matrix.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        u_matrix: 3d array containing the U matrix
+        store: accessor to the hkl object.
+        collection: collection within which the hkl object resides.
+    """
+    await service.set_u(name, u_matrix, store, collection)
+    return InfoResponse(
+        payload=f"U matrix set for crystal {name} of collection {collection}"
     )
 
 

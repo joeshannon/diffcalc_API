@@ -7,7 +7,6 @@ from fastapi import APIRouter, Depends, Query
 from diffcalc_api.errors.hkl import InvalidSolutionBoundsError
 from diffcalc_api.models.hkl import SolutionConstraints
 from diffcalc_api.models.response import (
-    ArrayResponse,
     DiffractorAnglesResponse,
     MillerIndicesResponse,
     ScanResponse,
@@ -17,42 +16,6 @@ from diffcalc_api.services import hkl as service
 from diffcalc_api.stores.protocol import HklCalcStore, get_store
 
 router = APIRouter(prefix="/hkl", tags=["hkl"])
-
-
-@router.get("/{name}/UB", response_model=ArrayResponse)
-async def calculate_ub(
-    name: str,
-    tag1: Optional[str] = Query(default=None, example="refl1"),
-    idx1: Optional[int] = Query(default=None),
-    tag2: Optional[str] = Query(default=None, example="plane"),
-    idx2: Optional[int] = Query(default=None),
-    store: HklCalcStore = Depends(get_store),
-    collection: Optional[str] = Query(default=None, example="B07"),
-):
-    """Calculate the UB matrix.
-
-    Args:
-        name: the name of the hkl object to access within the store
-        store: accessor to the hkl object.
-        collection: collection within which the hkl object resides.
-        tag1: the tag of the first reference object.
-        idx1: the index of the first reference object.
-        tag2: the tag of the second reference object.
-        idx2: the index of the second reference object.
-
-    For each reference object, only a tag or index needs to be given. If none are
-    provided, diffcalc-core tries to work it out from the available reference
-    objects.
-
-    Returns:
-        ArrayResponse object containing a list of angles, combined together into one
-        dictionary.
-
-    """
-    content = await service.calculate_ub(
-        name, store, collection, tag1, idx1, tag2, idx2
-    )
-    return ArrayResponse(payload=content)
 
 
 @router.get("/{name}/position/lab", response_model=DiffractorAnglesResponse)

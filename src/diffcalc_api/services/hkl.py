@@ -1,7 +1,7 @@
 """Defines business logic for handling requests from hkl endpoints."""
 
 from itertools import product
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 from diffcalc.hkl.geometry import Position
@@ -265,42 +265,3 @@ def combine_lab_position_results(
             result.append({**physical_angles.asdict, **virtual_angles})
 
     return result
-
-
-async def calculate_ub(
-    name: str,
-    store: HklCalcStore,
-    collection: Optional[str],
-    tag1: Optional[str],
-    idx1: Optional[int],
-    tag2: Optional[str],
-    idx2: Optional[int],
-) -> List[List[float]]:
-    """Calculate the UB matrix.
-
-    Args:
-        name: the name of the hkl object to access within the store
-        store: accessor to the hkl object.
-        collection: collection within which the hkl object resides.
-        tag1: the tag of the first reference object.
-        idx1: the index of the first reference object.
-        tag2: the tag of the second reference object.
-        idx2: the index of the second reference object.
-
-    For each reference object, only a tag or index needs to be given. If none are
-    provided, diffcalc-core tries to work it out from the available reference
-    objects.
-
-    Returns:
-        a list of angles, combined together into one dictionary.
-
-    """
-    hklcalc = await store.load(name, collection)
-
-    first_retrieve: Optional[Union[str, int]] = tag1 if tag1 else idx1
-    second_retrieve: Optional[Union[str, int]] = tag2 if tag2 else idx2
-
-    hklcalc.ubcalc.calc_ub(first_retrieve, second_retrieve)
-
-    await store.save(name, hklcalc, collection)
-    return np.round(hklcalc.ubcalc.UB, 6).tolist()

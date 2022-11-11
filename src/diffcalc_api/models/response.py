@@ -3,7 +3,7 @@ from typing import Dict, List
 
 from pydantic import BaseModel
 
-from diffcalc_api.models.ub import HklModel
+from diffcalc_api.models.ub import HklModel, MiscutModel
 
 
 class InfoResponse(BaseModel):
@@ -54,3 +54,12 @@ class MillerIndicesResponse(BaseModel):
     """
 
     payload: HklModel
+
+
+class MiscutResponse(BaseModel):
+    """Response for any operation returning miscuts.
+
+    Only used for endpoints in ub routes.
+    """
+
+    payload: MiscutModel
