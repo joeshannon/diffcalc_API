@@ -381,9 +381,13 @@ def test_set_u():
     client = Client(hkl).client
 
     u_matrix = np.identity(3)
-    client.put("/ub/test/u?collection=B07", json=u_matrix.tolist())
+    response = client.put("/ub/test/u?collection=B07", json=u_matrix.tolist())
 
     assert np.all(ubcalc.U == u_matrix)
+    assert (
+        literal_eval(response.content.decode())["message"]
+        == "U matrix set for crystal test of collection B07"
+    )
 
 
 def test_set_ub():
@@ -392,9 +396,13 @@ def test_set_ub():
     client = Client(hkl).client
 
     ub_matrix = np.identity(3)
-    client.put("/ub/test/ub?collection=B07", json=ub_matrix.tolist())
+    response = client.put("/ub/test/ub?collection=B07", json=ub_matrix.tolist())
 
-    assert np.all(ubcalc.U == ub_matrix)
+    assert np.all(ubcalc.UB == ub_matrix)
+    assert (
+        literal_eval(response.content.decode())["message"]
+        == "UB matrix set for crystal test of collection B07"
+    )
 
 
 def test_modify_property():
