@@ -20,7 +20,9 @@ from diffcalc_api.models.ub import (
 from diffcalc_api.stores.protocol import HklCalcStore
 
 
-async def get_ub(name: str, store: HklCalcStore, collection: Optional[str]) -> str:
+async def get_ub_status(
+    name: str, store: HklCalcStore, collection: Optional[str]
+) -> str:
     """Get the status of the UB object in the hkl object.
 
     Args:
@@ -34,6 +36,54 @@ async def get_ub(name: str, store: HklCalcStore, collection: Optional[str]) -> s
     hklcalc = await store.load(name, collection)
 
     return str(hklcalc.ubcalc)
+
+
+async def get_ub(
+    name: str, store: HklCalcStore, collection: Optional[str]
+) -> List[List[float]]:
+    """Get the status of the UB object in the hkl object.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+
+    Returns:
+        a string with the current state of the UB object
+    """
+    hklcalc = await store.load(name, collection)
+    ubcalc: UBCalculation = hklcalc.ubcalc
+
+    if ubcalc.UB is not None:
+        return ubcalc.UB.tolist()
+    else:
+        raise NoUbMatrixError(
+            "Cannot retrieve UB matrix. Are you sure it's been set/calculated?"
+        )
+
+
+async def get_u(
+    name: str, store: HklCalcStore, collection: Optional[str]
+) -> List[List[float]]:
+    """Get the status of the UB object in the hkl object.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+
+    Returns:
+        a string with the current state of the UB object
+    """
+    hklcalc = await store.load(name, collection)
+    ubcalc: UBCalculation = hklcalc.ubcalc
+
+    if ubcalc.U is not None:
+        return ubcalc.U.tolist()
+    else:
+        raise NoUbMatrixError(
+            "Cannot retrieve U matrix. Are you sure it's been set/calculated?"
+        )
 
 
 async def add_reflection(

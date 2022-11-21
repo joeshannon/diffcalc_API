@@ -36,26 +36,6 @@ from diffcalc_api.stores.protocol import HklCalcStore, get_store
 router = APIRouter(prefix="/ub", tags=["ub"])
 
 
-@router.get("/{name}", response_model=StringResponse)
-async def get_ub(
-    name: str,
-    store: HklCalcStore = Depends(get_store),
-    collection: Optional[str] = Query(default=None, example="B07"),
-):
-    """Get the status of the UB object in the hkl object.
-
-    Args:
-        name: the name of the hkl object to access within the store
-        store: accessor to the hkl object
-        collection: collection within which the hkl object resides
-
-    Returns:
-        a string with the current state of the UB object
-    """
-    content = await service.get_ub(name, store, collection)
-    return StringResponse(payload=content)
-
-
 @router.post("/{name}/reflection", response_model=InfoResponse)
 async def add_reflection(
     name: str,
@@ -357,7 +337,7 @@ async def get_miscut_from_hkl(
     )
 
 
-@router.get("/{name}/ub", response_model=ArrayResponse)
+@router.get("/{name}/calculate/ub", response_model=ArrayResponse)
 async def calculate_ub(
     name: str,
     tag1: Optional[str] = Query(default=None, example="refl1"),
@@ -437,6 +417,68 @@ async def set_u(
     return InfoResponse(
         message=f"U matrix set for crystal {name} of collection {collection}"
     )
+
+
+@router.get("/{name}/ub", response_model=ArrayResponse)
+async def get_ub(
+    name: str,
+    store: HklCalcStore = Depends(get_store),
+    collection: Optional[str] = Query(default=None, example="B07"),
+):
+    """Get the UB matrix.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        store: accessor to the hkl object.
+        collection: collection within which the hkl object resides.
+
+    Returns:
+        ArrayResponse object with the UB matrix as an array.
+
+    """
+    content = await service.get_ub(name, store, collection)
+    return ArrayResponse(payload=content)
+
+
+@router.get("/{name}/u", response_model=ArrayResponse)
+async def get_u(
+    name: str,
+    store: HklCalcStore = Depends(get_store),
+    collection: Optional[str] = Query(default=None, example="B07"),
+):
+    """Get the U matrix.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        store: accessor to the hkl object.
+        collection: collection within which the hkl object resides.
+
+    Returns:
+        ArrayResponse object with the U matrix as an array.
+
+    """
+    content = await service.get_u(name, store, collection)
+    return ArrayResponse(payload=content)
+
+
+@router.get("/{name}/status/ub", response_model=StringResponse)
+async def get_ub_status(
+    name: str,
+    store: HklCalcStore = Depends(get_store),
+    collection: Optional[str] = Query(default=None, example="B07"),
+):
+    """Get the status of the UB object in the hkl object.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+
+    Returns:
+        a string with the current state of the UB object
+    """
+    content = await service.get_ub_status(name, store, collection)
+    return StringResponse(payload=content)
 
 
 @router.put("/{name}/{property}", response_model=InfoResponse)

@@ -97,11 +97,15 @@ class InvalidPropertyError(DiffcalcAPIException):
 class NoUbMatrixError(DiffcalcAPIException):
     """When there is no U/UB matrix, some commands in diffcalc-core fail."""
 
-    def __init__(self):
+    def __init__(self, message: Optional[str] = None):
         """Set detail and status code."""
         self.detail = (
-            "It seems like there is no UB matrix for this record. Please "
-            + "try again after setting the UB matrix, either by calculating the UB from"
-            + " existing reflections/orientations or setting it explicitly."
+            (
+                "It seems like there is no UB matrix for this record. Please "
+                + "try again after setting the UB matrix, either by calculating the UB"
+                + " from existing reflections/orientations or setting it explicitly."
+            )
+            if message is None
+            else message
         )
         self.status_code = ErrorCodes.NO_UB_MATRIX_ERROR
