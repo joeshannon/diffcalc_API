@@ -31,11 +31,11 @@ def client_generator(request) -> Client:
     return Client(request.param)
 
 
-def test_get_ub():
+def test_get_ub_status():
     hkl = HklCalculation(UBCalculation("dummy"), Constraints())
     client = Client(hkl).client
 
-    response = client.get("/ub/test")
+    response = client.get("/ub/test/status")
     assert ast.literal_eval(response.content.decode())["payload"] == (
         "UBCALC\n\n"
         + "   name:         dummy"
@@ -55,6 +55,32 @@ def test_get_ub():
         + "   <<< none specified >>>"
     )
     assert response.status_code == 200
+
+
+def test_get_ub():
+    ubcalc = UBCalculation()
+    hkl = HklCalculation(ubcalc, Constraints())
+    client = Client(hkl).client
+
+    ubcalc.UB = np.identity(3)
+
+    response = client.get("/ub/test/ub")
+
+    assert response.status_code == 200
+    assert literal_eval(response.content.decode())["payload"] == np.identity(3).tolist()
+
+
+def test_get_u():
+    ubcalc = UBCalculation()
+    hkl = HklCalculation(ubcalc, Constraints())
+    client = Client(hkl).client
+
+    ubcalc.U = np.identity(3)
+
+    response = client.get("/ub/test/u")
+
+    assert response.status_code == 200
+    assert literal_eval(response.content.decode())["payload"] == np.identity(3).tolist()
 
 
 def test_add_reflection():
@@ -348,7 +374,7 @@ def test_calc_ub():
     ubcalc.calc_ub("refl1", "plane")
 
     response = client.get(
-        "/ub/test/ub", params={"first_tag": "refl1", "second_tag": "plane"}
+        "/ub/test/calculate", params={"first_tag": "refl1", "second_tag": "plane"}
     )
     expected_ub = [
         [
@@ -361,7 +387,10 @@ def test_calc_ub():
     ]
 
     assert response.status_code == 200
-    assert ast.literal_eval(response.content.decode())["payload"] == expected_ub
+    assert np.all(
+        np.round(ast.literal_eval(response.content.decode())["payload"], 5)
+        == np.round(expected_ub, 5)
+    )
 
 
 def test_calc_ub_fails_when_incorrect_tags():

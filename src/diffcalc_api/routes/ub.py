@@ -337,7 +337,7 @@ async def get_miscut_from_hkl(
     )
 
 
-@router.get("/{name}/calculate/ub", response_model=ArrayResponse)
+@router.get("/{name}/calculate", response_model=ArrayResponse)
 async def calculate_ub(
     name: str,
     tag1: Optional[str] = Query(default=None, example="refl1"),
@@ -461,7 +461,7 @@ async def get_u(
     return ArrayResponse(payload=content)
 
 
-@router.get("/{name}/status/ub", response_model=StringResponse)
+@router.get("/{name}/status", response_model=StringResponse)
 async def get_ub_status(
     name: str,
     store: HklCalcStore = Depends(get_store),
