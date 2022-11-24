@@ -1,5 +1,6 @@
 import ast
 from ast import literal_eval
+from typing import Dict
 
 import numpy as np
 import pytest
@@ -434,24 +435,37 @@ def test_set_ub():
     )
 
 
-def test_modify_property():
+@pytest.mark.parametrize(
+    ["url", "body", "property"],
+    [
+        ["/ub/test/nhkl?collection=B07", {"h": 0, "k": 0, "l": 1}, "n_hkl"],
+        ["/ub/test/nphi?collection=B07", {"x": 0, "y": 0, "z": 1}, "n_phi"],
+        ["/ub/test/surface/nhkl?collection=B07", {"h": 0, "k": 0, "l": 1}, "surf_nhkl"],
+        ["/ub/test/surface/nphi?collection=B07", {"x": 0, "y": 0, "z": 1}, "surf_nphi"],
+    ],
+)
+def test_get_and_set_reference_vectors_hkl(
+    url: str, body: Dict[str, float], property: str
+):
     ubcalc = UBCalculation()
     hkl = HklCalculation(ubcalc, Constraints())
     client = Client(hkl).client
-    response = client.put(
-        "/ub/test/n_hkl",
-        json={"h": 0, "k": 0, "l": 1},
+    response_put = client.put(
+        url,
+        json=body,
     )
 
-    assert response.status_code == 200
-    assert np.all(ubcalc.n_hkl == np.transpose([[0, 0, 1]]))
+    if property.endswith("hkl"):
+        body_as_array = np.array([[body["h"], body["k"], body["l"]]])
+    else:
+        body_as_array = np.array([[body["x"], body["y"], body["z"]]])
 
+    assert response_put.status_code == 200
+    assert np.all(getattr(ubcalc, property) == np.transpose(body_as_array))
 
-def test_modify_non_existent_property():
-    hkl = HklCalculation(UBCalculation(), Constraints())
-    client = Client(hkl).client
-    response = client.put(
-        "/ub/test/silly_property",
-        json={"h": 0, "k": 0, "l": 1},
+    response_get = client.get(url)
+
+    assert np.all(
+        np.array(literal_eval(response_get.content.decode())["payload"]).T
+        == body_as_array
     )
-    assert response.status_code == ErrorCodes.INVALID_PROPERTY

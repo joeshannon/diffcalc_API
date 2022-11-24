@@ -1,13 +1,12 @@
 """Endpoints relating to the management of setting up the UB calculation."""
 
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from fastapi import APIRouter, Body, Depends, Query
 
-from diffcalc_api.config import VECTOR_PROPERTIES
-from diffcalc_api.errors.ub import (
+# from diffcalc_api.config import VECTOR_PROPERTIES
+from diffcalc_api.errors.ub import (  # InvalidPropertyError,
     BothTagAndIdxProvidedError,
-    InvalidPropertyError,
     InvalidSetLatticeParamsError,
     NoTagOrIdxProvidedError,
 )
@@ -34,6 +33,31 @@ from diffcalc_api.services import ub as service
 from diffcalc_api.stores.protocol import HklCalcStore, get_store
 
 router = APIRouter(prefix="/ub", tags=["ub"])
+
+
+@router.get("/{name}/status", response_model=StringResponse)
+async def get_ub_status(
+    name: str,
+    store: HklCalcStore = Depends(get_store),
+    collection: Optional[str] = Query(default=None, example="B07"),
+):
+    """Get the status of the UB object in the hkl object.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+
+    Returns:
+        a string with the current state of the UB object
+    """
+    content = await service.get_ub_status(name, store, collection)
+    return StringResponse(payload=content)
+
+
+#######################################################################################
+#                                     Reflections                                     #
+#######################################################################################
 
 
 @router.post("/{name}/reflection", response_model=InfoResponse)
@@ -132,6 +156,11 @@ async def delete_reflection(
     )
 
 
+#######################################################################################
+#                                    Orientations                                     #
+#######################################################################################
+
+
 @router.post("/{name}/orientation", response_model=InfoResponse)
 async def add_orientation(
     name: str,
@@ -227,6 +256,11 @@ async def delete_orientation(
     )
 
 
+#######################################################################################
+#                                       Crystal                                       #
+#######################################################################################
+
+
 @router.patch("/{name}/lattice", response_model=InfoResponse)
 async def set_lattice(
     name: str,
@@ -255,6 +289,11 @@ async def set_lattice(
             + f"collection {collection}"
         )
     )
+
+
+#######################################################################################
+#                                       Miscuts                                       #
+#######################################################################################
 
 
 @router.put("/{name}/miscut", response_model=InfoResponse)
@@ -335,6 +374,11 @@ async def get_miscut_from_hkl(
             angle=angle, rotation_axis=XyzModel(x=axis[0], y=axis[1], z=axis[2])
         )
     )
+
+
+#######################################################################################
+#                                    U/UB Matrices                                    #
+#######################################################################################
 
 
 @router.get("/{name}/calculate", response_model=ArrayResponse)
@@ -461,52 +505,214 @@ async def get_u(
     return ArrayResponse(payload=content)
 
 
-@router.get("/{name}/status", response_model=StringResponse)
-async def get_ub_status(
+#######################################################################################
+#                            Surface and Reference Vectors                            #
+#######################################################################################
+
+
+@router.put("/{name}/nphi", response_model=InfoResponse)
+async def set_lab_reference_vector(
     name: str,
+    target_value: XyzModel = Body(..., example={"x": 1, "y": 0, "z": 0}),
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
-    """Get the status of the UB object in the hkl object.
+    """Set the lab reference vector n_phi.
 
     Args:
         name: the name of the hkl object to access within the store
-        store: accessor to the hkl object
-        collection: collection within which the hkl object resides
+        target_value: the vector positon in real space
+        store: accessor to the hkl object.
+        collection: collection within which the hkl object resides.
 
     Returns:
-        a string with the current state of the UB object
+        InfoResponse describing the vector has been set successfully.
+
     """
-    content = await service.get_ub_status(name, store, collection)
-    return StringResponse(payload=content)
+    await service.set_lab_reference_vector(name, target_value, store, collection)
+    return InfoResponse(
+        message=f"Reference vector set for crystal {name} of collection {collection}"
+    )
 
 
-@router.put("/{name}/{property}", response_model=InfoResponse)
-async def modify_property(
+@router.put("/{name}/nhkl")
+async def set_miller_reference_vector(
     name: str,
-    property: str,
     target_value: HklModel = Body(..., example={"h": 1, "k": 0, "l": 0}),
     store: HklCalcStore = Depends(get_store),
     collection: Optional[str] = Query(default=None, example="B07"),
 ):
-    """Set a property of the UB object in a given hkl object.
+    """Set the reference vector n_hkl.
 
     Args:
         name: the name of the hkl object to access within the store
-        property: the property of the UB object to set
-        target_value: the miller indices to set them to
-        store: accessor to the hkl object
-        collection: collection within which the hkl object resides
+        target_value: the vector positon in reciprocal space
+        store: accessor to the hkl object.
+        collection: collection within which the hkl object resides.
 
-    The property to be set must be a valid vector property.
+    Returns:
+        InfoResponse describing the vector has been set successfully.
+
     """
-    if property not in VECTOR_PROPERTIES:
-        raise InvalidPropertyError()
-
-    await service.modify_property(name, property, target_value, store, collection)
+    await service.set_miller_reference_vector(name, target_value, store, collection)
     return InfoResponse(
-        message=(
-            f"{property} has been set for UB calculation of crystal {name} in "
-            + f"collection {collection}"
-        )
+        message=f"Reference vector set for crystal {name} of collection {collection}"
     )
+
+
+@router.put("/{name}/surface/nphi")
+async def set_lab_surface_normal(
+    name: str,
+    target_value: XyzModel = Body(..., example={"x": 1, "y": 0, "z": 0}),
+    store: HklCalcStore = Depends(get_store),
+    collection: Optional[str] = Query(default=None, example="B07"),
+):
+    """Set the reference vector surf_nphi.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        target_value: the vector positon in real space
+        store: accessor to the hkl object.
+        collection: collection within which the hkl object resides.
+
+    Returns:
+        InfoResponse describing the vector has been set successfully.
+
+    """
+    await service.set_lab_surface_normal(name, target_value, store, collection)
+    return InfoResponse(
+        message=f"Surface normal set for crystal {name} of collection {collection}"
+    )
+
+
+@router.put("/{name}/surface/nhkl")
+async def set_miller_surface_normal(
+    name: str,
+    target_value: HklModel = Body(..., example={"h": 1, "k": 0, "l": 0}),
+    store: HklCalcStore = Depends(get_store),
+    collection: Optional[str] = Query(default=None, example="B07"),
+):
+    """Set the reference vector surf_nhkl.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        target_value: the vector positon in reciprocal space
+        store: accessor to the hkl object.
+        collection: collection within which the hkl object resides.
+
+    Returns:
+        InfoResponse describing the vector has been set successfully.
+
+    """
+    await service.set_miller_surface_normal(name, target_value, store, collection)
+    return InfoResponse(
+        message=f"Surface normal set for crystal {name} of collection {collection}"
+    )
+
+
+@router.get("/{name}/nphi", response_model=Union[ArrayResponse, InfoResponse])
+async def get_lab_reference_vector(
+    name: str,
+    store: HklCalcStore = Depends(get_store),
+    collection: Optional[str] = Query(default=None, example="B07"),
+):
+    """Get the reference vector nphi.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        store: accessor to the hkl object.
+        collection: collection within which the hkl object resides.
+
+    Returns:
+        ArrayResponse with the vector, or
+        InfoResponse if it doesn't exist
+
+    """
+    lab_vector: Optional[List[List[float]]] = await service.get_lab_reference_vector(
+        name, store, collection
+    )
+    if lab_vector is not None:
+        return ArrayResponse(payload=lab_vector)
+    else:
+        return InfoResponse(message="This vector does not exist.")
+
+
+@router.get("/{name}/nhkl")
+async def get_miller_reference_vector(
+    name: str,
+    store: HklCalcStore = Depends(get_store),
+    collection: Optional[str] = Query(default=None, example="B07"),
+):
+    """Get the reference vector nhkl.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        store: accessor to the hkl object.
+        collection: collection within which the hkl object resides.
+
+    Returns:
+        ArrayResponse with the vector, or
+        InfoResponse if it doesn't exist
+
+    """
+    lab_vector: Optional[List[List[float]]] = await service.get_miller_reference_vector(
+        name, store, collection
+    )
+    if lab_vector is not None:
+        return ArrayResponse(payload=lab_vector)
+    else:
+        return InfoResponse(message="This vector does not exist.")
+
+
+@router.get("/{name}/surface/nphi")
+async def get_lab_surface_normal(
+    name: str,
+    store: HklCalcStore = Depends(get_store),
+    collection: Optional[str] = Query(default=None, example="B07"),
+):
+    """Get the surface normal surf_nphi.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        store: accessor to the hkl object.
+        collection: collection within which the hkl object resides.
+
+    Returns:
+        ArrayResponse with the vector, or
+        InfoResponse if it doesn't exist
+
+    """
+    lab_vector: Optional[List[List[float]]] = await service.get_lab_surface_normal(
+        name, store, collection
+    )
+    if lab_vector is not None:
+        return ArrayResponse(payload=lab_vector)
+    else:
+        return InfoResponse(message="This vector does not exist.")
+
+
+@router.get("/{name}/surface/nhkl")
+async def get_miller_surface_normal(
+    name: str,
+    store: HklCalcStore = Depends(get_store),
+    collection: Optional[str] = Query(default=None, example="B07"),
+):
+    """Get the surface normal surf_nhkl.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        store: accessor to the hkl object.
+        collection: collection within which the hkl object resides.
+
+    Returns:
+        ArrayResponse with the vector, or
+        InfoResponse if it doesn't exist
+
+    """
+    lab_vector: Optional[List[List[float]]] = await service.get_miller_surface_normal(
+        name, store, collection
+    )
+    if lab_vector is not None:
+        return ArrayResponse(payload=lab_vector)
+    else:
+        return InfoResponse(message="This vector does not exist.")

@@ -38,52 +38,9 @@ async def get_ub_status(
     return str(hklcalc.ubcalc)
 
 
-async def get_ub(
-    name: str, store: HklCalcStore, collection: Optional[str]
-) -> List[List[float]]:
-    """Get the status of the UB object in the hkl object.
-
-    Args:
-        name: the name of the hkl object to access within the store
-        store: accessor to the hkl object
-        collection: collection within which the hkl object resides
-
-    Returns:
-        a string with the current state of the UB object
-    """
-    hklcalc = await store.load(name, collection)
-    ubcalc: UBCalculation = hklcalc.ubcalc
-
-    if ubcalc.UB is not None:
-        return ubcalc.UB.tolist()
-    else:
-        raise NoUbMatrixError(
-            "Cannot retrieve UB matrix. Are you sure it's been set/calculated?"
-        )
-
-
-async def get_u(
-    name: str, store: HklCalcStore, collection: Optional[str]
-) -> List[List[float]]:
-    """Get the status of the UB object in the hkl object.
-
-    Args:
-        name: the name of the hkl object to access within the store
-        store: accessor to the hkl object
-        collection: collection within which the hkl object resides
-
-    Returns:
-        a string with the current state of the UB object
-    """
-    hklcalc = await store.load(name, collection)
-    ubcalc: UBCalculation = hklcalc.ubcalc
-
-    if ubcalc.U is not None:
-        return ubcalc.U.tolist()
-    else:
-        raise NoUbMatrixError(
-            "Cannot retrieve U matrix. Are you sure it's been set/calculated?"
-        )
+#######################################################################################
+#                                     Reflections                                     #
+#######################################################################################
 
 
 async def add_reflection(
@@ -198,6 +155,11 @@ async def delete_reflection(
     hklcalc.ubcalc.del_reflection(retrieve)
 
     await store.save(name, hklcalc, collection)
+
+
+#######################################################################################
+#                                    Orientations                                     #
+#######################################################################################
 
 
 async def add_orientation(
@@ -315,6 +277,11 @@ async def delete_orientation(
     await store.save(name, hklcalc, collection)
 
 
+#######################################################################################
+#                                       Crystal                                       #
+#######################################################################################
+
+
 async def set_lattice(
     name: str, params: SetLatticeParams, store: HklCalcStore, collection: Optional[str]
 ) -> None:
@@ -338,29 +305,9 @@ async def set_lattice(
     await store.save(name, hklcalc, collection)
 
 
-async def modify_property(
-    name: str,
-    property: str,
-    target_value: HklModel,
-    store: HklCalcStore,
-    collection: Optional[str],
-) -> None:
-    """Set a property of the UB object in a given hkl object.
-
-    Args:
-        name: the name of the hkl object to access within the store
-        property: the property of the UB object to set
-        target_value: the miller indices to set them to
-        store: accessor to the hkl object
-        collection: collection within which the hkl object resides
-
-    The property to be set must be a valid vector property.
-    """
-    hklcalc = await store.load(name, collection)
-
-    setattr(hklcalc.ubcalc, property, tuple(target_value.dict().values()))
-
-    await store.save(name, hklcalc, collection)
+#######################################################################################
+#                                       Miscuts                                       #
+#######################################################################################
 
 
 async def set_miscut(
@@ -447,6 +394,11 @@ async def get_miscut_from_hkl(
     return angle, axis
 
 
+#######################################################################################
+#                                    U/UB Matrices                                    #
+#######################################################################################
+
+
 async def calculate_ub(
     name: str,
     store: HklCalcStore,
@@ -484,6 +436,54 @@ async def calculate_ub(
 
     await store.save(name, hklcalc, collection)
     return np.round(hklcalc.ubcalc.UB, 6).tolist()
+
+
+async def get_ub(
+    name: str, store: HklCalcStore, collection: Optional[str]
+) -> List[List[float]]:
+    """Get the status of the UB object in the hkl object.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+
+    Returns:
+        a string with the current state of the UB object
+    """
+    hklcalc = await store.load(name, collection)
+    ubcalc: UBCalculation = hklcalc.ubcalc
+
+    if ubcalc.UB is not None:
+        return ubcalc.UB.tolist()
+    else:
+        raise NoUbMatrixError(
+            "Cannot retrieve UB matrix. Are you sure it's been set/calculated?"
+        )
+
+
+async def get_u(
+    name: str, store: HklCalcStore, collection: Optional[str]
+) -> List[List[float]]:
+    """Get the status of the UB object in the hkl object.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+
+    Returns:
+        a string with the current state of the UB object
+    """
+    hklcalc = await store.load(name, collection)
+    ubcalc: UBCalculation = hklcalc.ubcalc
+
+    if ubcalc.U is not None:
+        return ubcalc.U.tolist()
+    else:
+        raise NoUbMatrixError(
+            "Cannot retrieve U matrix. Are you sure it's been set/calculated?"
+        )
 
 
 async def set_u(
@@ -528,3 +528,202 @@ async def set_ub(
     ubcalc.set_ub(ub_matrix)
 
     await store.save(name, hklcalc, collection)
+
+
+#######################################################################################
+#                            Surface and Reference Vectors                            #
+#######################################################################################
+
+
+async def set_lab_reference_vector(
+    name: str,
+    target_value: XyzModel,
+    store: HklCalcStore,
+    collection: Optional[str],
+) -> None:
+    """Set the lab reference vector n_phi.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        target_value: the vector positon in real space
+        store: accessor to the hkl object.
+        collection: collection within which the hkl object resides.
+
+    Returns:
+        None
+
+    """
+    hklcalc = await store.load(name, collection)
+
+    ubcalc: UBCalculation = hklcalc.ubcalc
+    ubcalc.n_phi = (target_value.x, target_value.y, target_value.z)
+
+    await store.save(name, hklcalc, collection)
+
+
+async def set_miller_reference_vector(
+    name: str,
+    target_value: HklModel,
+    store: HklCalcStore,
+    collection: Optional[str],
+) -> None:
+    """Set the reference vector n_hkl.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        target_value: the vector positon in reciprocal space
+        store: accessor to the hkl object.
+        collection: collection within which the hkl object resides.
+
+    Returns:
+        None
+
+    """
+    hklcalc = await store.load(name, collection)
+
+    ubcalc: UBCalculation = hklcalc.ubcalc
+    ubcalc.n_hkl = (target_value.h, target_value.k, target_value.l)
+
+    await store.save(name, hklcalc, collection)
+
+
+async def set_lab_surface_normal(
+    name: str,
+    target_value: XyzModel,
+    store: HklCalcStore,
+    collection: Optional[str],
+):
+    """Set the reference vector surf_nphi.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        target_value: the vector positon in real space
+        store: accessor to the hkl object.
+        collection: collection within which the hkl object resides.
+
+    Returns:
+        None
+
+    """
+    hklcalc = await store.load(name, collection)
+
+    ubcalc: UBCalculation = hklcalc.ubcalc
+    ubcalc.surf_nphi = (target_value.x, target_value.y, target_value.z)
+
+    await store.save(name, hklcalc, collection)
+
+
+async def set_miller_surface_normal(
+    name: str,
+    target_value: HklModel,
+    store: HklCalcStore,
+    collection: Optional[str],
+):
+    """Set the reference vector surf_nhkl.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        target_value: the vector positon in reciprocal space
+        store: accessor to the hkl object.
+        collection: collection within which the hkl object resides.
+
+    Returns:
+        None
+
+    """
+    hklcalc = await store.load(name, collection)
+
+    ubcalc: UBCalculation = hklcalc.ubcalc
+    ubcalc.surf_nhkl = (target_value.h, target_value.k, target_value.l)
+
+    await store.save(name, hklcalc, collection)
+
+
+async def get_lab_reference_vector(
+    name: str, store: HklCalcStore, collection: Optional[str]
+) -> Optional[List[List[float]]]:
+    """Get the reference vector nphi.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        store: accessor to the hkl object.
+        collection: collection within which the hkl object resides.
+
+    Returns:
+        Column vector in List[List[float]] format, or None
+
+    """
+    hklcalc = await store.load(name, collection)
+    ubcalc: UBCalculation = hklcalc.ubcalc
+
+    n_phi = ubcalc.n_phi
+    return n_phi.tolist() if n_phi is not None else None
+
+
+async def get_miller_reference_vector(
+    name: str,
+    store: HklCalcStore,
+    collection,
+) -> Optional[List[List[float]]]:
+    """Get the reference vector nhkl.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        store: accessor to the hkl object.
+        collection: collection within which the hkl object resides.
+
+    Returns:
+        Column vector in List[List[float]] format, or None
+
+    """
+    hklcalc = await store.load(name, collection)
+    ubcalc: UBCalculation = hklcalc.ubcalc
+
+    n_hkl = ubcalc.n_hkl
+    return n_hkl.tolist() if n_hkl is not None else None
+
+
+async def get_lab_surface_normal(
+    name: str,
+    store: HklCalcStore,
+    collection,
+) -> Optional[List[List[float]]]:
+    """Get the surface normal surf_nphi.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        store: accessor to the hkl object.
+        collection: collection within which the hkl object resides.
+
+    Returns:
+        Column vector in List[List[float]] format, or None
+
+    """
+    hklcalc = await store.load(name, collection)
+    ubcalc: UBCalculation = hklcalc.ubcalc
+
+    surf_nphi = ubcalc.surf_nphi
+    return surf_nphi.tolist() if surf_nphi is not None else None
+
+
+async def get_miller_surface_normal(
+    name: str,
+    store: HklCalcStore,
+    collection,
+) -> Optional[List[List[float]]]:
+    """Get the surface normal surf_nhkl.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        store: accessor to the hkl object.
+        collection: collection within which the hkl object resides.
+
+    Returns:
+        Column vector in List[List[float]] format, or None
+
+    """
+    hklcalc = await store.load(name, collection)
+    ubcalc: UBCalculation = hklcalc.ubcalc
+
+    surf_nhkl = ubcalc.surf_nhkl
+    return surf_nhkl.tolist() if surf_nhkl is not None else None
