@@ -4,8 +4,7 @@ from typing import List, Optional, Union
 
 from fastapi import APIRouter, Body, Depends, Query
 
-# from diffcalc_api.config import VECTOR_PROPERTIES
-from diffcalc_api.errors.ub import (  # InvalidPropertyError,
+from diffcalc_api.errors.ub import (
     BothTagAndIdxProvidedError,
     InvalidSetLatticeParamsError,
     NoTagOrIdxProvidedError,
