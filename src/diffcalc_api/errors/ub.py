@@ -4,7 +4,6 @@ from typing import Optional, Union
 
 import numpy as np
 
-from diffcalc_api.config import VECTOR_PROPERTIES
 from diffcalc_api.errors.definitions import (
     ALL_RESPONSES,
     DiffcalcAPIException,
@@ -17,7 +16,6 @@ class ErrorCodes(ErrorCodesBase):
 
     INVALID_SET_LATTICE_PARAMS = 400
     REFERENCE_RETRIEVAL_ERROR = 403
-    INVALID_PROPERTY = 400
     NO_TAG_OR_IDX_PROVIDED = 400
     BOTH_TAG_OR_IDX_PROVIDED = 400
     NO_UB_MATRIX_ERROR = 400
@@ -85,23 +83,18 @@ class ReferenceRetrievalError(DiffcalcAPIException):
         self.status_code = ErrorCodes.REFERENCE_RETRIEVAL_ERROR
 
 
-class InvalidPropertyError(DiffcalcAPIException):
-    """Error that gets thrown if attempting to modify a non-existing property."""
-
-    def __init__(self):
-        """Set detail and status code."""
-        self.detail = f"invalid property. Choose one of: {VECTOR_PROPERTIES}"
-        self.status_code = ErrorCodes.INVALID_PROPERTY
-
-
 class NoUbMatrixError(DiffcalcAPIException):
     """When there is no U/UB matrix, some commands in diffcalc-core fail."""
 
-    def __init__(self):
+    def __init__(self, message: Optional[str] = None):
         """Set detail and status code."""
         self.detail = (
-            "It seems like there is no UB matrix for this record. Please "
-            + "try again after setting the UB matrix, either by calculating the UB from"
-            + " existing reflections/orientations or setting it explicitly."
+            (
+                "It seems like there is no UB matrix for this record. Please "
+                + "try again after setting the UB matrix, either by calculating the UB"
+                + " from existing reflections/orientations or setting it explicitly."
+            )
+            if message is None
+            else message
         )
         self.status_code = ErrorCodes.NO_UB_MATRIX_ERROR
