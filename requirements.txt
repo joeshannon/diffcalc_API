@@ -12,7 +12,7 @@ distlib==0.3.6
 docutils==0.19
 fastapi==0.88.0
 filelock==3.8.0
-flake8==5.0.4
+flake8==6.0.0
 flake8-isort==5.0.0
 h11==0.14.0
 identify==2.5.8
@@ -38,7 +38,7 @@ platformdirs==2.5.3
 pluggy==1.0.0
 pre-commit==2.20.0
 py==1.11.0
-pycodestyle==2.9.1
+pycodestyle==2.10.0
 pydantic==1.10.2
 pygments==2.13.0
 pyparsing==3.0.9
