@@ -12,13 +12,13 @@ distlib==0.3.6
 docutils==0.19
 fastapi==0.88.0
 filelock==3.8.0
-flake8==5.0.4
+flake8==6.0.0
 flake8-isort==5.0.3
 h11==0.14.0
 identify==2.5.8
 idna==3.4
 imagesize==1.4.1
-importlib-metadata==5.0.0
+importlib-metadata==5.1.0
 iniconfig==1.1.1
 isort==5.10.1
 jinja2==3.1.2
@@ -38,7 +38,7 @@ platformdirs==2.5.3
 pluggy==1.0.0
 pre-commit==2.20.0
 py==1.11.0
-pycodestyle==2.9.1
+pycodestyle==2.10.0
 pydantic==1.10.2
 pygments==2.13.0
 pyparsing==3.0.9
@@ -56,7 +56,7 @@ toml==0.10.2
 tomli==2.0.1
 typed-ast==1.5.4
 typing-extensions==4.4.0
-urllib3==1.26.12
+urllib3==1.26.13
 uvicorn==0.19.0
 virtualenv==20.16.6
 virtualenv-clone==0.5.7
