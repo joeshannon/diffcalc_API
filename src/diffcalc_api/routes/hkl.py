@@ -7,8 +7,8 @@ from fastapi import APIRouter, Depends, Query
 from diffcalc_api.errors.hkl import InvalidSolutionBoundsError
 from diffcalc_api.models.hkl import SolutionConstraints
 from diffcalc_api.models.response import (
+    CoordinateResponse,
     DiffractorAnglesResponse,
-    MillerIndicesResponse,
     ScanResponse,
 )
 from diffcalc_api.models.ub import HklModel, PositionModel
@@ -60,7 +60,7 @@ async def lab_position_from_miller_indices(
     return DiffractorAnglesResponse(payload=positions)
 
 
-@router.get("/{name}/position/hkl", response_model=MillerIndicesResponse)
+@router.get("/{name}/position/hkl", response_model=CoordinateResponse)
 async def miller_indices_from_lab_position(
     name: str,
     pos: PositionModel = Depends(),
@@ -78,12 +78,12 @@ async def miller_indices_from_lab_position(
         collection: collection within which the hkl object resides.
 
     Returns:
-        MillerIndicesResponse containing the miller indices.
+        CoordinateResponse containing the miller indices.
     """
     hkl = await service.miller_indices_from_lab_position(
         name, pos, wavelength, store, collection
     )
-    return MillerIndicesResponse(payload=hkl)
+    return CoordinateResponse(payload=hkl)
 
 
 @router.get("/{name}/scan/hkl", response_model=ScanResponse)

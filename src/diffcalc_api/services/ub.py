@@ -1,12 +1,17 @@
 """Business logic for handling requests from ub endpoints."""
 
-from typing import List, Optional, Tuple, Union
+from typing import List, Literal, Optional, Tuple, Union, cast
 
 import numpy as np
 from diffcalc.hkl.geometry import Position
 from diffcalc.ub.calc import UBCalculation
 
-from diffcalc_api.errors.ub import NoUbMatrixError, ReferenceRetrievalError
+from diffcalc_api.errors.ub import (
+    InvalidIndexError,
+    NoCrystalError,
+    NoUbMatrixError,
+    ReferenceRetrievalError,
+)
 from diffcalc_api.models.ub import (
     AddOrientationParams,
     AddReflectionParams,
@@ -727,3 +732,151 @@ async def get_miller_surface_normal(
 
     surf_nhkl = ubcalc.surf_nhkl
     return surf_nhkl.tolist() if surf_nhkl is not None else None
+
+
+#######################################################################################
+#                           Vector Calculations in HKL Space                          #
+#######################################################################################
+
+
+async def calculate_vector_from_hkl_and_offset(
+    name: str,
+    hkl_ref: HklModel,
+    polar_angle: float,
+    azimuth_angle: float,
+    store: HklCalcStore,
+    collection,
+) -> Tuple[float, float, float]:
+    """Calculate a vector in reciprocal space relative to a reference vector.
+
+    Note, this method requires that a UB matrix exists for the Hkl object retrieved.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        hkl_ref: the reference vector in hkl space
+        polar_angle: the polar angle, or the inclination between the zenith and
+                     reference vector.
+        azimuth_angle: the azimuth angle
+        store: accessor to the hkl object.
+        collection: collection within which the hkl object resides.
+
+    Returns:
+        Tuple[float, float, float]
+        The calculated vector, related by an offset to the reference vector given.
+
+    """
+    hklcalc = await store.load(name, collection)
+    ubcalc: UBCalculation = hklcalc.ubcalc
+
+    if ubcalc.UB is None:
+        raise NoUbMatrixError()
+
+    offset_hkl = ubcalc.calc_vector_wrt_hkl_and_offset(
+        (hkl_ref.h, hkl_ref.k, hkl_ref.l), polar_angle, azimuth_angle
+    )
+
+    return offset_hkl
+
+
+async def calculate_offset_from_vector_and_hkl(
+    name: str,
+    hkl_offset: HklModel,
+    hkl_ref: HklModel,
+    store: HklCalcStore,
+    collection,
+) -> Tuple[float, float, float]:
+    """Calculate angles and magnitude differences between two reciprocal space vectors.
+
+    Note, this method requires that a UB matrix exists for the Hkl object retrieved,
+    and that a lattice has been set for it.
+
+    Args:
+        name: the name of the hkl object to access within the store.
+        hkl_offset: The offset reciprocal space vector.
+        hkl_ref: The reference reciprocal space vector.
+        store: accessor to the hkl object.
+        collection: collection within which the hkl object resides.
+
+    Returns:
+        Tuple[float, float, float]
+        The offset, in spherical coordinates, between the two reciprocal space vectors,
+        containing the polar angle, azimuth angle and magnitude between them.
+
+    """
+    hklcalc = await store.load(name, collection)
+    ubcalc: UBCalculation = hklcalc.ubcalc
+
+    if ubcalc.UB is None:
+        raise NoUbMatrixError()
+    if ubcalc.crystal is None:
+        raise NoCrystalError()
+
+    if hkl_offset == hkl_ref:
+        offset = (0.0, 0.0, 1.0)
+    else:
+        offset = ubcalc.calc_offset_wrt_vector_and_hkl(
+            (hkl_offset.h, hkl_offset.k, hkl_offset.l),
+            (hkl_ref.h, hkl_ref.k, hkl_ref.l),
+        )
+
+    return offset
+
+
+#######################################################################################
+#                        HKL Solver For Fixed Scattering Vector                       #
+#######################################################################################
+
+
+async def hkl_solver_for_fixed_q(
+    name: str,
+    hkl: HklModel,
+    index_name: str,
+    index_value: float,
+    a: float,
+    b: float,
+    c: float,
+    d: float,
+    store: HklCalcStore,
+    collection,
+) -> List[Tuple[float, float, float]]:
+    """Find valid hkl indices for a fixed scattering vector.
+
+    Note, this method requires that a UB matrix exists for the Hkl object retrieved.
+    Coefficients are used to constrain solutions as:
+        a*h + b*k + c*l = d
+
+    Args:
+        name: the name of the hkl object to access within the store.
+        hkl: Reciprocal space vector from which a scattering vector will be calculated.
+        index_name: Which miller index to set,
+        index_value: value of this miller index.
+        a: constraint on the hkl value.
+        b: constraint on the hkl value.
+        c: constraint on the hkl value.
+        d: constraint on the hkl value.
+        store: accessor to the hkl object.
+        collection: collection within which the hkl object resides.
+
+    Returns:
+        List[Tuple[float, float, float]]
+        A pair of solutions to the intersection of an ellipsoid with a reference plane.
+
+    """
+    hklcalc = await store.load(name, collection)
+    ubcalc: UBCalculation = hklcalc.ubcalc
+
+    if ubcalc.UB is None:
+        raise NoUbMatrixError()
+
+    q_vector = ubcalc.UB @ np.array([[hkl.h], [hkl.k], [hkl.l]])
+    q_value = np.linalg.norm(q_vector) ** 2
+
+    if not ((index_name == "h") or (index_name == "k") or (index_name == "l")):
+        raise InvalidIndexError(index_name)
+
+    index_as_literal = cast(Literal["h", "k", "l"], index_name)
+
+    hkl_list = ubcalc.solve_for_hkl_given_fixed_index_and_q(
+        index_as_literal, index_value, q_value, a, b, c, d
+    )
+    return hkl_list

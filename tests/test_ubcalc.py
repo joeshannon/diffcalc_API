@@ -10,7 +10,12 @@ from diffcalc.hkl.geometry import Position
 from diffcalc.ub.calc import UBCalculation
 from fastapi.testclient import TestClient
 
-from diffcalc_api.errors.ub import ErrorCodes, NoUbMatrixError
+from diffcalc_api.errors.ub import (
+    ErrorCodes,
+    InvalidIndexError,
+    NoCrystalError,
+    NoUbMatrixError,
+)
 from diffcalc_api.server import app
 from diffcalc_api.stores.protocol import get_store
 from tests.conftest import FakeHklCalcStore
@@ -469,3 +474,139 @@ def test_get_and_set_reference_vectors_hkl(
         np.array(literal_eval(response_get.content.decode())["payload"]).T
         == body_as_array
     )
+
+
+def test_calculate_vector_from_hkl_and_offset():
+    ubcalc = UBCalculation()
+    ubcalc.UB = np.identity(3)
+
+    hkl = HklCalculation(ubcalc, Constraints())
+    client = Client(hkl).client
+
+    response = client.get(
+        "/ub/test/vector?polar_angle=90.0&azimuth_angle=0.0&collection=B07",
+        params={"h": 1.0, "k": 0.0, "l": 0.0},
+    )
+
+    assert response.status_code == 200
+    response_miller = literal_eval(response.content.decode())["payload"]
+
+    assert response_miller["h"] == pytest.approx(0.0)
+    assert response_miller["k"] == pytest.approx(1.0)
+    assert response_miller["l"] == pytest.approx(0.0)
+
+
+def test_calculate_vector_from_hkl_and_offset_fails_for_no_ub_matrix():
+    ubcalc = UBCalculation()
+
+    hkl = HklCalculation(ubcalc, Constraints())
+    client = Client(hkl).client
+
+    response = client.get(
+        "/ub/test/vector?polar_angle=90.0&azimuth_angle=0.0&collection=B07",
+        params={"h": 1.0, "k": 0.0, "l": 0.0},
+    )
+
+    assert response.status_code == ErrorCodes.NO_UB_MATRIX_ERROR
+
+    content = literal_eval(response.content.decode())
+
+    assert content["type"] == str(NoUbMatrixError)
+    assert content["message"].startswith(
+        "It seems like there is no UB matrix for this record."
+    )
+
+
+def test_calculate_offset_from_vector_and_hkl():
+    ubcalc = UBCalculation()
+    ubcalc.UB = np.identity(3)
+    ubcalc.set_lattice("", "Cubic", 1.0)
+
+    hkl = HklCalculation(ubcalc, Constraints())
+    client = Client(hkl).client
+
+    response = client.get(
+        "/ub/test/offset?h1=1.0&k1=0.0&l1=0.0&h2=0.0&k2=1.0&l2=0.0&collection=B07",
+        params={"h": 0.0, "k": 1.0, "l": 0.0},
+    )
+
+    assert response.status_code == 200
+    response_spherical = literal_eval(response.content.decode())["payload"]
+
+    assert response_spherical["magnitude"] == 1.0
+    assert response_spherical["azimuth_angle"] == 0.0
+    assert response_spherical["polar_angle"] == 90.0
+
+
+def test_calculate_offset_from_vector_and_hkl_fails_for_no_ub_matrix_or_crystal():
+    ubcalc = UBCalculation()
+    hkl = HklCalculation(ubcalc, Constraints())
+    client = Client(hkl).client
+
+    response_no_ub = client.get(
+        "/ub/test/offset?h1=1.0&k1=0.0&l1=0.0&h2=0.0&k2=1.0&l2=0.0&collection=B07",
+        params={"h": 0.0, "k": 1.0, "l": 0.0},
+    )
+
+    assert response_no_ub.status_code == ErrorCodes.NO_UB_MATRIX_ERROR
+    content_no_ub = literal_eval(response_no_ub.content.decode())
+    assert content_no_ub["type"] == str(NoUbMatrixError)
+
+    ubcalc.UB = np.identity(3)
+
+    response_no_crystal = client.get(
+        "/ub/test/offset?h1=1.0&k1=0.0&l1=0.0&h2=0.0&k2=1.0&l2=0.0&collection=B07",
+        params={"h": 0.0, "k": 1.0, "l": 0.0},
+    )
+
+    assert response_no_crystal.status_code == ErrorCodes.NO_CRYSTAL_ERROR
+    content_no_crystal = literal_eval(response_no_crystal.content.decode())
+    assert content_no_crystal["type"] == str(NoCrystalError)
+
+
+def test_hkl_solver_for_fixed_q():
+    ubcalc = UBCalculation()
+    ubcalc.UB = np.identity(3)
+
+    hkl = HklCalculation(ubcalc, Constraints())
+    client = Client(hkl).client
+
+    response = client.get(
+        "/ub/test/solve/hkl/fixed/q?"
+        + "index_name=h&index_value=0.0&a=0.0&b=1.0&c=0.0&d=0.25&collection=B07",
+        params={"h": 0.0, "k": 1.0, "l": 0.0},
+    )
+
+    assert response.status_code == 200
+
+    hkl_list = literal_eval(response.content.decode())["payload"]
+    assert hkl_list == [
+        [0.0, 0.25, -0.9682458365518543],
+        [0.0, 0.25, 0.9682458365518543],
+    ]
+
+
+def test_hkl_solver_for_fixed_q_fails_if_no_ub_or_invalid_index_given():
+    ubcalc = UBCalculation()
+    hkl = HklCalculation(ubcalc, Constraints())
+    client = Client(hkl).client
+
+    response = client.get(
+        "/ub/test/solve/hkl/fixed/q?"
+        + "index_name=h&index_value=0.0&a=0.0&b=1.0&c=0.0&d=0.25&collection=B07",
+        params={"h": 0.0, "k": 1.0, "l": 0.0},
+    )
+
+    assert response.status_code == ErrorCodes.NO_UB_MATRIX_ERROR
+    assert literal_eval(response.content.decode())["type"] == str(NoUbMatrixError)
+
+    ubcalc.UB = np.identity(3)
+
+    response = client.get(
+        "/ub/test/solve/hkl/fixed/q?"
+        + "index_name=p&index_value=0.0&a=0.0&b=1.0&c=0.0&d=0.25&collection=B07",
+        params={"h": 0.0, "k": 1.0, "l": 0.0},
+    )
+
+    assert response.status_code == ErrorCodes.INVALID_INDEX_ERROR
+    assert literal_eval(response.content.decode())["type"] == str(InvalidIndexError)

@@ -95,3 +95,14 @@ class MiscutModel(BaseModel):
 
     angle: float
     rotation_axis: XyzModel
+
+
+class SphericalCoordinates(BaseModel):
+    """Data storing a point in the spherical coordinate frame.
+
+    Requires an azimuthal and polar angle, as well as a magnitude.
+    """
+
+    magnitude: float
+    azimuth_angle: float
+    polar_angle: float

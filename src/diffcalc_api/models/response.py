@@ -1,9 +1,9 @@
 """Pydantic models relating to all endpoint responses."""
-from typing import Dict, List
+from typing import Dict, List, Union
 
 from pydantic import BaseModel
 
-from diffcalc_api.models.ub import HklModel, MiscutModel
+from diffcalc_api.models.ub import HklModel, MiscutModel, SphericalCoordinates, XyzModel
 
 
 class InfoResponse(BaseModel):
@@ -46,14 +46,14 @@ class DiffractorAnglesResponse(BaseModel):
     payload: List[Dict[str, float]]
 
 
-class MillerIndicesResponse(BaseModel):
-    """Miller Indices Response.
+class CoordinateResponse(BaseModel):
+    """Coordinate response model.
 
-    Used for any endpoint with an attached service that returns a set of miller
-    indices.
+    Returns coordinates, in three dimensions, for a given coordinate system.
+    Supported systems include spherical coordinates, reciprocal and real space.
     """
 
-    payload: HklModel
+    payload: Union[SphericalCoordinates, HklModel, XyzModel]
 
 
 class MiscutResponse(BaseModel):
