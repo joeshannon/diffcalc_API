@@ -12,6 +12,7 @@ from diffcalc_api.errors.ub import (
 from diffcalc_api.examples import ub as examples
 from diffcalc_api.models.response import (
     ArrayResponse,
+    CoordinateResponse,
     InfoResponse,
     MiscutResponse,
     StringResponse,
@@ -25,6 +26,7 @@ from diffcalc_api.models.ub import (
     MiscutModel,
     PositionModel,
     SetLatticeParams,
+    SphericalCoordinates,
     XyzModel,
     select_idx_or_tag_str,
 )
@@ -534,7 +536,7 @@ async def set_lab_reference_vector(
     )
 
 
-@router.put("/{name}/nhkl")
+@router.put("/{name}/nhkl", response_model=InfoResponse)
 async def set_miller_reference_vector(
     name: str,
     target_value: HklModel = Body(..., example={"h": 1, "k": 0, "l": 0}),
@@ -559,7 +561,7 @@ async def set_miller_reference_vector(
     )
 
 
-@router.put("/{name}/surface/nphi")
+@router.put("/{name}/surface/nphi", response_model=InfoResponse)
 async def set_lab_surface_normal(
     name: str,
     target_value: XyzModel = Body(..., example={"x": 1, "y": 0, "z": 0}),
@@ -584,7 +586,7 @@ async def set_lab_surface_normal(
     )
 
 
-@router.put("/{name}/surface/nhkl")
+@router.put("/{name}/surface/nhkl", response_model=InfoResponse)
 async def set_miller_surface_normal(
     name: str,
     target_value: HklModel = Body(..., example={"h": 1, "k": 0, "l": 0}),
@@ -636,7 +638,7 @@ async def get_lab_reference_vector(
         return InfoResponse(message="This vector does not exist.")
 
 
-@router.get("/{name}/nhkl")
+@router.get("/{name}/nhkl", response_model=Union[ArrayResponse, InfoResponse])
 async def get_miller_reference_vector(
     name: str,
     store: HklCalcStore = Depends(get_store),
@@ -663,7 +665,7 @@ async def get_miller_reference_vector(
         return InfoResponse(message="This vector does not exist.")
 
 
-@router.get("/{name}/surface/nphi")
+@router.get("/{name}/surface/nphi", response_model=Union[ArrayResponse, InfoResponse])
 async def get_lab_surface_normal(
     name: str,
     store: HklCalcStore = Depends(get_store),
@@ -690,7 +692,7 @@ async def get_lab_surface_normal(
         return InfoResponse(message="This vector does not exist.")
 
 
-@router.get("/{name}/surface/nhkl")
+@router.get("/{name}/surface/nhkl", response_model=Union[ArrayResponse, InfoResponse])
 async def get_miller_surface_normal(
     name: str,
     store: HklCalcStore = Depends(get_store),
@@ -715,3 +717,139 @@ async def get_miller_surface_normal(
         return ArrayResponse(payload=lab_vector)
     else:
         return InfoResponse(message="This vector does not exist.")
+
+
+#######################################################################################
+#                           Vector Calculations in HKL Space                          #
+#######################################################################################
+
+
+@router.get("/{name}/vector", response_model=CoordinateResponse)
+async def calculate_vector_from_hkl_and_offset(
+    name: str,
+    hkl_ref: HklModel = Depends(),
+    polar_angle: float = Query(..., example=45.0),
+    azimuth_angle: float = Query(..., example=45.0),
+    store: HklCalcStore = Depends(get_store),
+    collection: Optional[str] = Query(default=None, example="B07"),
+):
+    """Calculate a vector in reciprocal space relative to a reference vector.
+
+    Note, this method requires that a UB matrix exists for the Hkl object retrieved.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        hkl_ref: the reference vector in hkl space
+        polar_angle: the polar angle, or the inclination between the zenith and
+                     reference vector.
+        azimuth_angle: the azimuth angle
+        store: accessor to the hkl object.
+        collection: collection within which the hkl object resides.
+
+    Returns:
+        CoordinateResponse
+        Containing the calculated reciprocal space vector as h, k, l indices.
+
+    """
+    vector = await service.calculate_vector_from_hkl_and_offset(
+        name, hkl_ref, polar_angle, azimuth_angle, store, collection
+    )
+
+    return CoordinateResponse(payload=HklModel(h=vector[0], k=vector[1], l=vector[2]))
+
+
+@router.get("/{name}/offset", response_model=CoordinateResponse)
+async def calculate_offset_from_vector_and_hkl(
+    name: str,
+    h1: float = Query(..., example=0.0),
+    k1: float = Query(..., example=1.0),
+    l1: float = Query(..., example=0.0),
+    h2: float = Query(..., example=1.0),
+    k2: float = Query(..., example=0.0),
+    l2: float = Query(..., example=0.0),
+    store: HklCalcStore = Depends(get_store),
+    collection: Optional[str] = Query(default=None, example="B07"),
+):
+    """Calculate angles and magnitude differences between two reciprocal space vectors.
+
+    Note, this method requires that a UB matrix exists for the Hkl object retrieved,
+    and that a lattice has been set for it.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        h1: h index of the reference vector
+        k1: k index of the reference vector
+        l1: l index of the reference vector
+        h2: h index of the vector relative to which the offset should be calculated
+        k2: k index of the vector relative to which the offset should be calculated
+        l2: l index of the vector relative to which the offset should be calculated
+        store: accessor to the hkl object.
+        collection: collection within which the hkl object resides.
+
+    Returns:
+        CoordinateResponse
+        The offset, in spherical coordinates, between the two reciprocal space vectors,
+        containing the polar angle, azimuth angle and magnitude between them.
+
+    """
+    hkl_ref = HklModel(h=h1, k=k1, l=l1)
+    hkl_offset = HklModel(h=h2, k=k2, l=l2)
+
+    vector = await service.calculate_offset_from_vector_and_hkl(
+        name, hkl_offset, hkl_ref, store, collection
+    )
+
+    return CoordinateResponse(
+        payload=SphericalCoordinates(
+            polar_angle=vector[0], azimuth_angle=vector[1], magnitude=vector[2]
+        )
+    )
+
+
+#######################################################################################
+#                        HKL Solver For Fixed Scattering Vector                       #
+#######################################################################################
+
+
+@router.get("/{name}/solve/hkl/fixed/q", response_model=ArrayResponse)
+async def hkl_solver_for_fixed_q(
+    name: str,
+    hkl: HklModel = Depends(),
+    index_name: str = Query(..., example="h"),
+    index_value: float = Query(..., example=0.0),
+    a: float = Query(..., example=0.0),
+    b: float = Query(..., example=1.0),
+    c: float = Query(..., example=0.0),
+    d: float = Query(..., example=0.25),
+    store: HklCalcStore = Depends(get_store),
+    collection: Optional[str] = Query(default=None, example="B07"),
+):
+    """Find valid hkl indices for a fixed scattering vector.
+
+    Note, this method requires that a UB matrix exists for the Hkl object retrieved.
+    Coefficients are used to constrain solutions as:
+        a*h + b*k + c*l = d
+
+    Args:
+        name: the name of the hkl object to access within the store.
+        hkl: Reciprocal space vector from which a scattering vector will be calculated.
+        index_name: Which miller index to set,
+        index_value: value of this miller index.
+        a: constraint on the hkl value.
+        b: constraint on the hkl value.
+        c: constraint on the hkl value.
+        d: constraint on the hkl value.
+        store: accessor to the hkl object.
+        collection: collection within which the hkl object resides.
+
+    Returns:
+        ArrayResponse
+        A list of lists, with each sublist being a solution.
+
+    """
+    hkl_list = await service.hkl_solver_for_fixed_q(
+        name, hkl, index_name, index_value, a, b, c, d, store, collection
+    )
+    hkl_list_as_list_of_lists = [list(i) for i in hkl_list]
+
+    return ArrayResponse(payload=hkl_list_as_list_of_lists)

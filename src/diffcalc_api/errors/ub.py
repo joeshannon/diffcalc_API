@@ -19,6 +19,8 @@ class ErrorCodes(ErrorCodesBase):
     NO_TAG_OR_IDX_PROVIDED = 400
     BOTH_TAG_OR_IDX_PROVIDED = 400
     NO_UB_MATRIX_ERROR = 400
+    NO_CRYSTAL_ERROR = 400
+    INVALID_INDEX_ERROR = 400
 
 
 responses = {code: ALL_RESPONSES[code] for code in np.unique(ErrorCodes.all_codes())}
@@ -98,3 +100,31 @@ class NoUbMatrixError(DiffcalcAPIException):
             else message
         )
         self.status_code = ErrorCodes.NO_UB_MATRIX_ERROR
+
+
+class NoCrystalError(DiffcalcAPIException):
+    """When there is no crystal lattice set, some commands in diffcalc-core fail."""
+
+    def __init__(self, message: Optional[str] = None):
+        """Set detail and status code."""
+        self.detail = (
+            (
+                "It seems like there is no crystal lattice set for this record. Please"
+                + " try again after setting the lattice."
+            )
+            if message is None
+            else message
+        )
+        self.status_code = ErrorCodes.NO_UB_MATRIX_ERROR
+
+
+class InvalidIndexError(DiffcalcAPIException):
+    """Error gets thrown if an invalid miller index name is given."""
+
+    def __init__(self, index: str):
+        """Set detail and status code."""
+        self.detail = (
+            "Index supplied must be one of {h, k, l}. " + f"Found {index} instead."
+        )
+
+        self.status_code = ErrorCodes.INVALID_INDEX_ERROR
