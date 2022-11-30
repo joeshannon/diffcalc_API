@@ -91,7 +91,8 @@ class ReflectionResponse(BaseModel):
     class Config:
         """Necessary config to make validation easier.
 
-        As this is a response model, there is no need to enforce validation."""
+        As this is a response model, there is no need to enforce validation.
+        """
 
         orm_mode = True
 
@@ -104,6 +105,7 @@ class OrientationResponse(BaseModel):
     class Config:
         """Necessary config to make validation easier.
 
-        As this is a response model, there is no need to enforce validation."""
+        As this is a response model, there is no need to enforce validation.
+        """
 
         orm_mode = True

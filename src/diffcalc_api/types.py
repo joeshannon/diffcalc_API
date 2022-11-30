@@ -1,3 +1,5 @@
+"""Exposes types of diffcalc-core objects."""
+
 from dataclasses import dataclass
 from typing import Optional
 
