@@ -84,14 +84,26 @@ class MiscutResponse(BaseModel):
 
 
 class ReflectionResponse(BaseModel):
+    """Response for any operation returning a reflection."""
+
     payload: Reflection
 
     class Config:
+        """Necessary config to make validation easier.
+
+        As this is a response model, there is no need to enforce validation."""
+
         orm_mode = True
 
 
 class OrientationResponse(BaseModel):
+    """Response for any operation returning an orientation."""
+
     payload: Orientation
 
     class Config:
+        """Necessary config to make validation easier.
+
+        As this is a response model, there is no need to enforce validation."""
+
         orm_mode = True

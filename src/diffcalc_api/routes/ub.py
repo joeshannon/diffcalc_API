@@ -73,6 +73,21 @@ async def get_reflection(
     tag: Optional[str] = Query(default=None, example="refl1"),
     idx: Optional[int] = Query(default=None),
 ):
+    """Get a reflection from the UBCalculation object.
+
+    Both tag and idx cannot be provided. One or the other must be provided.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+        tag: optional tag to access the reflection
+        idx: optional index to access the reflection
+
+    Returns:
+        ReflectionResponse
+        payload containing the reflection.
+    """
     if (tag is None) and (idx is None):
         raise NoTagOrIdxProvidedError()
 
@@ -201,6 +216,21 @@ async def get_orientation(
     tag: Optional[str] = Query(default=None, example="refl1"),
     idx: Optional[int] = Query(default=None),
 ):
+    """Get an orientation from the UBCalculation object.
+
+    Both tag and idx cannot be provided. One or the other must be provided.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+        tag: optional tag to access the orientation
+        idx: optional index to access the orientation
+
+    Returns:
+        OrientationResponse
+        payload containing the orientation.
+    """
     if (tag is None) and (idx is None):
         raise NoTagOrIdxProvidedError()
 

@@ -56,6 +56,23 @@ async def get_reflection(
     tag: Optional[str],
     idx: Optional[int],
 ) -> Reflection:
+    """Get a reflection from the UBCalculation object.
+
+    Both tag and idx cannot be provided. One or the other must be provided.
+    This is enforced in the route for this function, see diffcalc_api/routes/ub.py.
+    An error is thrown if the reflection does not exist, i.e. cannot be retrieved.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+        tag: optional tag to access the reflection
+        idx: optional index to access the reflection
+
+    Returns:
+        Reflection
+        A reflection object, as defined in diffcalc_api.types.
+    """
     hklcalc = await store.load(name, collection)
     ubcalc: UBCalculation = hklcalc.ubcalc
 
@@ -197,6 +214,23 @@ async def get_orientation(
     tag: Optional[str],
     idx: Optional[int],
 ) -> Orientation:
+    """Get an orientation from the UBCalculation object.
+
+    Both tag and idx cannot be provided. One or the other must be provided.
+    This is enforced in the route for this function, see diffcalc_api/routes/ub.py.
+    An error is thrown if the orientation does not exist, i.e. cannot be retrieved.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+        tag: optional tag to access the orientation
+        idx: optional index to access the orientation
+
+    Returns:
+        Orientation
+        An orientation object, as defined in diffcalc_api.types.
+    """
     hklcalc = await store.load(name, collection)
     ubcalc: UBCalculation = hklcalc.ubcalc
 
