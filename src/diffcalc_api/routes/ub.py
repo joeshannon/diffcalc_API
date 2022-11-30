@@ -4,6 +4,7 @@ from typing import List, Optional, cast
 
 from fastapi import APIRouter, Body, Depends, Query
 
+from diffcalc_api.core_types import Orientation, Position, Reflection
 from diffcalc_api.errors.ub import (
     BothTagAndIdxProvidedError,
     InvalidSetLatticeParamsError,
@@ -35,7 +36,6 @@ from diffcalc_api.models.ub import (
 )
 from diffcalc_api.services import ub as service
 from diffcalc_api.stores.protocol import HklCalcStore, get_store
-from diffcalc_api.types import Orientation, Position, Reflection
 
 router = APIRouter(prefix="/ub", tags=["ub"])
 
