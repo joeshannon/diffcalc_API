@@ -4,6 +4,7 @@ from typing import Dict, List
 from pydantic import BaseModel
 
 from diffcalc_api.models.ub import HklModel, MiscutModel, SphericalCoordinates, XyzModel
+from diffcalc_api.types import Orientation, Reflection
 
 
 class InfoResponse(BaseModel):
@@ -80,3 +81,17 @@ class MiscutResponse(BaseModel):
     """
 
     payload: MiscutModel
+
+
+class ReflectionResponse(BaseModel):
+    payload: Reflection
+
+    class Config:
+        orm_mode = True
+
+
+class OrientationResponse(BaseModel):
+    payload: Orientation
+
+    class Config:
+        orm_mode = True
