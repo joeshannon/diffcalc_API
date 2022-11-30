@@ -1,6 +1,6 @@
 """Endpoints relating to the management of setting up the UB calculation."""
 
-from typing import List, Optional, Union
+from typing import List, Optional, cast
 
 from fastapi import APIRouter, Body, Depends, Query
 
@@ -611,7 +611,7 @@ async def set_miller_surface_normal(
     )
 
 
-@router.get("/{name}/nphi", response_model=Union[ArrayResponse, InfoResponse])
+@router.get("/{name}/nphi", response_model=ArrayResponse)
 async def get_lab_reference_vector(
     name: str,
     store: HklCalcStore = Depends(get_store),
@@ -625,20 +625,20 @@ async def get_lab_reference_vector(
         collection: collection within which the hkl object resides.
 
     Returns:
-        ArrayResponse with the vector, or
-        InfoResponse if it doesn't exist
+        ArrayResponse with the vector. If it doesn't exist, a null vector is returned.
 
     """
-    lab_vector: Optional[List[List[float]]] = await service.get_lab_reference_vector(
+    vector: Optional[List[List[float]]] = await service.get_lab_reference_vector(
         name, store, collection
     )
-    if lab_vector is not None:
-        return ArrayResponse(payload=lab_vector)
-    else:
-        return InfoResponse(message="This vector does not exist.")
+
+    if vector is None:
+        return ArrayResponse(payload=[[]])
+
+    return ArrayResponse(payload=vector)
 
 
-@router.get("/{name}/nhkl", response_model=Union[ArrayResponse, InfoResponse])
+@router.get("/{name}/nhkl", response_model=ArrayResponse)
 async def get_miller_reference_vector(
     name: str,
     store: HklCalcStore = Depends(get_store),
@@ -652,20 +652,18 @@ async def get_miller_reference_vector(
         collection: collection within which the hkl object resides.
 
     Returns:
-        ArrayResponse with the vector, or
-        InfoResponse if it doesn't exist
+        ArrayResponse with the vector. By default, newly instantiated
+        Hkl objects always have this vector.
 
     """
-    lab_vector: Optional[List[List[float]]] = await service.get_miller_reference_vector(
+    vector: Optional[List[List[float]]] = await service.get_miller_reference_vector(
         name, store, collection
     )
-    if lab_vector is not None:
-        return ArrayResponse(payload=lab_vector)
-    else:
-        return InfoResponse(message="This vector does not exist.")
+
+    return ArrayResponse(payload=cast(List[List[float]], vector))
 
 
-@router.get("/{name}/surface/nphi", response_model=Union[ArrayResponse, InfoResponse])
+@router.get("/{name}/surface/nphi", response_model=ArrayResponse)
 async def get_lab_surface_normal(
     name: str,
     store: HklCalcStore = Depends(get_store),
@@ -679,20 +677,17 @@ async def get_lab_surface_normal(
         collection: collection within which the hkl object resides.
 
     Returns:
-        ArrayResponse with the vector, or
-        InfoResponse if it doesn't exist
+        ArrayResponse with the vector. By default, newly instantiated
+        Hkl objects always have this vector.
 
     """
-    lab_vector: Optional[List[List[float]]] = await service.get_lab_surface_normal(
+    vector: Optional[List[List[float]]] = await service.get_lab_surface_normal(
         name, store, collection
     )
-    if lab_vector is not None:
-        return ArrayResponse(payload=lab_vector)
-    else:
-        return InfoResponse(message="This vector does not exist.")
+    return ArrayResponse(payload=cast(List[List[float]], vector))
 
 
-@router.get("/{name}/surface/nhkl", response_model=Union[ArrayResponse, InfoResponse])
+@router.get("/{name}/surface/nhkl", response_model=ArrayResponse)
 async def get_miller_surface_normal(
     name: str,
     store: HklCalcStore = Depends(get_store),
@@ -706,17 +701,14 @@ async def get_miller_surface_normal(
         collection: collection within which the hkl object resides.
 
     Returns:
-        ArrayResponse with the vector, or
-        InfoResponse if it doesn't exist
+        ArrayResponse with the vector. By default, newly instantiated
+        Hkl objects always have this vector.
 
     """
-    lab_vector: Optional[List[List[float]]] = await service.get_miller_surface_normal(
+    vector: Optional[List[List[float]]] = await service.get_miller_surface_normal(
         name, store, collection
     )
-    if lab_vector is not None:
-        return ArrayResponse(payload=lab_vector)
-    else:
-        return InfoResponse(message="This vector does not exist.")
+    return ArrayResponse(payload=cast(List[List[float]], vector))
 
 
 #######################################################################################
