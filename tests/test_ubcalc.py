@@ -476,6 +476,15 @@ def test_get_and_set_reference_vectors_hkl(
     )
 
 
+def test_get_reference_vectors_for_null_vectors():
+    ubcalc = UBCalculation()
+    hkl = HklCalculation(ubcalc, Constraints())
+    client = Client(hkl).client
+
+    response = client.get("/ub/test/nphi?collection=B07")
+    assert literal_eval(response.content.decode())["payload"] == [[]]
+
+
 def test_calculate_vector_from_hkl_and_offset():
     ubcalc = UBCalculation()
     ubcalc.UB = np.identity(3)

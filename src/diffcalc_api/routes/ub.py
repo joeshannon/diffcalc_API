@@ -1,6 +1,6 @@
 """Endpoints relating to the management of setting up the UB calculation."""
 
-from typing import List, Optional, Union
+from typing import List, Optional, cast
 
 from fastapi import APIRouter, Body, Depends, Query
 
@@ -12,9 +12,10 @@ from diffcalc_api.errors.ub import (
 from diffcalc_api.examples import ub as examples
 from diffcalc_api.models.response import (
     ArrayResponse,
-    CoordinateResponse,
     InfoResponse,
     MiscutResponse,
+    ReciprocalSpaceResponse,
+    SphericalResponse,
     StringResponse,
 )
 from diffcalc_api.models.ub import (
@@ -611,7 +612,7 @@ async def set_miller_surface_normal(
     )
 
 
-@router.get("/{name}/nphi", response_model=Union[ArrayResponse, InfoResponse])
+@router.get("/{name}/nphi", response_model=ArrayResponse)
 async def get_lab_reference_vector(
     name: str,
     store: HklCalcStore = Depends(get_store),
@@ -625,20 +626,20 @@ async def get_lab_reference_vector(
         collection: collection within which the hkl object resides.
 
     Returns:
-        ArrayResponse with the vector, or
-        InfoResponse if it doesn't exist
+        ArrayResponse with the vector. If it doesn't exist, a null vector is returned.
 
     """
-    lab_vector: Optional[List[List[float]]] = await service.get_lab_reference_vector(
+    vector: Optional[List[List[float]]] = await service.get_lab_reference_vector(
         name, store, collection
     )
-    if lab_vector is not None:
-        return ArrayResponse(payload=lab_vector)
-    else:
-        return InfoResponse(message="This vector does not exist.")
+
+    if vector is None:
+        return ArrayResponse(payload=[[]])
+
+    return ArrayResponse(payload=vector)
 
 
-@router.get("/{name}/nhkl", response_model=Union[ArrayResponse, InfoResponse])
+@router.get("/{name}/nhkl", response_model=ArrayResponse)
 async def get_miller_reference_vector(
     name: str,
     store: HklCalcStore = Depends(get_store),
@@ -652,20 +653,18 @@ async def get_miller_reference_vector(
         collection: collection within which the hkl object resides.
 
     Returns:
-        ArrayResponse with the vector, or
-        InfoResponse if it doesn't exist
+        ArrayResponse with the vector. By default, newly instantiated
+        Hkl objects always have this vector.
 
     """
-    lab_vector: Optional[List[List[float]]] = await service.get_miller_reference_vector(
+    vector: Optional[List[List[float]]] = await service.get_miller_reference_vector(
         name, store, collection
     )
-    if lab_vector is not None:
-        return ArrayResponse(payload=lab_vector)
-    else:
-        return InfoResponse(message="This vector does not exist.")
+
+    return ArrayResponse(payload=cast(List[List[float]], vector))
 
 
-@router.get("/{name}/surface/nphi", response_model=Union[ArrayResponse, InfoResponse])
+@router.get("/{name}/surface/nphi", response_model=ArrayResponse)
 async def get_lab_surface_normal(
     name: str,
     store: HklCalcStore = Depends(get_store),
@@ -679,20 +678,17 @@ async def get_lab_surface_normal(
         collection: collection within which the hkl object resides.
 
     Returns:
-        ArrayResponse with the vector, or
-        InfoResponse if it doesn't exist
+        ArrayResponse with the vector. By default, newly instantiated
+        Hkl objects always have this vector.
 
     """
-    lab_vector: Optional[List[List[float]]] = await service.get_lab_surface_normal(
+    vector: Optional[List[List[float]]] = await service.get_lab_surface_normal(
         name, store, collection
     )
-    if lab_vector is not None:
-        return ArrayResponse(payload=lab_vector)
-    else:
-        return InfoResponse(message="This vector does not exist.")
+    return ArrayResponse(payload=cast(List[List[float]], vector))
 
 
-@router.get("/{name}/surface/nhkl", response_model=Union[ArrayResponse, InfoResponse])
+@router.get("/{name}/surface/nhkl", response_model=ArrayResponse)
 async def get_miller_surface_normal(
     name: str,
     store: HklCalcStore = Depends(get_store),
@@ -706,17 +702,14 @@ async def get_miller_surface_normal(
         collection: collection within which the hkl object resides.
 
     Returns:
-        ArrayResponse with the vector, or
-        InfoResponse if it doesn't exist
+        ArrayResponse with the vector. By default, newly instantiated
+        Hkl objects always have this vector.
 
     """
-    lab_vector: Optional[List[List[float]]] = await service.get_miller_surface_normal(
+    vector: Optional[List[List[float]]] = await service.get_miller_surface_normal(
         name, store, collection
     )
-    if lab_vector is not None:
-        return ArrayResponse(payload=lab_vector)
-    else:
-        return InfoResponse(message="This vector does not exist.")
+    return ArrayResponse(payload=cast(List[List[float]], vector))
 
 
 #######################################################################################
@@ -724,7 +717,7 @@ async def get_miller_surface_normal(
 #######################################################################################
 
 
-@router.get("/{name}/vector", response_model=CoordinateResponse)
+@router.get("/{name}/vector", response_model=ReciprocalSpaceResponse)
 async def calculate_vector_from_hkl_and_offset(
     name: str,
     hkl_ref: HklModel = Depends(),
@@ -747,7 +740,7 @@ async def calculate_vector_from_hkl_and_offset(
         collection: collection within which the hkl object resides.
 
     Returns:
-        CoordinateResponse
+        ReciprocalSpaceResponse
         Containing the calculated reciprocal space vector as h, k, l indices.
 
     """
@@ -755,10 +748,12 @@ async def calculate_vector_from_hkl_and_offset(
         name, hkl_ref, polar_angle, azimuth_angle, store, collection
     )
 
-    return CoordinateResponse(payload=HklModel(h=vector[0], k=vector[1], l=vector[2]))
+    return ReciprocalSpaceResponse(
+        payload=HklModel(h=vector[0], k=vector[1], l=vector[2])
+    )
 
 
-@router.get("/{name}/offset", response_model=CoordinateResponse)
+@router.get("/{name}/offset", response_model=SphericalResponse)
 async def calculate_offset_from_vector_and_hkl(
     name: str,
     h1: float = Query(..., example=0.0),
@@ -787,7 +782,7 @@ async def calculate_offset_from_vector_and_hkl(
         collection: collection within which the hkl object resides.
 
     Returns:
-        CoordinateResponse
+        SphericalResponse
         The offset, in spherical coordinates, between the two reciprocal space vectors,
         containing the polar angle, azimuth angle and magnitude between them.
 
@@ -799,7 +794,7 @@ async def calculate_offset_from_vector_and_hkl(
         name, hkl_offset, hkl_ref, store, collection
     )
 
-    return CoordinateResponse(
+    return SphericalResponse(
         payload=SphericalCoordinates(
             polar_angle=vector[0], azimuth_angle=vector[1], magnitude=vector[2]
         )

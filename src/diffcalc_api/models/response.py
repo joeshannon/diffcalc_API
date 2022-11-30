@@ -1,5 +1,5 @@
 """Pydantic models relating to all endpoint responses."""
-from typing import Dict, List, Union
+from typing import Dict, List
 
 from pydantic import BaseModel
 
@@ -46,14 +46,31 @@ class DiffractorAnglesResponse(BaseModel):
     payload: List[Dict[str, float]]
 
 
-class CoordinateResponse(BaseModel):
-    """Coordinate response model.
+class SphericalResponse(BaseModel):
+    """Spherical coordinate response model.
 
-    Returns coordinates, in three dimensions, for a given coordinate system.
-    Supported systems include spherical coordinates, reciprocal and real space.
+    Returns a payload in spherical coordinates.
     """
 
-    payload: Union[SphericalCoordinates, HklModel, XyzModel]
+    payload: SphericalCoordinates
+
+
+class ReciprocalSpaceResponse(BaseModel):
+    """Reciprocal space coordinate response model.
+
+    Returns a payload in reciprocal space (hkl) coordinates.
+    """
+
+    payload: HklModel
+
+
+class RealSpaceResponse(BaseModel):
+    """Reciprocal space coordinate response model.
+
+    Returns a payload in xyz coordinates.
+    """
+
+    payload: XyzModel
 
 
 class MiscutResponse(BaseModel):
