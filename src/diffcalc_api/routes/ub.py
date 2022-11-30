@@ -14,7 +14,9 @@ from diffcalc_api.models.response import (
     ArrayResponse,
     InfoResponse,
     MiscutResponse,
+    OrientationResponse,
     ReciprocalSpaceResponse,
+    ReflectionResponse,
     SphericalResponse,
     StringResponse,
 )
@@ -33,6 +35,7 @@ from diffcalc_api.models.ub import (
 )
 from diffcalc_api.services import ub as service
 from diffcalc_api.stores.protocol import HklCalcStore, get_store
+from diffcalc_api.types import Orientation, Position, Reflection
 
 router = APIRouter(prefix="/ub", tags=["ub"])
 
@@ -60,6 +63,48 @@ async def get_ub_status(
 #######################################################################################
 #                                     Reflections                                     #
 #######################################################################################
+
+
+@router.get("/{name}/reflection", response_model=ReflectionResponse)
+async def get_reflection(
+    name: str,
+    store: HklCalcStore = Depends(get_store),
+    collection: Optional[str] = Query(default=None, example="B07"),
+    tag: Optional[str] = Query(default=None, example="refl1"),
+    idx: Optional[int] = Query(default=None),
+):
+    """Get a reflection from the UBCalculation object.
+
+    Both tag and idx cannot be provided. One or the other must be provided.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+        tag: optional tag to access the reflection
+        idx: optional index to access the reflection
+
+    Returns:
+        ReflectionResponse
+        payload containing the reflection.
+    """
+    if (tag is None) and (idx is None):
+        raise NoTagOrIdxProvidedError()
+
+    if (tag is not None) and (idx is not None):
+        raise BothTagAndIdxProvidedError()
+
+    ref = await service.get_reflection(name, store, collection, tag, idx)
+
+    reflection = Reflection(
+        ref.h,
+        ref.k,
+        ref.l,
+        Position(**ref.pos.asdict),
+        ref.energy,
+        ref.tag,
+    )
+    return ReflectionResponse(payload=reflection)
 
 
 @router.post("/{name}/reflection", response_model=InfoResponse)
@@ -161,6 +206,50 @@ async def delete_reflection(
 #######################################################################################
 #                                    Orientations                                     #
 #######################################################################################
+
+
+@router.get("/{name}/orientation", response_model=OrientationResponse)
+async def get_orientation(
+    name: str,
+    store: HklCalcStore = Depends(get_store),
+    collection: Optional[str] = Query(default=None, example="B07"),
+    tag: Optional[str] = Query(default=None, example="refl1"),
+    idx: Optional[int] = Query(default=None),
+):
+    """Get an orientation from the UBCalculation object.
+
+    Both tag and idx cannot be provided. One or the other must be provided.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+        tag: optional tag to access the orientation
+        idx: optional index to access the orientation
+
+    Returns:
+        OrientationResponse
+        payload containing the orientation.
+    """
+    if (tag is None) and (idx is None):
+        raise NoTagOrIdxProvidedError()
+
+    if (tag is not None) and (idx is not None):
+        raise BothTagAndIdxProvidedError()
+
+    orient = await service.get_orientation(name, store, collection, tag, idx)
+
+    orientation = Orientation(
+        orient.h,
+        orient.k,
+        orient.l,
+        orient.x,
+        orient.y,
+        orient.z,
+        Position(**orient.pos.asdict),
+        orient.tag if orient.tag is not None else "",
+    )
+    return OrientationResponse(payload=orientation)
 
 
 @router.post("/{name}/orientation", response_model=InfoResponse)

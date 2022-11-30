@@ -8,13 +8,17 @@ from diffcalc.hkl.calc import HklCalculation
 from diffcalc.hkl.constraints import Constraints
 from diffcalc.hkl.geometry import Position
 from diffcalc.ub.calc import UBCalculation
+from diffcalc.ub.reference import Orientation, Reflection
 from fastapi.testclient import TestClient
 
 from diffcalc_api.errors.ub import (
+    BothTagAndIdxProvidedError,
     ErrorCodes,
     InvalidIndexError,
     NoCrystalError,
+    NoTagOrIdxProvidedError,
     NoUbMatrixError,
+    ReferenceRetrievalError,
 )
 from diffcalc_api.server import app
 from diffcalc_api.stores.protocol import get_store
@@ -114,6 +118,42 @@ def test_add_reflection():
     assert ubcalc.get_reflection("foo")
 
 
+def test_get_reflection():
+    ubcalc = UBCalculation()
+    hkl = HklCalculation(ubcalc, Constraints())
+    client = Client(hkl).client
+
+    ref = Reflection(0.0, 1.0, 0.0, Position(7, 0, 10, 0, 0, 0), 12, "")
+    ubcalc.reflist.reflections.append(ref)
+
+    response = client.get("/ub/test/reflection?idx=1")
+
+    assert response.status_code == 200
+    assert literal_eval(response.content.decode())["payload"] == ref.asdict
+
+
+def test_get_reflection_fails_for_wrong_inputs():
+    ubcalc = UBCalculation()
+    hkl = HklCalculation(ubcalc, Constraints())
+    client = Client(hkl).client
+
+    ref = Reflection(0.0, 1.0, 0.0, Position(7, 0, 10, 0, 0, 0), 12, "")
+    ubcalc.reflist.reflections.append(ref)
+
+    response_no_idx_or_tag = client.get("/ub/test/reflection?")
+    response_both_idx_and_tag = client.get("/ub/test/reflection?idx=1&tag=two")
+    response_wrong_idx = client.get("/ub/test/reflection?idx=2")
+    response_wrong_tag = client.get("/ub/test/reflection?tag=two")
+
+    def select_type(response):
+        return literal_eval(response.content.decode())["type"]
+
+    assert select_type(response_no_idx_or_tag) == str(NoTagOrIdxProvidedError)
+    assert select_type(response_both_idx_and_tag) == str(BothTagAndIdxProvidedError)
+    assert select_type(response_wrong_idx) == str(ReferenceRetrievalError)
+    assert select_type(response_wrong_tag) == str(ReferenceRetrievalError)
+
+
 def test_edit_reflection():
     ubcalc = UBCalculation()
     hkl = HklCalculation(ubcalc, Constraints())
@@ -184,6 +224,42 @@ def test_add_orientation():
 
     assert response.status_code == 200
     assert ubcalc.get_orientation("bar")
+
+
+def test_get_orientation():
+    ubcalc = UBCalculation()
+    hkl = HklCalculation(ubcalc, Constraints())
+    client = Client(hkl).client
+
+    orient = Orientation(0.0, 1.0, 0.0, 1.0, 0.0, 0.0, Position(), "")
+    ubcalc.orientlist.orientations.append(orient)
+
+    response = client.get("/ub/test/orientation?idx=1")
+
+    assert response.status_code == 200
+    assert literal_eval(response.content.decode())["payload"] == orient.asdict
+
+
+def test_get_orientation_fails_for_wrong_inputs():
+    ubcalc = UBCalculation()
+    hkl = HklCalculation(ubcalc, Constraints())
+    client = Client(hkl).client
+
+    orient = Orientation(0.0, 1.0, 0.0, 0.0, 1.0, 0.0, Position(7, 0, 10, 0, 0, 0), "")
+    ubcalc.orientlist.orientations.append(orient)
+
+    response_no_idx_or_tag = client.get("/ub/test/orientation?")
+    response_both_idx_and_tag = client.get("/ub/test/orientation?idx=1&tag=two")
+    response_wrong_idx = client.get("/ub/test/orientation?idx=2")
+    response_wrong_tag = client.get("/ub/test/orientation?tag=two")
+
+    def select_type(response):
+        return literal_eval(response.content.decode())["type"]
+
+    assert select_type(response_no_idx_or_tag) == str(NoTagOrIdxProvidedError)
+    assert select_type(response_both_idx_and_tag) == str(BothTagAndIdxProvidedError)
+    assert select_type(response_wrong_idx) == str(ReferenceRetrievalError)
+    assert select_type(response_wrong_tag) == str(ReferenceRetrievalError)
 
 
 def test_edit_orientation():

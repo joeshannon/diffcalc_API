@@ -5,6 +5,7 @@ from typing import List, Literal, Optional, Tuple, Union, cast
 import numpy as np
 from diffcalc.hkl.geometry import Position
 from diffcalc.ub.calc import UBCalculation
+from diffcalc.ub.reference import Orientation, Reflection
 
 from diffcalc_api.errors.ub import (
     InvalidIndexError,
@@ -46,6 +47,45 @@ async def get_ub_status(
 #######################################################################################
 #                                     Reflections                                     #
 #######################################################################################
+
+
+async def get_reflection(
+    name: str,
+    store: HklCalcStore,
+    collection: Optional[str],
+    tag: Optional[str],
+    idx: Optional[int],
+) -> Reflection:
+    """Get a reflection from the UBCalculation object.
+
+    Both tag and idx cannot be provided. One or the other must be provided.
+    This is enforced in the route for this function, see diffcalc_api/routes/ub.py.
+    An error is thrown if the reflection does not exist, i.e. cannot be retrieved.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+        tag: optional tag to access the reflection
+        idx: optional index to access the reflection
+
+    Returns:
+        Reflection
+        A reflection object, as defined in diffcalc_api.types.
+    """
+    hklcalc = await store.load(name, collection)
+    ubcalc: UBCalculation = hklcalc.ubcalc
+
+    retrieve: Union[int, str] = (
+        tag if tag is not None else (idx if idx is not None else 0)
+    )
+
+    try:
+        reflection = ubcalc.get_reflection(retrieve)
+    except (IndexError, ValueError):
+        raise ReferenceRetrievalError(retrieve, "reflection")
+
+    return reflection
 
 
 async def add_reflection(
@@ -167,6 +207,45 @@ async def delete_reflection(
 #######################################################################################
 
 
+async def get_orientation(
+    name: str,
+    store: HklCalcStore,
+    collection: Optional[str],
+    tag: Optional[str],
+    idx: Optional[int],
+) -> Orientation:
+    """Get an orientation from the UBCalculation object.
+
+    Both tag and idx cannot be provided. One or the other must be provided.
+    This is enforced in the route for this function, see diffcalc_api/routes/ub.py.
+    An error is thrown if the orientation does not exist, i.e. cannot be retrieved.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+        tag: optional tag to access the orientation
+        idx: optional index to access the orientation
+
+    Returns:
+        Orientation
+        An orientation object, as defined in diffcalc_api.types.
+    """
+    hklcalc = await store.load(name, collection)
+    ubcalc: UBCalculation = hklcalc.ubcalc
+
+    retrieve: Union[int, str] = (
+        tag if tag is not None else (idx if idx is not None else 0)
+    )
+
+    try:
+        orientation = ubcalc.get_orientation(retrieve)
+    except (IndexError, ValueError):
+        raise ReferenceRetrievalError(retrieve, "orientation")
+
+    return orientation
+
+
 async def add_orientation(
     name: str,
     params: AddOrientationParams,
@@ -226,7 +305,7 @@ async def edit_orientation(
     try:
         orientation = hklcalc.ubcalc.get_orientation(retrieve)
     except (IndexError, ValueError):
-        raise ReferenceRetrievalError(retrieve, "reflection")
+        raise ReferenceRetrievalError(retrieve, "orientation")
 
     inputs = {
         "idx": retrieve,
