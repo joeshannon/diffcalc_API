@@ -4,7 +4,6 @@ from typing import List, Optional, cast
 
 from fastapi import APIRouter, Body, Depends, Query
 
-from diffcalc_api.core_types import Orientation, Position, Reflection
 from diffcalc_api.errors.ub import (
     BothTagAndIdxProvidedError,
     InvalidSetLatticeParamsError,
@@ -15,8 +14,10 @@ from diffcalc_api.models.response import (
     ArrayResponse,
     InfoResponse,
     MiscutResponse,
+    Orientation,
     OrientationResponse,
     ReciprocalSpaceResponse,
+    Reflection,
     ReflectionResponse,
     SphericalResponse,
     StringResponse,
@@ -100,7 +101,7 @@ async def get_reflection(
         ref.h,
         ref.k,
         ref.l,
-        Position(**ref.pos.asdict),
+        PositionModel(**ref.pos.asdict),
         ref.energy,
         ref.tag,
     )
@@ -246,7 +247,7 @@ async def get_orientation(
         orient.x,
         orient.y,
         orient.z,
-        Position(**orient.pos.asdict),
+        PositionModel(**orient.pos.asdict),
         orient.tag if orient.tag is not None else "",
     )
     return OrientationResponse(payload=orientation)
