@@ -1,10 +1,16 @@
 """Pydantic models relating to all endpoint responses."""
-from typing import Dict, List
+from dataclasses import dataclass
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel
 
-from diffcalc_api.core_types import Orientation, Reflection
-from diffcalc_api.models.ub import HklModel, MiscutModel, SphericalCoordinates, XyzModel
+from diffcalc_api.models.ub import (
+    HklModel,
+    MiscutModel,
+    PositionModel,
+    SphericalCoordinates,
+    XyzModel,
+)
 
 
 class InfoResponse(BaseModel):
@@ -81,6 +87,38 @@ class MiscutResponse(BaseModel):
     """
 
     payload: MiscutModel
+
+
+@dataclass
+class Orientation:
+    """Reference orientation of the sample.
+
+    Similar to diffcalc.ub.reference.Orientation
+    """
+
+    h: float
+    k: float
+    l: float
+    x: float
+    y: float
+    z: float
+    pos: PositionModel
+    tag: Optional[str]
+
+
+@dataclass
+class Reflection:
+    """Reference reflection of the sample.
+
+    Similar to diffcalc.ub.reference.Reflection
+    """
+
+    h: float
+    k: float
+    l: float
+    pos: PositionModel
+    energy: float
+    tag: Optional[str]
 
 
 class ReflectionResponse(BaseModel):
