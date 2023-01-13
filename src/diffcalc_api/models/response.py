@@ -88,6 +88,7 @@ class MiscutResponse(BaseModel):
 
     payload: MiscutModel
 
+
 @dataclass
 class Orientation:
     """Reference orientation of the sample.
