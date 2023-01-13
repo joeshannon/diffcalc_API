@@ -33,7 +33,7 @@ nodeenv==1.7.0
 numpy==1.24.1
 packaging==23.0
 pathspec==0.10.2
-pep8-naming==0.13.2
+pep8-naming==0.13.3
 platformdirs==2.6.2
 pluggy==1.0.0
 pre-commit==2.21.0
