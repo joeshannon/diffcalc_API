@@ -34,7 +34,7 @@ numpy==1.23.5
 packaging==23.0
 pathspec==0.10.2
 pep8-naming==0.13.2
-platformdirs==2.5.4
+platformdirs==2.6.2
 pluggy==1.0.0
 pre-commit==2.20.0
 py==1.11.0
