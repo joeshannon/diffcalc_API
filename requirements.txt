@@ -10,7 +10,7 @@ coverage==7.0.4
 git+https://github.com/DiamondLightSource/diffcalc-core@addExtraFunctions#egg=diffcalc-core
 distlib==0.3.6
 docutils==0.19
-fastapi==0.89.0
+fastapi==0.89.1
 filelock==3.9.0
 flake8==6.0.0
 flake8-isort==6.0.0
