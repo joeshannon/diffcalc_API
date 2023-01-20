@@ -442,6 +442,32 @@ def test_set_miscut():
     assert ubcalc.U is not None
 
 
+def test_set_and_get_miscut():
+    ubcalc = UBCalculation()
+    hkl = HklCalculation(ubcalc, Constraints())
+    client = Client(hkl).client
+
+    # angle = 0.85212
+    # rotation_axis = {"x": -0.25142, "y": -0.96788, "z": 0.0}
+
+    angle = 11
+    rotation_axis = {"x": 0, "y": 1, "z": 0}
+
+    client.put(
+        "/ub/test/miscut?collection=B07",
+        params={"angle": angle, "add_miscut": False},
+        json=rotation_axis,
+    )
+
+    get_response = client.get("/ub/test/miscut?collection=B07")
+    get_response_payload = ast.literal_eval(get_response.content.decode())["payload"]
+
+    assert get_response_payload["angle"] == pytest.approx(angle)
+
+    for key, value in get_response_payload["rotation_axis"].items():
+        assert np.round(value, 5) == np.round(rotation_axis[key], 5)
+
+
 def test_calc_ub():
     ubcalc = UBCalculation()
     hkl = HklCalculation(ubcalc, Constraints())
