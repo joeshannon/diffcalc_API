@@ -1,4 +1,5 @@
 import ast
+import math
 from ast import literal_eval
 from typing import Dict
 
@@ -440,6 +441,62 @@ def test_set_miscut():
 
     assert response.status_code == 200
     assert ubcalc.U is not None
+
+
+def test_set_miscut_with_existing_u():
+    ubcalc = UBCalculation("LSMO_327_001")
+    hkl = HklCalculation(ubcalc, Constraints())
+    client = Client(hkl).client
+
+    ubcalc.set_lattice("LSMO_327", "Triclinic", 3.78, 3.78, 20.1, 90.0, 90.0, 90.0)
+    ubcalc.add_orientation(
+        [0, 0, 1], [0, 0, 1], Position(60.0585, 0, 90.4052, 0, -29.5624, 39.1178)
+    )
+    ubcalc.add_orientation(
+        [0, 1, 0], [0, 1, 0], Position(60.0585, 0, 90.4052, 0, -29.5624, 39.1178)
+    )
+    ubcalc.calc_ub()
+    ubcalc.n_phi = [0.0, 1.0, 0.0]
+
+    angle_in_rad = math.radians(11)
+    rotation_axis = {"x": 0, "y": 1, "z": 0}
+
+    client.put(
+        "/ub/test/miscut?collection=B07",
+        params={"angle": angle_in_rad, "add_miscut": True},
+        json=rotation_axis,
+    )
+
+    get_response = client.get("/ub/test/miscut?collection=B07")
+    get_response_payload = ast.literal_eval(get_response.content.decode())["payload"]
+
+    assert get_response_payload["angle"] == 1.0540812808041131
+
+
+def test_set_and_get_miscut():
+    ubcalc = UBCalculation()
+    hkl = HklCalculation(ubcalc, Constraints())
+    client = Client(hkl).client
+
+    # angle = 0.85212
+    # rotation_axis = {"x": -0.25142, "y": -0.96788, "z": 0.0}
+
+    angle_in_rad = math.radians(11)
+    rotation_axis = {"x": 0, "y": 1, "z": 0}
+
+    client.put(
+        "/ub/test/miscut?collection=B07",
+        params={"angle": angle_in_rad, "add_miscut": False},
+        json=rotation_axis,
+    )
+
+    get_response = client.get("/ub/test/miscut?collection=B07")
+    get_response_payload = ast.literal_eval(get_response.content.decode())["payload"]
+
+    assert get_response_payload["angle"] == pytest.approx(angle_in_rad)
+
+    for key, value in get_response_payload["rotation_axis"].items():
+        assert np.round(value, 5) == np.round(rotation_axis[key], 5)
 
 
 def test_calc_ub():
