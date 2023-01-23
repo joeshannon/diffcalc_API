@@ -53,6 +53,14 @@ class AddReflectionParams(BaseModel):
     energy: float
 
 
+class RefineUbParams(BaseModel):
+    """Request body definition to refine the UB matrix."""
+
+    hkl: HklModel
+    position: PositionModel
+    wavelength: float
+
+
 class AddOrientationParams(BaseModel):
     """Request body definition to add an orientation of the UB calculation."""
 

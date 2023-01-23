@@ -1,6 +1,7 @@
 import ast
 import math
 from ast import literal_eval
+from math import radians
 from typing import Dict
 
 import numpy as np
@@ -571,6 +572,43 @@ def test_set_ub():
         literal_eval(response.content.decode())["message"]
         == "UB matrix set for crystal test of collection B07"
     )
+
+
+def test_refine_ub():
+    ubcalc = UBCalculation()
+    hkl = HklCalculation(ubcalc, Constraints())
+    client = Client(hkl).client
+
+    ubcalc.set_lattice("LSMO_327", 3.78, 3.78, 20.1, 90, 90, 90)
+    ubcalc.add_orientation([0, 0, 1], [1, 0, 0])
+    ubcalc.add_orientation([0, 1, 0], [0, 1, 0])
+
+    ubcalc.calc_ub()
+
+    ubcalc.n_phi = [0.0, 1.0, 0.0]
+
+    ubcalc.set_miscut([1.0, 0.0, 0.0], radians(3))
+
+    ub_after_miscut = ubcalc.UB
+
+    client.patch(
+        "/ub/test/refine?collection=B07",
+        json={
+            "hkl": {"h": 0, "k": 0, "l": 2},
+            "position": {
+                "mu": 100.0,
+                "delta": 0.0,
+                "nu": 82.9408,
+                "eta": 0.0,
+                "chi": 30.31,
+                "phi": 0.0,
+            },
+            "wavelength": 13.3109,
+        },
+        params={"refine_lattice": 1, "refine_u_matrix": 1},
+    )
+
+    assert np.any(ubcalc.UB != ub_after_miscut)
 
 
 @pytest.mark.parametrize(
