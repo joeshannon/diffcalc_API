@@ -20,6 +20,7 @@ from diffcalc_api.models.ub import (
     EditReflectionParams,
     HklModel,
     PositionModel,
+    RefineUbParams,
     SetLatticeParams,
     XyzModel,
 )
@@ -610,6 +611,38 @@ async def set_ub(
 
     ubcalc: UBCalculation = hklcalc.ubcalc
     ubcalc.set_ub(ub_matrix)
+
+    await store.save(name, hklcalc, collection)
+
+
+async def refine_ub(
+    name: str,
+    params: RefineUbParams,
+    refine_lat: bool,
+    refine_u: bool,
+    store: HklCalcStore,
+    collection: Optional[str],
+) -> None:
+    """Refine the UB matrix to match the reflection given in the parameters.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        params: parameters for refining the UB matrix.
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+    """
+    hklcalc = await store.load(name, collection)
+
+    ubcalc: UBCalculation = hklcalc.ubcalc
+    hkl: Tuple[float, float, float] = params.hkl.h, params.hkl.k, params.hkl.l
+
+    ubcalc.refine_ub(
+        hkl,
+        Position(**params.position.dict()),
+        params.wavelength,
+        refine_lattice=refine_lat,
+        refine_umatrix=refine_u,
+    )
 
     await store.save(name, hklcalc, collection)
 

@@ -30,6 +30,7 @@ from diffcalc_api.models.ub import (
     HklModel,
     MiscutModel,
     PositionModel,
+    RefineUbParams,
     SetLatticeParams,
     SphericalCoordinates,
     XyzModel,
@@ -595,6 +596,35 @@ async def get_u(
     """
     content = await service.get_u(name, store, collection)
     return ArrayResponse(payload=content)
+
+
+@router.patch("/{name}/refine", response_model=InfoResponse)
+async def refine_ub(
+    name: str,
+    params: RefineUbParams = Body(...),
+    refine_lattice: bool = Query(default=False),
+    refine_u_matrix: bool = Query(default=False),
+    store: HklCalcStore = Depends(get_store),
+    collection: Optional[str] = Query(default=None, example="B07"),
+):
+    """Refine the UB matrix to match the diffractometer position to a given reflection.
+
+    Args:
+        name: the name of the hkl object to access within the store
+        params: the parameters to use to refine the UB matrix
+        store: accessor to the hkl object
+        collection: collection within which the hkl object resides
+
+    """
+    await service.refine_ub(
+        name, params, refine_lattice, refine_u_matrix, store, collection
+    )
+    return InfoResponse(
+        message=(
+            f"lattice has been set for UB calculation of crystal {name} in "
+            + f"collection {collection}"
+        )
+    )
 
 
 #######################################################################################
