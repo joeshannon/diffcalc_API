@@ -7,7 +7,7 @@ WORKDIR ${ENV_DIR}
 COPY . ${ENV_DIR}
 
 #Install dependencies
-RUN pip install . -c requirements.txt
+RUN pip install .
 
 
 #Run the API
