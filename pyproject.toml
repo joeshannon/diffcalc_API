@@ -49,8 +49,8 @@ dev = [
     "httpx",
 ]
 
-# [project.scripts]
-# diffcalc_api = "diffcalc_api.__main__:main"
+[project.scripts]
+diffcalc_api = "diffcalc_api.__main__:main"
 
 [project.urls]
 GitHub = "https://github.com/DiamondLightSource/diffcalc-api"
