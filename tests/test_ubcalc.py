@@ -1,5 +1,4 @@
 import ast
-import math
 from ast import literal_eval
 from math import radians
 from typing import Dict
@@ -459,7 +458,7 @@ def test_set_miscut_with_existing_u():
     ubcalc.calc_ub()
     ubcalc.n_phi = [0.0, 1.0, 0.0]
 
-    angle_in_rad = math.radians(11)
+    angle_in_rad = 11
     rotation_axis = {"x": 0, "y": 1, "z": 0}
 
     client.put(
@@ -474,6 +473,7 @@ def test_set_miscut_with_existing_u():
     assert get_response_payload["angle"] == 1.0540812808041131
 
 
+# TODO: PR to change get_miscut to return in degrees... current returns in rad.
 def test_set_and_get_miscut():
     ubcalc = UBCalculation()
     hkl = HklCalculation(ubcalc, Constraints())
@@ -482,19 +482,19 @@ def test_set_and_get_miscut():
     # angle = 0.85212
     # rotation_axis = {"x": -0.25142, "y": -0.96788, "z": 0.0}
 
-    angle_in_rad = math.radians(11)
+    angle = 11
     rotation_axis = {"x": 0, "y": 1, "z": 0}
 
     client.put(
         "/ub/test/miscut?collection=B07",
-        params={"angle": angle_in_rad, "add_miscut": False},
+        params={"angle": angle, "add_miscut": False},
         json=rotation_axis,
     )
 
     get_response = client.get("/ub/test/miscut?collection=B07")
     get_response_payload = ast.literal_eval(get_response.content.decode())["payload"]
 
-    assert get_response_payload["angle"] == pytest.approx(angle_in_rad)
+    assert get_response_payload["angle"] == pytest.approx(radians(angle))
 
     for key, value in get_response_payload["rotation_axis"].items():
         assert np.round(value, 5) == np.round(rotation_axis[key], 5)

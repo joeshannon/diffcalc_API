@@ -11,12 +11,5 @@
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
         "source.organizeImports": true
-    },
-    // "files.associations": {
-    //     "test_*.py": "test"
-    // },
-    // "[test]": {
-    //     "editor.formatOnSave": false
-    // },
-    "esbonio.sphinx.confDir": ""
+    }
 }
