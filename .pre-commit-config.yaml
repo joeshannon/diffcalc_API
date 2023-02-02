@@ -15,6 +15,7 @@ repos:
         language: system
         entry: black --check --diff
         types: [python]
+        exclude: ^src\/diffcalc_api\/_version.py
 
       - id: flake8
         name: Run flake8
