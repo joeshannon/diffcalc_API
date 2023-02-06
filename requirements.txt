@@ -15,7 +15,7 @@ filelock==3.9.0
 flake8==6.0.0
 flake8-isort==6.0.0
 h11==0.14.0
-identify==2.5.12
+identify==2.5.17
 idna==3.4
 imagesize==1.4.1
 importlib-metadata==6.0.0
