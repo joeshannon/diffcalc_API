@@ -1,8 +1,0 @@
-env/
-venv/
-.devcontainer/
-helm/
-htmlcov/
-build/
-.mypy_cache/
-.pytest_cache/
