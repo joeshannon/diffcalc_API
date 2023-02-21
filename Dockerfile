@@ -6,7 +6,6 @@ WORKDIR ${ENV_DIR}
 
 COPY . ${ENV_DIR}
 
-RUN ls .
-# RUN pip install .
+RUN pip install .
 
-# CMD ["uvicorn", "src.diffcalc_api.server:app", "--host", "0.0.0.0"]
+CMD ["uvicorn", "src.diffcalc_api.server:app", "--host", "0.0.0.0"]
