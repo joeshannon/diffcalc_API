@@ -152,6 +152,9 @@ jobs:
         id: buildx
         uses: docker/setup-buildx-action@v2
 
+      - name: Check working dir
+        run: ls .
+
       - name: Build runtime image
         uses: docker/build-push-action@v3
         with:
