@@ -8,4 +8,4 @@ COPY . ${ENV_DIR}
 
 RUN pip install .
 
-CMD ["uvicorn", "src.diffcalc_api.server:app", "--host", "0.0.0.0"]
+CMD ["diffcalc_api"]
