@@ -883,7 +883,7 @@ async def calculate_vector_from_hkl_and_offset(
     if ubcalc.UB is None:
         raise NoUbMatrixError()
 
-    offset_hkl = ubcalc.calc_vector_wrt_hkl_and_offset(
+    offset_hkl = ubcalc.get_hkl_from_polar_transform(
         (hkl_ref.h, hkl_ref.k, hkl_ref.l), polar_angle, azimuth_angle
     )
 
@@ -926,7 +926,7 @@ async def calculate_offset_from_vector_and_hkl(
     if hkl_offset == hkl_ref:
         offset = (0.0, 0.0, 1.0)
     else:
-        offset = ubcalc.calc_offset_wrt_vector_and_hkl(
+        offset = ubcalc.get_polar_transform_from_hkl(
             (hkl_offset.h, hkl_offset.k, hkl_offset.l),
             (hkl_ref.h, hkl_ref.k, hkl_ref.l),
         )

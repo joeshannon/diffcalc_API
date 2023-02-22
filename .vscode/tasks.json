@@ -6,7 +6,7 @@
         {
             "type": "shell",
             "label": "Tests with coverage",
-            "command": "pytest",
+            "command": "tox -p",
             "options": {
                 "cwd": "${workspaceRoot}"
             },

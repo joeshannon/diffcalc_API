@@ -1,14 +1,11 @@
 #Install python and copy over repo files
 FROM python:3.8
+ARG PIP_OPTIONS=.
 
 ENV ENV_DIR /diffcalc_api
 WORKDIR ${ENV_DIR}
-
 COPY . ${ENV_DIR}
 
-#Install dependencies
-RUN pip install . -c requirements.txt
+RUN pip install ${PIP_OPTIONS}
 
-
-#Run the API
-CMD ["uvicorn", "src.diffcalc_api.server:app", "--host", "0.0.0.0"]
+ENTRYPOINT ["diffcalc_api"]
