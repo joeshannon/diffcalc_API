@@ -8,4 +8,4 @@ COPY . ${ENV_DIR}
 
 RUN pip install ${PIP_OPTIONS}
 
-CMD ["diffcalc_api"]
+ENTRYPOINT ["diffcalc_api"]
