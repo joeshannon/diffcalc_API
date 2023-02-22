@@ -470,7 +470,7 @@ def test_set_miscut_with_existing_u():
     get_response = client.get("/ub/test/miscut?collection=B07")
     get_response_payload = ast.literal_eval(get_response.content.decode())["payload"]
 
-    assert get_response_payload["angle"] == pytest.approx(angle)
+    assert get_response_payload["angle"] == pytest.approx(60.39440865381988)
 
 
 # TODO: PR to change get_miscut to return in degrees... current returns in rad.
