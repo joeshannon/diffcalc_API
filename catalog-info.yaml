@@ -23,4 +23,4 @@ spec:
   lifecycle: production
   owner: user:ton99817
   definition:
-    $ref: https://raw.githubusercontent.com/DiamondLightSource/diffcalc-api/releases/download/latest/openapi.json
+    $text: https://raw.githubusercontent.com/DiamondLightSource/diffcalc-api/releases/download/latest/openapi.json
