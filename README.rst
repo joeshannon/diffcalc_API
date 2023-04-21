@@ -28,6 +28,10 @@ Or if it is a commandline tool then you might put some example commands here::
 
 No other features yet. 
 
+To test codecov.yaml, run:
+```
+curl -X POST --data-binary @codecov.yml https://codecov.io/validate
+```
 .. |code_ci| image:: https://github.com/dls-controls/diffcalc_api/workflows/Code%20CI/badge.svg?branch=master
     :target: https://github.com/dls-controls/diffcalc_api/actions?query=workflow%3A%22Code+CI%22
     :alt: Code CI
