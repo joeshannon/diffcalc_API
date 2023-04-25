@@ -14,7 +14,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
 ]
 dependencies = [
-    "diffcalc-core @ git+https://github.com/DiamondLightSource/diffcalc-core.git@getMiscut",
+    "diffcalc-core @ git+https://github.com/DiamondLightSource/diffcalc-core.git",
     "fastapi",
     "uvicorn",
     "pymongo",
