@@ -1,0 +1,26 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: diffcalc
+  title: diffcalc
+  description: service for accessing diffcalc-core library methods, with a mongo database backend.
+spec:
+  type: service
+  lifecycle: production
+  owner: user:ton99817
+  providesApis:
+    - diffcalc-api
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: diffcalc-api
+  title: diffcalc-api
+  description: REST API for the service
+spec:
+  type: openapi
+  lifecycle: production
+  owner: user:ton99817
+  definition:
+    $text: https://github.com/DiamondLightSource/diffcalc-api/releases/latest/download/openapi.json
